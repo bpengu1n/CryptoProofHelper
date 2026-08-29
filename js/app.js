@@ -39,7 +39,10 @@
          card('#/checklist', 'Before you submit', 'Self-review checklist') +
          card('#/search', 'Search', 'Across every page') +
          '</div>';
-    h += '<p class="kbd">Works fully offline. Add to your home screen to install.</p>';
+    h += window.CPInstall.standalone()
+      ? '<p class="kbd">Installed and fully offline.</p>'
+      : '<a class="card" href="#/install" style="margin-top:12px"><h3>Add to your ' +
+        'home screen</h3><p>Two taps, and it works with no connection.</p></a>';
     return { title: 'Proof Helper', html: h, tab: 'home' };
   }
   function card(href, hd, sub) {
@@ -310,6 +313,69 @@
     return a;
   }
 
+  function vInstall() {
+    var I = window.CPInstall;
+    var h = '';
+
+    if (I.standalone()) {
+      h += '<div class="card"><h3>Installed &#10003;</h3><p>You are running the ' +
+           'installed app. It works with no connection — the whole thing is on ' +
+           'the device.</p></div>';
+    }
+
+    var steps = {
+      ios: ['Open this page in <b>Safari</b> (Chrome and Firefox on iOS cannot ' +
+              'add to the home screen).',
+            'Tap the Share button ' + I.shareIcon + ' in the toolbar — bottom ' +
+              'centre on iPhone, top right on iPad.',
+            'Scroll down and tap <b>Add to Home Screen</b>.',
+            'Tap <b>Add</b>. The icon appears with your apps.',
+            'Open it once while online so it caches itself. After that, ' +
+              'airplane mode is fine.'],
+      android: ['Open this page in <b>Chrome</b>.',
+            'Tap the &#8942; menu, then <b>Install app</b> or <b>Add to Home screen</b>.',
+            'Confirm. Open it once while online so it caches itself.'],
+      desktop: ['In Chrome or Edge, click the install icon in the address bar ' +
+              '(or menu &rarr; <b>Install</b>).',
+            'In Safari on macOS, choose File &rarr; <b>Add to Dock</b>.']
+    };
+
+    var first = I.ios() ? 'ios' : (I.android() ? 'android' : 'desktop');
+    var names = { ios: 'iPhone &amp; iPad', android: 'Android', desktop: 'Desktop' };
+    var order = [first].concat(['ios', 'android', 'desktop'].filter(function (k) {
+      return k !== first;
+    }));
+
+    if (!I.standalone()) {
+      h += '<p class="lead">Adding it to your home screen is what makes it work ' +
+           'offline — and it opens without browser chrome, like any other app.</p>';
+    }
+
+    order.forEach(function (k, i) {
+      h += '<div class="eyebrow">' + names[k] + (i === 0 && !I.standalone() ?
+           ' &middot; you are here' : '') + '</div>';
+      h += '<ol class="steps">' + steps[k].map(function (x) {
+        return '<li>' + x + '</li>';
+      }).join('') + '</ol>';
+      if (k === 'android' && I.canPrompt()) {
+        h += '<button class="btn wide" id="doinstall">Install now</button>';
+      }
+    });
+
+    h += '<div class="note"><b>&#9888;</b> On iOS the app keeps its own storage: ' +
+         'your drafts, checklist and drill scores live in the installed copy, ' +
+         'separate from what you did in Safari.</div>';
+
+    return { title: 'Install', html: h, tab: 'home', back: '#/', after: function () {
+      var b = document.getElementById('doinstall');
+      if (b) b.onclick = function () {
+        window.CPInstall.prompt().then(function (ok) {
+          if (ok) b.textContent = 'Installed';
+        });
+      };
+    }};
+  }
+
   function vChecklist() {
     var done = S.get('checklist', {});
     var h = '<p class="lead">Run this over the proof before you hand it in. Most lost marks are ' +
@@ -425,11 +491,13 @@
     [/^\/build\/(.+)$/,      function (m) { return vBuilder(m[1]); }],
     [/^\/drill$/,            function () { return vDrill(); }],
     [/^\/checklist$/,        function () { return vChecklist(); }],
+    [/^\/install$/,          function () { return vInstall(); }],
     [/^\/search\/?(.*)$/,    function (m) { return vSearch(decodeURIComponent(m[1] || '')); }]
   ];
 
   function route() {
     var path = location.hash.replace(/^#/, '') || '/';
+    if (path === '/install') window.CPInstall.hide();
     var view = null;
     for (var i = 0; i < ROUTES.length; i++) {
       var m = path.match(ROUTES[i][0]);
@@ -472,6 +540,7 @@
 
   window.addEventListener('hashchange', route);
   route();
+  window.CPInstall.maybeBanner();
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {

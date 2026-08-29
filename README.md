@@ -21,20 +21,41 @@ an exam-prep room, wherever. No accounts, no network calls, no dependencies.
 
 Full-text search covers every page.
 
-## Installing it on a phone
+## Put it on your iPhone
 
-The app is a PWA, so it needs to be served over `http(s)` once; after that it
-runs entirely from cache.
+**[bpengu1n.github.io/CryptoProofHelper](https://bpengu1n.github.io/CryptoProofHelper/)** — open that on the phone, or scan:
 
-1. **Host it.** Any static host works. With GitHub Pages: push this branch, then
-   *Settings → Pages → Deploy from a branch*, and pick the branch and `/ (root)`.
-2. **Open the URL on the phone.**
-   - iOS Safari: Share → *Add to Home Screen*.
-   - Android Chrome: menu → *Add to Home screen* / *Install app*.
-3. Open it once while online so the service worker caches the bundle. After
-   that, airplane mode is fine.
+<img src="docs/install-qr.png" alt="QR code linking to the app" width="180">
 
-To run it locally instead:
+Then, in **Safari** (Chrome and Firefox on iOS cannot add to the home screen):
+
+1. Tap the Share button in the toolbar.
+2. Scroll down, tap **Add to Home Screen**, then **Add**.
+3. Open it once while online so it caches itself. After that it runs with no
+   connection at all.
+
+The app nudges you through those steps itself the first time you open it in
+iOS Safari, and `#/install` has the instructions for every platform.
+
+### First, switch Pages on (once per repo)
+
+Publishing is automatic — `.github/workflows/pages.yml` deploys every push to
+`main` — but GitHub needs to be told to accept it:
+
+**Settings → Pages → Source: GitHub Actions.**
+
+Then re-run the workflow (Actions → *Deploy to GitHub Pages* → *Run workflow*)
+or push any commit, and the URL above goes live in about a minute. If you
+forked or renamed the repo, your URL is
+`https://<owner>.github.io/<repo>/` — regenerate the QR with
+`pip install segno && python3 tools/make_qr.py`.
+
+The workflow publishes only the app itself; `tools/`, `docs/` and this README
+stay out of the deployed site. It also fails the build if a shipped file is
+missing from the service worker's precache list, since that would leave
+installed copies serving a half-updated app.
+
+### Running it locally instead
 
 ```sh
 python3 tools/serve.py        # http://localhost:8000
@@ -51,9 +72,11 @@ index.html              app shell + tab bar
 css/app.css             one stylesheet, light and dark
 js/math.js              tiny LaTeX-subset renderer (see below)
 js/store.js             localStorage, guarded for private mode
+js/install.js           add-to-home-screen prompts (iOS has no install API)
 js/app.js               hash router and views
 js/data/*.js            all content: concepts, techniques, examples, drills, templates
 sw.js                   cache-first service worker
+.github/workflows/      GitHub Pages deployment
 tools/                  dev helpers (not shipped to the phone)
 ```
 
@@ -73,8 +96,11 @@ After any content edit:
 
 ```sh
 node tools/lint-content.js    # unbalanced $, unrendered markup
-node tools/smoke.js           # every route renders, no console errors (needs: npm i playwright)
+node tools/smoke.js           # every route renders, no console errors
+node tools/test-install.js    # iOS nudge, Pages subpath, offline after the origin dies
 ```
+
+The last two need playwright (`npm i playwright`).
 
 `lint-content.js` exists because markup mistakes fail silently — a `**bold**`
 that spans a `$math$` boundary, or an unclosed `$`, renders as literal noise
