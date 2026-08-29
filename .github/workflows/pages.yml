@@ -1,0 +1,60 @@
+# Publishes the app to GitHub Pages on every push to main.
+# One-time setup: Settings -> Pages -> Source: "GitHub Actions".
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish; queue at most one more.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No build step: the app is plain HTML/CSS/JS. Stage only what ships,
+      # so dev tooling and the README stay out of the published site.
+      - name: Stage site
+        run: |
+          mkdir -p _site
+          cp index.html manifest.webmanifest sw.js _site/
+          cp -r css js icons _site/
+          test -f _site/index.html && test -f _site/js/app.js
+
+      - name: Guard against a stale service-worker cache
+        run: |
+          # Every shipped file must be precached, or an installed copy will
+          # serve a mix of old and new after a deploy.
+          missing=0
+          for f in $(cd _site && find . -type f \
+                     \( -name '*.html' -o -name '*.js' -o -name '*.css' \
+                        -o -name '*.png' -o -name '*.webmanifest' \) \
+                     -not -name 'sw.js' | sed 's|^\./||'); do
+            grep -q "'\./$f'" _site/sw.js || { echo "not precached in sw.js: $f"; missing=1; }
+          done
+          exit $missing
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
