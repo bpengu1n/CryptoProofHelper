@@ -80,23 +80,32 @@ offline caching.
 ```
 index.html              app shell + tab bar
 css/app.css             one stylesheet, light and dark
-js/math.js              tiny LaTeX-subset renderer (see below)
-js/store.js             localStorage, guarded for private mode
-js/install.js           add-to-home-screen prompts (iOS has no install API)
+js/store.js             this app's localStorage instance (see vendor/ below)
+js/install.js           this app's add-to-home-screen banner (see vendor/ below)
 js/app.js               hash router and views
 js/data/primer.js       the primer, notation glossary, and suggested route
 js/data/*.js            all content: concepts, techniques, examples, drills, templates
+vendor/puzzlepieces/    git submodule (github.com/bpengu1n/PuzzlePieces):
+                          the math renderer, localStorage wrapper, and PWA
+                          install-prompt detection, shared with other projects
 sw.js                   cache-first service worker
 .github/workflows/      GitHub Pages deployment
 tools/                  dev helpers (not shipped to the phone)
 ```
 
+Reusable pieces of this app — anything that isn't specific to teaching
+crypto proofs — live in [PuzzlePieces](https://github.com/bpengu1n/PuzzlePieces)
+and are pulled in here as a git submodule rather than owned by this repo.
+A fresh clone needs `git submodule update --init --recursive` before the app
+will run. See `AGENTS.md` for the full rationale and the workflow for
+changing anything under `vendor/puzzlepieces/`.
+
 **Why a hand-rolled math renderer.** KaTeX and MathJax load from a CDN, which
 would defeat an offline app, and vendoring them costs hundreds of kilobytes for
-a subset of notation this app never uses. `js/math.js` (~200 lines) renders the
-subset that actually appears in crypto proofs — `\Adv`, `\negl`, `\rand`,
-`\bits`, sub/superscripts, fractions, greek, the standard relation and set
-symbols — as styled HTML.
+a subset of notation this app never uses. `vendor/puzzlepieces/js/math-renderer`
+(~200 lines) renders the subset that actually appears in crypto proofs —
+`\Adv`, `\negl`, `\rand`, `\bits`, sub/superscripts, fractions, greek, the
+standard relation and set symbols — as styled HTML.
 
 ## Editing the content
 

@@ -22,15 +22,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       # No build step: the app is plain HTML/CSS/JS. Stage only what ships,
-      # so dev tooling and the README stay out of the published site.
+      # so dev tooling and the README (this repo's and PuzzlePieces') stay
+      # out of the published site — including each vendored module's own
+      # README, so only its .js file is copied.
       - name: Stage site
         run: |
           mkdir -p _site
           cp index.html manifest.webmanifest sw.js _site/
           cp -r css js icons _site/
+          for m in math-renderer local-store pwa-install-detect; do
+            mkdir -p _site/vendor/puzzlepieces/js/$m
+            cp vendor/puzzlepieces/js/$m/$m.js _site/vendor/puzzlepieces/js/$m/
+          done
           test -f _site/index.html && test -f _site/js/app.js
+          test -f _site/vendor/puzzlepieces/js/math-renderer/math-renderer.js
 
       - name: Guard against a stale service-worker cache
         run: |
