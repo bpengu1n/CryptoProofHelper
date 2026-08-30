@@ -130,8 +130,10 @@ pre.out{background:var(--bg2);border:1px solid var(--line);border-radius:12px;pa
 nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
   background:color-mix(in srgb,var(--bg) 97%,transparent);backdrop-filter:blur(16px);
   border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
-nav.tabs a{flex:1;padding:8px 2px 7px;text-align:center;text-decoration:none;color:var(--fg3);
-  font-size:10.5px;font-weight:600;letter-spacing:.01em}
+nav.tabs a{flex:1;min-width:0;padding:8px 1px 7px;text-align:center;text-decoration:none;
+  color:var(--fg3);font-size:10.5px;font-weight:600;letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:clip}
+@media (max-width:360px){nav.tabs a{font-size:9.5px;letter-spacing:0}}
 nav.tabs a .ic{display:block;font-size:19px;line-height:1.25;margin-bottom:1px}
 nav.tabs a.on{color:var(--accent)}
 /* ---------- install ---------- */
@@ -151,3 +153,46 @@ ol.steps b{color:var(--fg);font-weight:620}
 .ib-x{background:none;border:0;color:var(--fg3);font-size:22px;line-height:1;padding:2px 6px;cursor:pointer}
 .empty{color:var(--fg3);text-align:center;padding:40px 10px;font-size:15px}
 .kbd{font-size:12.5px;color:var(--fg3);margin-top:18px;text-align:center}
+
+/* ---------- plain-English layer ---------- */
+/* Every dense page opens with this: the same claim without the machinery.
+   Deliberately quiet — it sits above the formal statement, not instead of it. */
+.plain{border-left:3px solid var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent);
+  padding:12px 14px;border-radius:0 12px 12px 0;margin:0 0 14px;font-size:15px;color:var(--fg)}
+.plain b{display:block;color:var(--ok);font-size:11.5px;text-transform:uppercase;
+  letter-spacing:.09em;font-weight:700;margin-bottom:5px}
+.pre{font-size:13.5px;color:var(--fg3);margin:-4px 0 16px;line-height:1.5}
+.pre b{color:var(--fg2);font-weight:600}
+.pre a{color:var(--accent);text-decoration:none}
+/* ---------- primer ---------- */
+.card.hero{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));
+  background:color-mix(in srgb,var(--accent) 8%,var(--bg2))}
+.card.hero h3{color:var(--accent)}
+.chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,var(--line))}
+.lead.sm{font-size:14px;margin:-4px 0 12px}
+.card.lesson h3{display:flex;gap:9px;align-items:baseline}
+.card.lesson .tick{flex:none;color:var(--fg3);font-size:13px}
+.card.lesson.read .tick{color:var(--ok)}
+.card.lesson.read h3{color:var(--fg2)}
+.card.slim h3{margin:0;color:var(--accent);font-weight:600;font-size:15px}
+.card.step-card h3{display:flex;gap:10px;align-items:flex-start;line-height:1.4}
+.card.step-card .num{margin-top:0}
+.card.step-card.read{border-color:color-mix(in srgb,var(--ok) 35%,var(--line))}
+.card.worked{background:var(--bg3)}
+.card.worked h3{margin-bottom:8px}
+.card.worked .prose p:last-child{margin-bottom:0}
+/* Symbol/plain-reading pairs, in the lessons and the notation page. */
+dl.jargon{margin:0 0 14px;padding:0}
+dl.jargon dt{font-size:15px;font-weight:600;margin:0 0 2px}
+dl.jargon dd{margin:0 0 11px;padding:0 0 0 14px;border-left:2px solid var(--line);
+  color:var(--fg2);font-size:14.5px}
+dl.jargon.sym dd b{display:block;color:var(--fg);font-weight:600;margin-bottom:1px}
+/* Check-yourself questions: the answer stays hidden until asked for. */
+.qa{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;
+  margin:0 0 10px}
+.qa .qq{margin:0 0 10px;font-size:15px}
+.btn.sm{padding:7px 12px;font-size:13.5px;border-radius:9px}
+.qans{margin-top:11px;padding:11px 12px;border-radius:10px;background:var(--bg3);
+  font-size:14.5px;color:var(--fg2);border-left:3px solid var(--ok)}
+.row.nav{margin-top:18px}
+.row.nav .btn{margin-bottom:0;text-decoration:none;line-height:1.4}

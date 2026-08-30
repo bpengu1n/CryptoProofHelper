@@ -3,6 +3,10 @@ window.CP_EXAMPLES = [
   {
     id: 'prg-onetime',
     title: 'PRG $\\implies$ one-time secrecy',
+    plain: 'The scheme is a one-time pad whose pad came out of a generator instead of out of thin air. So ' +
+      'the proof does the obvious thing: swap the generated pad for a genuinely random one — that swap ' +
+      'costs exactly the generator\'s security — and then finish with the one-time pad argument, where ' +
+      'the ciphertext is uniform and carries no information at all.',
     technique: 'reduction',
     difficulty: 'warm-up',
     claim: 'Let $G:\\bits^{\\lambda}\\to\\bits^{\\ell}$ be a PRG. Then $\\Enc_k(m) = G(k)\\oplus m$ is one-time indistinguishable (EAV-secure) for $m \\in \\bits^{\\ell}$.',
@@ -35,6 +39,10 @@ window.CP_EXAMPLES = [
   {
     id: 'prg-hybrid',
     title: 'Hybrid argument: $q$ pseudorandom strings',
+    plain: 'You know one pseudorandom string is safe; you want $q$ of them to be safe. Line up $q+1$ ' +
+      'intermediate worlds, where world $i$ has the first $i$ strings real and the rest random. ' +
+      'Neighbouring worlds differ in exactly one string, which is precisely the case your assumption ' +
+      'covers, and $q$ steps of a small loss is still a small loss because $q$ is polynomial.',
     technique: 'hybrid',
     difficulty: 'core',
     claim: 'If $G$ is a PRG, then for any polynomial $q(\\lambda)$, the tuple $(G(k_1),\\ldots,G(k_q))$ with independent $k_i \\rand \\bits^{\\lambda}$ is indistinguishable from $q$ uniform strings.',
@@ -64,6 +72,10 @@ window.CP_EXAMPLES = [
   {
     id: 'prf-ctr',
     title: 'PRF $\\implies$ IND-CPA (randomized counter mode)',
+    plain: 'Counter mode encrypts by masking each block with $F_k$ applied to a counter value. Replace $F_k$ ' +
+      'with a genuinely random function — that costs the PRF\'s security — and then every mask is a ' +
+      'fresh random string, so the ciphertext is a one-time pad, unless two counter values ever ' +
+      'coincide. Bound that coincidence with a birthday argument and you are done.',
     technique: 'gamehop',
     difficulty: 'core',
     claim: 'Let $F$ be a PRF on $n$-bit blocks. Randomized CTR mode — $\\Enc_k(m) = (IV,\\ m \\oplus (F_k(IV+1)\\|\\cdots\\|F_k(IV+\\ell)))$ for $IV \\rand \\bits^{n}$ — is IND-CPA.',
@@ -97,6 +109,11 @@ window.CP_EXAMPLES = [
   {
     id: 'elgamal',
     title: 'DDH $\\implies$ ElGamal is IND-CPA',
+    plain: 'An ElGamal ciphertext is the message multiplied by $g^{xy}$, and the DDH assumption says nobody ' +
+      'can tell $g^{xy}$ from a random group element. So hand the attacker a DDH challenge dressed as a ' +
+      'public key and ciphertext: if the challenge was real it is playing the true game, and if it was ' +
+      'random the message is masked by a random element and it is guessing. Its edge on the scheme ' +
+      'becomes your edge on DDH.',
     technique: 'reduction',
     difficulty: 'core',
     claim: 'In a prime-order group $\\G = \\langle g \\rangle$ where DDH holds, ElGamal ($pk = g^{x}$, $\\Enc_{pk}(m) = (g^{y},\\ m\\cdot pk^{y})$) is IND-CPA.',
@@ -127,6 +144,10 @@ window.CP_EXAMPLES = [
   {
     id: 'etm',
     title: 'Encrypt-then-MAC gives IND-CCA',
+    plain: 'Encrypt-then-MAC gets chosen-ciphertext security in two moves. First, argue that the attacker ' +
+      'can never get a decryption query answered for a ciphertext it did not receive from you, because ' +
+      'doing so would mean forging a MAC. Once that is settled the decryption oracle stops being useful ' +
+      'to it, and what remains is ordinary chosen-plaintext security of the encryption.',
     technique: 'gamehop',
     difficulty: 'advanced',
     claim: 'If $\\Pi_E$ is IND-CPA and $\\Pi_M$ is strongly unforgeable (with an independent key), then $\\Enc\'_{k_e,k_m}(m) = (c, t)$ with $c \\gets \\Enc_{k_e}(m)$, $t \\gets \\Mac_{k_m}(c)$ is IND-CCA.',
@@ -160,6 +181,10 @@ window.CP_EXAMPLES = [
   {
     id: 'otp',
     title: 'Perfect secrecy of the one-time pad, and Shannon\'s bound',
+    plain: 'This one proves a limit rather than a scheme: perfect secrecy forces the key to be at least as ' +
+      'long as the message. The argument is pure counting — with fewer keys than messages, some message ' +
+      'cannot be reached from a given ciphertext, and that asymmetry is itself the information leak. No ' +
+      'hardness assumption appears anywhere, which is the signature of an impossibility result.',
     technique: 'infotheoretic',
     difficulty: 'warm-up',
     claim: 'The OTP over $\\bits^{n}$ is perfectly secret; and any perfectly secret scheme needs $|\\calK| \\ge |\\calM|$.',
@@ -186,6 +211,10 @@ window.CP_EXAMPLES = [
   {
     id: 'merkle',
     title: 'Merkle-Damg&#229;rd preserves collision resistance',
+    plain: 'Merkle-Damgard builds a hash for long messages by chaining a small compression function block by ' +
+      'block. The proof shows that any collision in the long hash forces a collision somewhere in the ' +
+      'chain: walk the two colliding messages backwards from the end, and the first place their ' +
+      'chaining values agree while their inputs differ is your collision in the compression function.',
     technique: 'reduction',
     difficulty: 'core',
     claim: 'If the compression function $h:\\bits^{n+r}\\to\\bits^{n}$ is collision resistant, then MD with length-strengthening padding is collision resistant.',
@@ -215,6 +244,11 @@ window.CP_EXAMPLES = [
   {
     id: 'hashed-elgamal',
     title: 'Hashed ElGamal from CDH in the ROM',
+    plain: 'Hashing the Diffie-Hellman value before using it as a key means the proof only needs the ' +
+      'attacker to be unable to *compute* $g^{xy}$, rather than unable to recognise it — a weaker and ' +
+      'hence better assumption. The random-oracle model makes that work: unless the attacker actually ' +
+      'queries the hash on $g^{xy}$, its answer is a fresh random key, and if it does query it then ' +
+      'reading its questions hands you the CDH solution.',
     technique: 'romprog',
     difficulty: 'advanced',
     claim: 'In the random oracle model, $\\Enc_{pk}(m) = (g^{y},\\ H(pk^{y})\\oplus m)$ is IND-CPA under CDH.',

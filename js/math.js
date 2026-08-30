@@ -129,6 +129,11 @@
       }
       case 'overline':
         return '<span class="mover">' + render(this.arg()) + '</span>';
+      case 'sqrt':
+        return '<span class="msym">\u221a</span><span class="mover">' + render(this.arg()) + '</span>';
+      case 'pmod':                                   // "(mod n)", with the space before it
+        return '<span class="mquad"></span><span class="msym">(</span><span class="mu">mod</span> ' +
+               render(this.arg()) + '<span class="msym">)</span>';
       case 'hat':
         return render(this.arg()) + '\u0302';
       case 'tfrac': {

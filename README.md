@@ -4,6 +4,11 @@ An offline mobile app for learning to **think through and write proofs** in a
 graduate applied-cryptography course. It is not a formula sheet: every page is
 organised around the move you make next.
 
+It starts further back than that suggests. A built-in primer teaches the
+discrete maths and the proof-writing basics the rest of the app assumes, so
+someone who has never written a proof — or met a quantifier — can start at the
+beginning and arrive at the worked proofs able to read them.
+
 It installs to a phone home screen and runs with the radio off — on a train, in
 an exam-prep room, wherever. No accounts, no network calls, no dependencies.
 
@@ -11,15 +16,20 @@ an exam-prep room, wherever. No accounts, no network calls, no dependencies.
 
 | Section | What it is for |
 | --- | --- |
-| **Start** | Triage. Nine descriptions of "what you have been asked to prove", each pointing at the technique that handles it. |
+| **Start** | Two doors: the primer for a cold start, and triage — nine descriptions of "what you have been asked to prove", each pointing at the technique that handles it. |
+| **Basics** | The primer: 19 lessons in three tracks. *Ground floor* — sets and strings, probability, counting and pigeonhole, modular arithmetic, groups and discrete log, growth rates, logic and quantifiers. *Writing proofs* — what a proof is, direct, contrapositive and contradiction, induction, cases and counterexamples, how to write one down. *Crypto ideas* — why security must be proved, keys and randomness, adversaries and oracles, games and advantage, what a reduction is without symbols. Each lesson carries a worked example, a "saying it out loud" glossary, and hidden-answer self-checks. |
+| **Notation** | Every symbol the app uses — 48 of them — with how you say it out loud and what it means, filterable. |
 | **Techniques** | The playbook: reduction, game hopping, hybrid arguments, identical-until-bad, the switching lemma, random-oracle programming, rewinding, simulation, information-theoretic counting. Each has *when to reach for it*, a numbered skeleton, and the specific ways it goes wrong. |
 | **Proofs** | Eight worked proofs — PRG one-time secrecy, the hybrid ladder, PRF ⟹ IND-CPA for CTR mode, DDH ⟹ ElGamal, encrypt-then-MAC ⟹ IND-CCA, one-time-pad optimality, Merkle–Damgård, hashed ElGamal in the ROM. Every step carries a **"why this step"** note naming the move that produced it, so you can learn the reasoning rather than memorise the algebra. |
 | **Build** | Guided prompts that emit a LaTeX proof skeleton with the structure already correct. Drafts save on-device; copy the result into your problem set. |
-| **Drill** | 18 items in two flavours: *which technique applies* and *spot the flaw* — the flaws are the ones that actually cost marks. |
+| **Drill** | 34 items in three sets: *warm-up* (the primer material), *which technique applies*, and *spot the flaw* — the flaws are the ones that actually cost marks. Options are reshuffled per question. |
 | **Foundations** | The ten definitions you must be able to state cold, each with a "watch out" list. |
 | **Checklist** | A pre-submission self-review, saved between sessions. |
 
-Full-text search covers every page.
+Every technique, definition and worked proof opens with an **In plain English**
+box saying the same thing without the machinery, and links back to the primer
+lessons it assumes. Full-text search covers every page, primer and notation
+included.
 
 ## Put it on your iPhone
 
@@ -74,6 +84,7 @@ js/math.js              tiny LaTeX-subset renderer (see below)
 js/store.js             localStorage, guarded for private mode
 js/install.js           add-to-home-screen prompts (iOS has no install API)
 js/app.js               hash router and views
+js/data/primer.js       the primer, notation glossary, and suggested route
 js/data/*.js            all content: concepts, techniques, examples, drills, templates
 sw.js                   cache-first service worker
 .github/workflows/      GitHub Pages deployment
@@ -101,6 +112,12 @@ node tools/test-install.js    # iOS nudge, Pages subpath, offline after the orig
 ```
 
 The last two need playwright (`npm i playwright`).
+
+`smoke.js` also asserts the things a reader would notice before a test would:
+that the drill reshuffles its options (every item stores its correct answer
+first, so a fixed order would make the whole drill guessable), that
+check-yourself answers stay hidden until asked for, and that search reaches the
+primer.
 
 `lint-content.js` exists because markup mistakes fail silently — a `**bold**`
 that spans a `$math$` boundary, or an unclosed `$`, renders as literal noise

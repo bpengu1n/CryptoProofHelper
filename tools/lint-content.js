@@ -3,7 +3,7 @@
  */
 global.window = {};
 require(require('path').join(__dirname, '..', 'js', 'math.js'));
-['concepts','techniques','examples','drills','templates'].forEach(f =>
+['primer','concepts','techniques','examples','drills','templates'].forEach(f =>
   require(require('path').join(__dirname, '..', 'js', 'data', f + '.js')));
 const M = window.CPMath;
 
@@ -39,7 +39,8 @@ function walk(v, path) {
   else if (v && typeof v === 'object')
     Object.keys(v).forEach(k => { if (typeof v[k] !== 'function') walk(v[k], path + '.' + k); });
 }
-['CP_CONCEPTS','CP_TECHNIQUES','CP_EXAMPLES','CP_DRILLS','CP_TRIAGE','CP_CHECKLIST']
+['CP_PRIMER','CP_TRACKS','CP_GLOSSARY','CP_PATH','CP_CONCEPTS','CP_TECHNIQUES',
+ 'CP_EXAMPLES','CP_DRILLS','CP_TRIAGE','CP_CHECKLIST']
   .forEach(k => walk(window[k], k));
 
 if (!issues.length) console.log('content lint: clean');
