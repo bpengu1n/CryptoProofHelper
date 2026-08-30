@@ -8,7 +8,7 @@
       TEMPLATES = window.CP_TEMPLATES, TRIAGE = window.CP_TRIAGE,
       CHECKLIST = window.CP_CHECKLIST, PRIMER = window.CP_PRIMER,
       TRACKS = window.CP_TRACKS, GLOSSARY = window.CP_GLOSSARY,
-      PATH = window.CP_PATH;
+      PATH = window.CP_PATH, COURSE = window.CP_COURSE;
 
   var main = document.getElementById('main'),
       title = document.getElementById('title'),
@@ -50,7 +50,10 @@
 
     var h = '<p class="lead">Two ways in. Learn the groundwork from scratch, or jump straight to the ' +
             'technique that matches the problem in front of you.</p>';
-    h += '<a class="card hero" href="#/primer"><h3>New to this? Start here</h3>' +
+    h += '<a class="card hero" href="#/course"><h3>&#128218; Bellare &amp; Rogaway Course</h3>' +
+         '<p>Chapters 1 &amp; 2 in a friendly format: channel models, substitution ciphers, the one-time pad, and perfect security — with inline quizzes and a scored mastery test per chapter.</p>' +
+         '<span class="chip ok">' + (doneCount ? doneCount + ' of ' + PRIMER.length + ' primer lessons read' : 'interactive &middot; offline') + '</span></a>';
+    h += '<a class="card" href="#/primer"><h3>&#9650; New to the maths? Start with the Primer</h3>' +
          '<p>' + PRIMER.length + ' short lessons assuming nothing past high-school algebra: the ' +
          'discrete maths, how proofs actually work, and what a security definition is saying.</p>' +
          (doneCount
@@ -565,6 +568,358 @@
     }};
   }
 
+  /* ========================== Course (B&R) ========================== */
+
+  function courseVisited() { return S.get('course:visited', {}); }
+  function markChapterVisited(id) {
+    var v = courseVisited(); if (v[id]) return; v[id] = 1; S.set('course:visited', v);
+  }
+  function courseQuizKey(id) { return 'course:quiz:' + id; }
+
+  /* SVG diagrams – keyed by the section.anim field. */
+  function animHTML(key) {
+    if (key === 'channel') return '' +
+      '<figure class="anim-fig" aria-label="Channel model: Alice, channel, Bob, Eve">' +
+      '<svg viewBox="0 0 380 190" xmlns="http://www.w3.org/2000/svg">' +
+      '<style>' +
+        '.af{font:13px/1.4 system-ui,sans-serif;fill:currentColor}' +
+        '.af-sm{font-size:11px;opacity:.6}' +
+        '@keyframes cpkt{0%{transform:translateX(0);opacity:1}45%{transform:translateX(52px);opacity:1}' +
+          '55%{transform:translateX(52px);opacity:0}56%{transform:translateX(0);opacity:0}100%{transform:translateX(0);opacity:1}}' +
+        '@keyframes ceav{0%,100%{opacity:.25}50%{opacity:.9}}' +
+        '.af-pkt{animation:cpkt 2.2s linear infinite}' +
+        '.af-eav{animation:ceav 2.2s ease-in-out infinite}' +
+      '</style>' +
+      '<defs><marker id="aar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">' +
+        '<path d="M0,0 L0,6 L7,3z" fill="currentColor" opacity=".45"/></marker></defs>' +
+      /* Alice */ '<rect x="8" y="40" width="82" height="56" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="49" y="63" text-anchor="middle" class="af" font-weight="600">Alice</text>' +
+      '<text x="49" y="82" text-anchor="middle" class="af af-sm">(sender S)</text>' +
+      /* Channel */ '<rect x="149" y="40" width="82" height="56" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="190" y="60" text-anchor="middle" class="af" font-weight="600">Channel</text>' +
+      '<text x="190" y="78" text-anchor="middle" class="af af-sm">adversary</text>' +
+      '<text x="190" y="92" text-anchor="middle" class="af af-sm">controls this</text>' +
+      /* Bob */ '<rect x="290" y="40" width="82" height="56" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="331" y="63" text-anchor="middle" class="af" font-weight="600">Bob</text>' +
+      '<text x="331" y="82" text-anchor="middle" class="af af-sm">(receiver R)</text>' +
+      /* Arrows */ '<line x1="90" y1="68" x2="149" y2="68" stroke="currentColor" stroke-opacity=".4" marker-end="url(#aar)"/>' +
+      '<line x1="231" y1="68" x2="290" y2="68" stroke="currentColor" stroke-opacity=".4" marker-end="url(#aar)"/>' +
+      /* Animated packet */ '<g class="af-pkt"><rect x="97" y="61" width="30" height="14" rx="3" fill="#7aa2f7" opacity=".85"/>' +
+      '<text x="112" y="73" text-anchor="middle" style="font:9px system-ui;fill:#0b0e12">msg</text></g>' +
+      /* Eve */ '<rect x="149" y="130" width="82" height="40" rx="8" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="190" y="155" text-anchor="middle" class="af" font-weight="600">Eve (A)</text>' +
+      /* Tap line */ '<line x1="190" y1="130" x2="190" y2="96" stroke="currentColor" stroke-dasharray="4,3" class="af-eav"/>' +
+      '<text x="207" y="120" class="af af-sm">reads!</text>' +
+      '</svg>' +
+      '<figcaption>The channel model: every bit Alice sends passes through infrastructure Eve controls. Cryptography hides the content even so.</figcaption>' +
+      '</figure>';
+
+    if (key === 'trust-models') return '' +
+      '<figure class="anim-fig" aria-label="Symmetric vs public-key encryption">' +
+      '<svg viewBox="0 0 380 160" xmlns="http://www.w3.org/2000/svg">' +
+      '<style>.af{font:12px/1.4 system-ui,sans-serif;fill:currentColor}.af-lbl{font-size:10px;opacity:.6}</style>' +
+      /* Symmetric side */ '<text x="95" y="18" text-anchor="middle" class="af" font-weight="700">Symmetric</text>' +
+      '<rect x="8" y="28" width="60" height="36" rx="8" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="38" y="51" text-anchor="middle" class="af">Alice</text>' +
+      '<rect x="122" y="28" width="60" height="36" rx="8" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="152" y="51" text-anchor="middle" class="af">Bob</text>' +
+      '<line x1="68" y1="46" x2="122" y2="46" stroke="#7aa2f7" stroke-opacity=".7"/>' +
+      '<text x="95" y="42" text-anchor="middle" class="af" style="font-size:10px;fill:#7aa2f7">K</text>' +
+      '<text x="95" y="84" text-anchor="middle" class="af af-lbl">shared secret key</text>' +
+      /* Separator */ '<line x1="190" y1="20" x2="190" y2="150" stroke="currentColor" stroke-opacity=".15"/>' +
+      /* Public-key side */ '<text x="285" y="18" text-anchor="middle" class="af" font-weight="700">Public-key</text>' +
+      '<rect x="200" y="28" width="60" height="36" rx="8" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="230" y="51" text-anchor="middle" class="af">Alice</text>' +
+      '<rect x="312" y="28" width="60" height="36" rx="8" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="342" y="51" text-anchor="middle" class="af">Bob</text>' +
+      '<text x="342" y="92" text-anchor="middle" class="af" style="font-size:10px;fill:#9d7cd8">pk (public)</text>' +
+      '<text x="342" y="106" text-anchor="middle" class="af" style="font-size:10px;fill:#e57a7a">sk (private)</text>' +
+      '<line x1="260" y1="46" x2="312" y2="46" stroke="#9d7cd8" stroke-opacity=".7" stroke-dasharray="3,2"/>' +
+      '<text x="286" y="42" text-anchor="middle" class="af" style="font-size:10px;fill:#9d7cd8">pk</text>' +
+      '<text x="285" y="84" text-anchor="middle" class="af af-lbl">no prior meeting needed</text>' +
+      '</svg>' +
+      '<figcaption>Symmetric encryption requires a shared secret key. Public-key encryption lets anyone encrypt using a published key; only the key holder can decrypt.</figcaption>' +
+      '</figure>';
+
+    if (key === 'subst-cipher') {
+      var letters = 'ABCDEFGHIJKLM', mapped = 'QWERTYUIOPASDF';
+      var svgRows = '';
+      for (var ci = 0; ci < 13; ci++) {
+        var x = 14 + ci * 27;
+        svgRows += '<rect x="' + (x-1) + '" y="8" width="22" height="22" rx="4" fill="none" stroke="currentColor" stroke-opacity=".25"/>' +
+                   '<text x="' + (x+10) + '" y="24" text-anchor="middle" style="font:13px/1 system-ui;fill:currentColor;font-weight:600">' + letters[ci] + '</text>' +
+                   '<line x1="' + (x+10) + '" y1="30" x2="' + (x+10) + '" y2="44" stroke="currentColor" stroke-opacity=".3" marker-end="url(#sar)"/>' +
+                   '<rect x="' + (x-1) + '" y="44" width="22" height="22" rx="4" fill="#7aa2f7" fill-opacity=".15" stroke="#7aa2f7" stroke-opacity=".4"/>' +
+                   '<text x="' + (x+10) + '" y="60" text-anchor="middle" style="font:13px/1 system-ui;fill:#7aa2f7;font-weight:600">' + mapped[ci] + '</text>';
+      }
+      return '<figure class="anim-fig" aria-label="Substitution cipher alphabet mapping">' +
+        '<svg viewBox="0 0 365 90" xmlns="http://www.w3.org/2000/svg">' +
+        '<defs><marker id="sar" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">' +
+        '<path d="M0,0 L0,5 L5,2.5z" fill="currentColor" opacity=".3"/></marker></defs>' +
+        svgRows +
+        '<text x="182" y="84" text-anchor="middle" style="font:10px system-ui;fill:currentColor;opacity:.5">A–M shown; N–Z continue similarly</text>' +
+        '</svg>' +
+        '<figcaption>Each plaintext letter maps to a fixed ciphertext letter. The mapping is consistent and reversible — but it preserves frequency patterns.</figcaption>' +
+        '</figure>';
+    }
+
+    if (key === 'freq-analysis') {
+      var freqs = [
+        {l:'E',f:12.7},{l:'T',f:9.1},{l:'A',f:8.2},{l:'O',f:7.5},{l:'I',f:7.0},
+        {l:'N',f:6.7},{l:'S',f:6.3},{l:'H',f:6.1},{l:'R',f:6.0},{l:'D',f:4.3},
+        {l:'L',f:4.0},{l:'C',f:2.8},{l:'U',f:2.8}
+      ];
+      var maxF = 13.5, bw = 22, gap = 4, leftPad = 24;
+      var bars = '';
+      freqs.forEach(function (d, i) {
+        var x = leftPad + i * (bw + gap);
+        var bh = Math.round((d.f / maxF) * 90);
+        var top = 100 - bh;
+        var accent = i < 6;
+        bars += '<rect x="' + x + '" y="' + top + '" width="' + bw + '" height="' + bh + '" rx="3" fill="' +
+                (accent ? '#7aa2f7' : 'currentColor') + '" ' + (accent ? '' : 'opacity=".3"') + '/>' +
+                '<text x="' + (x + bw/2) + '" y="114" text-anchor="middle" style="font:11px system-ui;fill:currentColor;opacity:.7">' + d.l + '</text>' +
+                '<text x="' + (x + bw/2) + '" y="' + (top - 3) + '" text-anchor="middle" style="font:9px system-ui;fill:' +
+                (accent ? '#7aa2f7' : 'currentColor') + ';opacity:' + (accent ? '1' : '.5') + '">' + d.f + '</text>';
+      });
+      return '<figure class="anim-fig" aria-label="English letter frequencies">' +
+        '<svg viewBox="0 0 390 128" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="195" y="12" text-anchor="middle" style="font:11px system-ui;fill:currentColor;opacity:.6">English letter frequency (%) — top 6 highlighted</text>' +
+        bars +
+        '</svg>' +
+        '<figcaption>The top six letters (E, T, A, O, I, N) account for over half of all letters in typical English text. A substitution cipher maps each to a fixed ciphertext letter, so this pattern is visible in the ciphertext too.</figcaption>' +
+        '</figure>';
+    }
+
+    if (key === 'otp-xor') return '' +
+      '<figure class="anim-fig" aria-label="One-time pad XOR encryption">' +
+      '<svg viewBox="0 0 360 130" xmlns="http://www.w3.org/2000/svg">' +
+      '<style>.xf{font:13px/1.4 ui-monospace,monospace;fill:currentColor}.xl{font:11px system-ui;fill:currentColor;opacity:.6}</style>' +
+      /* Labels */ '<text x="8" y="36" class="xl">M (message)</text>' +
+      '<text x="8" y="72" class="xl">K (key)</text>' +
+      '<text x="8" y="108" class="xl">C = M⊕K</text>' +
+      /* Bits row M */ '<text x="130" y="36" class="xf">1</text><text x="155" y="36" class="xf">0</text>' +
+      '<text x="180" y="36" class="xf">1</text><text x="205" y="36" class="xf">1</text>' +
+      '<text x="230" y="36" class="xf">0</text><text x="255" y="36" class="xf">1</text><text x="280" y="36" class="xf">0</text>' +
+      /* Bits row K */ '<text x="130" y="72" style="font:13px ui-monospace,monospace;fill:#9d7cd8">0</text>' +
+      '<text x="155" y="72" style="font:13px ui-monospace,monospace;fill:#9d7cd8">1</text>' +
+      '<text x="180" y="72" style="font:13px ui-monospace,monospace;fill:#9d7cd8">1</text>' +
+      '<text x="205" y="72" style="font:13px ui-monospace,monospace;fill:#9d7cd8">0</text>' +
+      '<text x="230" y="72" style="font:13px ui-monospace,monospace;fill:#9d7cd8">1</text>' +
+      '<text x="255" y="72" style="font:13px ui-monospace,monospace;fill:#9d7cd8">1</text>' +
+      '<text x="280" y="72" style="font:13px ui-monospace,monospace;fill:#9d7cd8">0</text>' +
+      /* Divider */ '<line x1="120" y1="78" x2="310" y2="78" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="118" y="76" text-anchor="end" style="font:12px ui-monospace,monospace;fill:currentColor;opacity:.5">⊕</text>' +
+      /* Bits row C */ '<text x="130" y="108" style="font:13px ui-monospace,monospace;fill:#7aa2f7">1</text>' +
+      '<text x="155" y="108" style="font:13px ui-monospace,monospace;fill:#7aa2f7">1</text>' +
+      '<text x="180" y="108" style="font:13px ui-monospace,monospace;fill:#7aa2f7">0</text>' +
+      '<text x="205" y="108" style="font:13px ui-monospace,monospace;fill:#7aa2f7">1</text>' +
+      '<text x="230" y="108" style="font:13px ui-monospace,monospace;fill:#7aa2f7">1</text>' +
+      '<text x="255" y="108" style="font:13px ui-monospace,monospace;fill:#7aa2f7">0</text>' +
+      '<text x="280" y="108" style="font:13px ui-monospace,monospace;fill:#7aa2f7">0</text>' +
+      '<text x="315" y="108" class="xl">← ciphertext</text>' +
+      '</svg>' +
+      '<figcaption>XOR each message bit with a key bit to get the ciphertext. Applying K again recovers M: C⊕K = (M⊕K)⊕K = M. The key is never reused.</figcaption>' +
+      '</figure>';
+
+    return '';
+  }
+
+  /* Inline multiple-choice quiz for a section. */
+  function sectionQuizHTML(items, quizId) {
+    if (!items || !items.length) return '';
+    var h = '<div class="eyebrow">Check your understanding</div>';
+    items.forEach(function (item, i) {
+      var key = quizId + ':' + i;
+      h += '<div class="cq-block" data-key="' + esc(key) + '" data-answer="' + item.answer + '">' +
+           '<p class="cq-q">' + t(item.q) + '</p>';
+      item.opts.forEach(function (opt, j) {
+        h += '<button class="cq-opt" data-j="' + j + '">' + t(opt) + '</button>';
+      });
+      h += '<div class="cq-why" hidden>' + t(item.why) + '</div></div>';
+    });
+    return h;
+  }
+
+  /* Mastery quiz at bottom of chapter: scored, result saved. */
+  function masteryQuizHTML(chId) {
+    var ch = byId(COURSE, chId);
+    if (!ch || !ch.mastery || !ch.mastery.length) return '';
+    var saved = S.get(courseQuizKey(chId), null);
+    var h = '<div class="eyebrow">Chapter mastery quiz</div>' +
+            '<p class="lead sm">Answer all questions to gauge your understanding. Your best score is saved.</p>';
+    if (saved) h += '<div class="cq-saved">Your best score: <b>' + saved + ' / ' + ch.mastery.length + '</b></div>';
+    h += '<div id="mastery-quiz"></div>' +
+         '<button class="btn wide" id="mastery-start">Start quiz</button>';
+    return h;
+  }
+
+  function vCourse() {
+    var visited = courseVisited();
+    var unlocked = COURSE.filter(function (c) { return !c.locked; });
+    var done = 0;
+    unlocked.forEach(function (c) { if (visited[c.id]) done++; });
+
+    var h = '<p class="lead">A walkthrough of Bellare &amp; Rogaway\'s <em>Introduction to Modern Cryptography</em>, ' +
+            'one chapter at a time. Each chapter has worked examples, inline quizzes, and a scored mastery test at the end.</p>';
+
+    if (done) {
+      h += '<div class="progress"><i style="width:' + Math.round(100 * done / unlocked.length) + '%"></i></div>' +
+           '<p class="score">' + done + ' of ' + unlocked.length + ' chapters opened</p>';
+    }
+
+    h += '<div class="eyebrow">Available now</div>';
+    COURSE.forEach(function (ch) {
+      if (ch.locked) return;
+      var v = visited[ch.id];
+      var score = S.get(courseQuizKey(ch.id), null);
+      h += '<a class="card chapter-card' + (v ? ' visited' : '') + '" href="#/course/' + ch.id + '">' +
+           '<h3><span class="ch-num">Ch ' + ch.num + '</span>' + esc(ch.title) + '</h3>' +
+           '<p>' + esc(ch.blurb) + '</p>';
+      if (score !== null) h += '<span class="chip ok">quiz ' + score + '/' + ch.mastery.length + '</span>';
+      else if (v) h += '<span class="chip">opened</span>';
+      h += '</a>';
+    });
+
+    h += '<div class="eyebrow">Coming soon</div><div class="grid">';
+    COURSE.forEach(function (ch) {
+      if (!ch.locked) return;
+      h += '<div class="card locked-card"><span class="ch-num sm">Ch ' + ch.num + '</span>' +
+           '<h3>' + esc(ch.title) + '</h3><p>' + esc(ch.blurb) + '</p></div>';
+    });
+    h += '</div>';
+
+    h += '<div class="note"><b>&#8594;</b> Start with the Basics primer if any of the maths feels unfamiliar — ' +
+         'it covers sets, functions, probability, and proof technique in plain English before you need them here.</div>';
+    return { title: 'Course', html: h, tab: 'course' };
+  }
+
+  function vChapter(id) {
+    var ch = byId(COURSE, id);
+    if (!ch || ch.locked) return notFound();
+    markChapterVisited(id);
+
+    var h = '<p class="lead">' + esc(ch.blurb) + '</p>';
+
+    /* Sections */
+    ch.sections.forEach(function (sec) {
+      h += '<h2 class="sec-heading">' + esc(sec.title) + '</h2>';
+      h += '<div class="prose">';
+      sec.body.forEach(function (para) {
+        /* Display-math blocks get their own paragraph treatment */
+        if (para.slice(0, 2) === '$$') {
+          h += '<p class="mathblock">' + t(para.replace(/^\$\$|\$\$$/g, '')) + '</p>';
+        } else {
+          h += '<p>' + t(para) + '</p>';
+        }
+      });
+      h += '</div>';
+      if (sec.anim) h += animHTML(sec.anim);
+      if (sec.quiz && sec.quiz.length) h += sectionQuizHTML(sec.quiz, sec.id);
+    });
+
+    /* Mastery quiz */
+    h += '<div class="ch-divider"></div>';
+    h += masteryQuizHTML(id);
+
+    /* Navigation */
+    var chList = COURSE.filter(function (c) { return !c.locked; });
+    var at = 0; chList.forEach(function (c, i) { if (c.id === id) at = i; });
+    h += '<div class="row nav">' +
+         '<a class="btn ghost" href="#/course">&#8249; Course map</a>' +
+         (at < chList.length - 1
+           ? '<a class="btn" href="#/course/' + chList[at+1].id + '">Next chapter &#8250;</a>'
+           : '') +
+         '</div>';
+
+    return { title: 'Ch ' + ch.num + ': ' + ch.title, html: h, tab: 'course', back: '#/course',
+      after: function () {
+        /* Inline section quiz interactivity */
+        Array.prototype.forEach.call(main.querySelectorAll('.cq-block'), function (block) {
+          var correct = parseInt(block.dataset.answer, 10);
+          var why = block.querySelector('.cq-why');
+          Array.prototype.forEach.call(block.querySelectorAll('.cq-opt'), function (btn) {
+            btn.onclick = function () {
+              if (btn.disabled) return;
+              var j = parseInt(btn.dataset.j, 10);
+              Array.prototype.forEach.call(block.querySelectorAll('.cq-opt'), function (b) {
+                b.disabled = true;
+                var bj = parseInt(b.dataset.j, 10);
+                if (bj === correct) b.className = 'cq-opt right';
+                else if (bj === j) b.className = 'cq-opt wrong';
+              });
+              why.hidden = false;
+            };
+          });
+        });
+
+        /* Mastery quiz */
+        var startBtn = document.getElementById('mastery-start');
+        var quizBox  = document.getElementById('mastery-quiz');
+        if (!startBtn || !quizBox) return;
+        startBtn.onclick = function () {
+          startBtn.hidden = true;
+          var items = shuffle(ch.mastery.slice());
+          var state = { i: 0, right: 0 };
+
+          function paintQ() {
+            if (state.i >= items.length) return finish();
+            var item = items[state.i];
+            var perm = shuffle(item.opts.map(function (_, k) { return k; }));
+            var ansPos = perm.indexOf(item.answer);
+            var html = '<div class="progress"><i style="width:' + Math.round(100 * state.i / items.length) + '%"></i></div>' +
+                       '<p class="score">Question ' + (state.i+1) + ' of ' + items.length + '</p>' +
+                       '<div class="card"><div class="prose"><p>' + t(item.q) + '</p></div></div>';
+            perm.forEach(function (orig, k) {
+              html += '<button class="opt mq-opt" data-k="' + k + '" data-ans="' + ansPos + '">' +
+                      t(item.opts[orig]) + '</button>';
+            });
+            quizBox.innerHTML = html;
+            Array.prototype.forEach.call(quizBox.querySelectorAll('.mq-opt'), function (b) {
+              b.onclick = function () {
+                var k = parseInt(b.dataset.k, 10), ans = parseInt(b.dataset.ans, 10);
+                Array.prototype.forEach.call(quizBox.querySelectorAll('.mq-opt'), function (x) {
+                  x.disabled = true;
+                  var xk = parseInt(x.dataset.k, 10);
+                  if (xk === ans) x.className = 'opt right';
+                  else if (xk === k) x.className = 'opt wrong';
+                });
+                if (k === ans) state.right++;
+                var why = document.createElement('div');
+                why.className = 'why';
+                why.innerHTML = '<b>' + (k === ans ? 'Correct.' : 'Not quite.') + '</b> ' + t(item.why);
+                quizBox.appendChild(why);
+                var nx = document.createElement('button');
+                nx.className = 'btn wide'; nx.style.marginTop = '12px';
+                nx.textContent = state.i < items.length - 1 ? 'Next question' : 'See results';
+                nx.onclick = function () { state.i++; paintQ(); window.scrollTo(0,0); };
+                quizBox.appendChild(nx);
+                why.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              };
+            });
+          }
+
+          function finish() {
+            var total = items.length;
+            var prev = S.get(courseQuizKey(id), 0);
+            if (state.right > prev) S.set(courseQuizKey(id), state.right);
+            quizBox.innerHTML = '<div class="card"><h3>' + state.right + ' / ' + total + '</h3>' +
+              '<p>' + (state.right === total
+                ? 'Perfect. On to the next chapter.'
+                : 'Review the explanations above, then try again.') + '</p></div>' +
+              '<button class="btn wide" id="mq-again">Try again (reshuffled)</button>' +
+              '<a class="btn wide ghost" href="#/course">Back to course map</a>';
+            document.getElementById('mq-again').onclick = function () {
+              state.i = 0; state.right = 0;
+              items = shuffle(ch.mastery.slice()); paintQ(); window.scrollTo(0,0);
+            };
+          }
+          paintQ();
+        };
+      }
+    };
+  }
+
   function shuffle(a) {
     a = a.slice();
     for (var i = a.length - 1; i > 0; i--) {
@@ -704,6 +1059,13 @@
           kind: 'Notation', text: it.n + ' ' + it.p + ' ' + g.g });
       });
     });
+    COURSE.forEach(function (ch) {
+      if (ch.locked) return;
+      INDEX.push({ href: '#/course/' + ch.id, title: 'Ch ' + ch.num + ': ' + ch.title,
+        kind: 'Course', text: ch.blurb + ' ' + (ch.sections || []).map(function (s) {
+          return s.title + ' ' + s.body.join(' ');
+        }).join(' ') });
+    });
     return INDEX;
   }
 
@@ -772,7 +1134,9 @@
     [/^\/drill\/(.+)$/,      function (m) { return vDrill(m[1]); }],
     [/^\/checklist$/,        function () { return vChecklist(); }],
     [/^\/install$/,          function () { return vInstall(); }],
-    [/^\/search\/?(.*)$/,    function (m) { return vSearch(decodeURIComponent(m[1] || '')); }]
+    [/^\/search\/?(.*)$/,    function (m) { return vSearch(decodeURIComponent(m[1] || '')); }],
+    [/^\/course$/,           function () { return vCourse(); }],
+    [/^\/course\/(.+)$/,     function (m) { return vChapter(m[1]); }]
   ];
 
   function route() {
