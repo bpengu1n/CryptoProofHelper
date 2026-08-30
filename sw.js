@@ -1,10 +1,13 @@
 /* Cache-first service worker: the app must work with the radio off.
  * Bump CACHE on every content change to roll users onto the new bundle. */
-var CACHE = 'cph-v4';
+var CACHE = 'cph-v5';
 var ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './css/app.css',
-  './js/math.js', './js/store.js', './js/install.js', './js/app.js',
+  './vendor/puzzlepieces/js/math-renderer/math-renderer.js',
+  './vendor/puzzlepieces/js/local-store/local-store.js',
+  './vendor/puzzlepieces/js/pwa-install-detect/pwa-install-detect.js',
+  './js/store.js', './js/install.js', './js/app.js',
   './js/data/course.js', './js/data/primer.js', './js/data/concepts.js',
   './js/data/techniques.js', './js/data/examples.js',
   './js/data/drills.js', './js/data/templates.js',

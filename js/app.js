@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  var M = window.CPMath, S = window.CPStore;
+  var M = window.MathRenderer, S = window.CPStore;
   var CONCEPTS = window.CP_CONCEPTS, TECHS = window.CP_TECHNIQUES,
       EXAMPLES = window.CP_EXAMPLES, DRILLS = window.CP_DRILLS,
       TEMPLATES = window.CP_TEMPLATES, TRIAGE = window.CP_TRIAGE,

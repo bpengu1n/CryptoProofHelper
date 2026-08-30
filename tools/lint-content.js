@@ -2,10 +2,10 @@
  * No dependencies:  node tools/lint-content.js
  */
 global.window = {};
-require(require('path').join(__dirname, '..', 'js', 'math.js'));
+require(require('path').join(__dirname, '..', 'vendor', 'puzzlepieces', 'js', 'math-renderer', 'math-renderer.js'));
 ['primer','concepts','techniques','examples','drills','templates'].forEach(f =>
   require(require('path').join(__dirname, '..', 'js', 'data', f + '.js')));
-const M = window.CPMath;
+const M = window.MathRenderer;
 
 /** Prose chunks of a string: everything outside $...$ / $$...$$. */
 function prose(s) {

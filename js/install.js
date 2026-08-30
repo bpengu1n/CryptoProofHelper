@@ -1,45 +1,15 @@
-/* Install affordances.
- *
- * iOS has no install API at all: Safari only offers Share -> Add to Home
- * Screen, and nothing in JS can trigger or detect it. So on iOS the best we
- * can do is show the steps, pointed at the right button. Android/desktop
- * Chrome fire `beforeinstallprompt`, which we capture and replay on a tap.
+/* This app's install banner. Platform detection and beforeinstallprompt
+ * capture come from vendor/puzzlepieces/js/pwa-install-detect — change
+ * that there, not here. This file only owns the banner UI, its copy, and
+ * where "dismissed"/"installed" get remembered.
  */
 (function (root) {
   'use strict';
 
+  var D = root.PwaInstallDetect;
   var S = root.CPStore;
 
-  function standalone() {
-    // iOS uses the legacy navigator.standalone; everyone else display-mode.
-    return root.navigator.standalone === true ||
-           !!(root.matchMedia && root.matchMedia('(display-mode: standalone)').matches);
-  }
-
-  function ios() {
-    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) return true;
-    // iPadOS 13+ reports a Mac user agent; touch points give it away.
-    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
-  }
-
-  // On iOS every browser is WebKit, but only Safari can add to the home screen.
-  function iosSafari() {
-    return ios() && !/CriOS|FxiOS|EdgiOS|OPiOS|Chrome/.test(navigator.userAgent);
-  }
-
-  function android() { return /Android/.test(navigator.userAgent); }
-
-  var deferredPrompt = null;
-  root.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();            // keep the mini-infobar off; we place our own
-    deferredPrompt = e;
-    document.documentElement.classList.add('can-install');
-  });
-  root.addEventListener('appinstalled', function () {
-    deferredPrompt = null;
-    S.set('installed', true);
-    hideBanner();
-  });
+  D.onInstalled(function () { S.set('installed', true); hideBanner(); });
 
   /** The iOS share glyph, so the instruction points at a recognisable shape. */
   var SHARE_SVG =
@@ -74,20 +44,12 @@
   }
 
   root.CPInstall = {
-    standalone: standalone,
-    ios: ios,
-    iosSafari: iosSafari,
-    android: android,
-    canPrompt: function () { return !!deferredPrompt; },
-
-    /** Fire the captured Chrome install prompt. Resolves to true if accepted. */
-    prompt: function () {
-      if (!deferredPrompt) return Promise.resolve(false);
-      var p = deferredPrompt;
-      deferredPrompt = null;
-      p.prompt();
-      return p.userChoice.then(function (c) { return c.outcome === 'accepted'; });
-    },
+    standalone: D.standalone,
+    ios: D.ios,
+    iosSafari: D.iosSafari,
+    android: D.android,
+    canPrompt: D.canPrompt,
+    prompt: D.prompt,
 
     shareIcon: SHARE_SVG,
 
@@ -96,8 +58,8 @@
 
     /** Nudge iOS Safari users once; they have no other way to discover this. */
     maybeBanner: function () {
-      if (standalone() || S.get('install:dismissed', false) || S.get('installed', false)) return;
-      if (!iosSafari()) return;
+      if (D.standalone() || S.get('install:dismissed', false) || S.get('installed', false)) return;
+      if (!D.iosSafari()) return;
       if (location.hash === '#/install') return;
       setTimeout(showBanner, 1200);   // let the page settle first
     }

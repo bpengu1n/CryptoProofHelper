@@ -18,7 +18,7 @@ CryptoProofHelper is an offline-first Progressive Web App (PWA) that teaches app
 
 - **No build step.** No bundler, no transpiler, no package manager required for the app itself. Plain HTML + CSS + ES5 JS.
 - **No CDN URLs in page JS or CSS.** The service worker caches a fixed asset list; any URL not in that list won't be available offline and will also be blocked by the SW on first load.
-- **No external dependencies at runtime.** KaTeX, MathJax, and similar math renderers require a CDN — use the custom `CPMath` renderer in `js/math.js` instead.
+- **No external dependencies at runtime.** KaTeX, MathJax, and similar math renderers require a CDN — use `window.MathRenderer` (from `vendor/puzzlepieces/js/math-renderer`) instead.
 - **ES5 only in app code.** The codebase targets old WebKit (iOS Safari 12). Arrow functions, `let`/`const`, template literals, and `class` syntax work on modern browsers but break this target. Use `var`, `function`, and string concatenation.
 - **Service worker CACHE version must be bumped on every shipped file change.** See [Service worker](#service-worker) below.
 
@@ -31,9 +31,8 @@ index.html                 Shell — tabs, router anchor, script tags
 css/
   app.css                  All styles; dark-mode via @media prefers-color-scheme
 js/
-  math.js                  Custom LaTeX-subset renderer (no deps)
-  store.js                 LocalStorage wrappers
-  install.js               PWA install-prompt logic
+  store.js                 Instantiates this app's CPStore from vendor/puzzlepieces
+  install.js               This app's install-banner UI, wrapping vendor/puzzlepieces
   app.js                   Router, views, all UI logic
 js/data/
   course.js                window.CP_COURSE — B&R course chapters
@@ -43,15 +42,60 @@ js/data/
   examples.js              window.CP_EXAMPLES — worked examples
   drills.js                window.CP_DRILLS — drill/quiz sets
   templates.js             window.CP_TEMPLATES — proof-draft templates
+vendor/puzzlepieces/       Git submodule: github.com/bpengu1n/PuzzlePieces
+  js/math-renderer/        Custom LaTeX-subset renderer (window.MathRenderer)
+  js/local-store/          Guarded localStorage wrapper (window.LocalStore)
+  js/pwa-install-detect/   PWA install-prompt platform detection (window.PwaInstallDetect)
+  python/                  Dev tools this repo's tools/ scripts wrap (see below)
 sw.js                      Cache-first service worker
 manifest.webmanifest       PWA manifest
 icons/                     App icons (192, 512, 180, maskable-512)
 tools/
-  serve.py                 Dev server (localhost:8000); required for SW
+  serve.py                 Dev server (localhost:8000); wraps vendor/puzzlepieces/python/static-dev-server
+  make_icons.py            Icon drawing; wraps vendor/puzzlepieces/python/png-writer
+  make_qr.py               Install-QR generator; wraps vendor/puzzlepieces/python/pages-qr
   lint-content.js          Content linter (no deps)
   smoke.js                 Playwright smoke test
   test-install.js          Playwright PWA install test
 ```
+
+### The `vendor/puzzlepieces` submodule
+
+Anything in this app that is generic enough to be useful outside it — the
+math renderer, the localStorage wrapper, PWA install-prompt detection, and
+a few no-dependency dev tools — lives in the
+[PuzzlePieces](https://github.com/bpengu1n/PuzzlePieces) repo instead of
+here, and is pulled in as a git submodule at `vendor/puzzlepieces`.
+
+**This repo does not own those files. Never edit anything under
+`vendor/puzzlepieces/` directly** — it is a pinned commit of another repo;
+edits made there are invisible outside this checkout and are silently
+discarded the next time the submodule pointer is updated. If a fix or a new
+capability is needed in one of those modules:
+
+1. Make the change in the PuzzlePieces repo itself (clone/open it
+   separately if it isn't already available alongside this checkout),
+   following its own `AGENTS.md`. Commit and push it there.
+2. Come back here, update the submodule pointer, and commit that:
+   ```bash
+   cd vendor/puzzlepieces && git pull origin <branch> && cd ../..
+   git add vendor/puzzlepieces
+   git commit -m "vendor/puzzlepieces: pull in <what changed>"
+   ```
+3. If the change affects this app's behavior (e.g. a `MathRenderer` API
+   change), update `js/app.js` and this file's usage notes in the same
+   commit.
+
+A fresh clone of this repo needs the submodule initialized before the app
+will run:
+
+```bash
+git submodule update --init --recursive
+```
+
+If something in this app currently feels app-specific but is really
+general-purpose, extract it into PuzzlePieces rather than growing it here
+— see that repo's `AGENTS.md` for the extraction workflow.
 
 ---
 
@@ -89,7 +133,7 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v4'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v5'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
@@ -102,23 +146,24 @@ Failing to bump the cache means users who already have the app installed will ke
 
 ## Math markup
 
-The renderer (`js/math.js`) exposes two functions on `window.CPMath`:
+The renderer lives in `vendor/puzzlepieces/js/math-renderer` (submodule —
+see above) and exposes two functions on `window.MathRenderer`:
 
 | Call | Use |
 |------|-----|
-| `CPMath.render(src)` | Pure math expression → HTML |
-| `CPMath.text(src)` | Prose with embedded `$...$` / `$$...$$` → HTML |
+| `MathRenderer.render(src)` | Pure math expression → HTML |
+| `MathRenderer.text(src)` | Prose with embedded `$...$` / `$$...$$` → HTML |
 
-In `app.js`, `M` aliases `window.CPMath` and `t(s)` is shorthand for `M.text(s)`.
+In `app.js`, `M` aliases `window.MathRenderer` and `t(s)` is shorthand for `M.text(s)`.
 
 ### Supported syntax
 
 - `$inline math$` and `$$display math$$` delimiters inside prose strings passed to `t()`.
-- Greek: `\alpha`, `\beta`, `\Sigma`, etc. (see `MACROS` in `js/math.js`).
+- Greek: `\alpha`, `\beta`, `\Sigma`, etc. (see `MACROS` in `vendor/puzzlepieces/js/math-renderer/math-renderer.js`).
 - Relations: `\le`, `\ge`, `\equiv`, `\approx`, `\neq`, etc.
 - Arrows: `\to`, `\Rightarrow`, `\iff`, `\mapsto`, etc.
 - Operators: `\oplus`, `\times`, `\sum`, `\prod`, `\frac{n}{d}`, `\binom{n}{k}`, `\sqrt{x}`.
-- Named functions (rendered upright): `\Pr`, `\Adv`, `\negl`, `\Enc`, `\Dec`, `\Gen`, `\PRF`, etc. (see `WORDS` in `js/math.js`).
+- Named functions (rendered upright): `\Pr`, `\Adv`, `\negl`, `\Enc`, `\Dec`, `\Gen`, `\PRF`, etc. (see `WORDS` in `vendor/puzzlepieces/js/math-renderer/math-renderer.js`).
 - Subscripts/superscripts: `x_i`, `x^n`, `x_{ij}`, `x^{n+1}`.
 - Text in math: `\text{some text}`, `\mathrm{name}`, `\mathsf{label}`.
 - Script letters: `\mathcal{A}` → 𝒜, `\mathcal{F}` → ℱ, etc.
@@ -128,7 +173,7 @@ In `app.js`, `M` aliases `window.CPMath` and `t(s)` is shorthand for `M.text(s)`
 - QED: `\qed` → ∎
 - `\square` → □, `\checkmark` → ✓, `\dagger` → †.
 
-**Before using any `\command`, check that it is in `MACROS` or `WORDS` or handled in `Parser.prototype.command`.** Unknown commands fall through to plain upright text (the name without the backslash), which is usually wrong. Add missing symbols to the appropriate map in `js/math.js`.
+**Before using any `\command`, check that it is in `MACROS` or `WORDS` or handled in `Parser.prototype.command`.** Unknown commands fall through to plain upright text (the name without the backslash), which is usually wrong. Add missing symbols to the appropriate map in `vendor/puzzlepieces/js/math-renderer/math-renderer.js` (per that repo's own contribution rules — see its `AGENTS.md`), then pull the updated submodule pointer here.
 
 ### Common mistakes
 
