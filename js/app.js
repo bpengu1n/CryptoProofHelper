@@ -805,14 +805,7 @@
     ch.sections.forEach(function (sec) {
       h += '<h2 class="sec-heading">' + esc(sec.title) + '</h2>';
       h += '<div class="prose">';
-      sec.body.forEach(function (para) {
-        /* Display-math blocks get their own paragraph treatment */
-        if (para.slice(0, 2) === '$$') {
-          h += '<p class="mathblock">' + t(para.replace(/^\$\$|\$\$$/g, '')) + '</p>';
-        } else {
-          h += '<p>' + t(para) + '</p>';
-        }
-      });
+      sec.body.forEach(function (para) { h += '<p>' + t(para) + '</p>'; });
       h += '</div>';
       if (sec.anim) h += animHTML(sec.anim);
       if (sec.quiz && sec.quiz.length) h += sectionQuizHTML(sec.quiz, sec.id);
