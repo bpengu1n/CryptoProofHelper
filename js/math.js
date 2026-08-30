@@ -35,6 +35,8 @@
     // delimiters
     langle:'⟨', rangle:'⟩', lceil:'⌈', rceil:'⌉', lfloor:'⌊', rfloor:'⌋',
     mid:'|', vert:'|', '|':'‖', backslash:'\\', '{':'{', '}':'}', '$':'$',
+    // misc
+    square:'□', Box:'□', lozenge:'◇', Diamond:'◇', checkmark:'✓', dagger:'†',
     // blackboard / calligraphic
     Z:'ℤ', N:'ℕ', R:'ℝ', Q:'ℚ', F:'𝔽', G:'𝔾', E:'𝔼',
     A:'𝒜', B:'ℬ', C:'𝒞', D:'𝒟', calF:'ℱ', calK:'𝒦', calM:'ℳ',
@@ -134,6 +136,9 @@
       case 'pmod':                                   // "(mod n)", with the space before it
         return '<span class="mquad"></span><span class="msym">(</span><span class="mu">mod</span> ' +
                render(this.arg()) + '<span class="msym">)</span>';
+      case 'mathit':
+      case 'mathbf':
+        return render(this.arg());       // letters are italic by default; mathbf is close enough
       case 'hat':
         return render(this.arg()) + '\u0302';
       case 'tfrac': {
