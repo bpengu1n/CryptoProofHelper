@@ -3,6 +3,11 @@ window.CP_CONCEPTS = [
   {
     id: 'negligible',
     title: 'Negligible function',
+    plain: 'A negligible chance is one so small it stays out of reach no matter how many times an attacker ' +
+      'tries. The catch is that "small" has to be measured against how hard the attacker is allowed ' +
+      'to work: a one-in-a-billion chance is not small if you get a billion attempts. Negligible is the ' +
+      'definition that survives that objection.',
+    pre: [{ href: '#/primer/growth', label: 'Growth rates: polynomial, exponential, negligible' }],
     tags: ['asymptotics', 'definitions'],
     body: [
       'A function $\\mu:\\N \\to \\R^{+}$ is **negligible** if for every polynomial $p$ there is an $N$ such that $\\mu(\\lambda) < 1/p(\\lambda)$ for all $\\lambda > N$. Equivalently: $\\mu$ shrinks faster than the inverse of every polynomial.',
@@ -16,6 +21,11 @@ window.CP_CONCEPTS = [
   {
     id: 'ppt',
     title: 'PPT adversary and the security parameter',
+    plain: 'PPT is the formal spelling of "an attacker with a realistic budget". It may use randomness, ' +
+      'and its running time has to stay polynomial in the key length rather than exploding ' +
+      'exponentially. Defining security against every PPT attacker is what makes the guarantee cover ' +
+      'attacks nobody has invented yet.',
+    pre: [{ href: '#/primer/growth', label: 'Growth rates and what "efficient" means' }, { href: '#/primer/adversary', label: 'Adversaries and oracles' }],
     tags: ['model', 'definitions'],
     body: [
       'An adversary $\\A$ is **PPT** (probabilistic polynomial time) if it runs in time polynomial in the security parameter $\\lambda$ and may flip coins. Everything in a proof is indexed by $\\lambda$: key lengths, the number of queries $q(\\lambda)$, and the advantage.',
@@ -29,6 +39,11 @@ window.CP_CONCEPTS = [
   {
     id: 'advantage',
     title: 'Advantage',
+    plain: 'Advantage is the scoreboard. In a guess-the-bit game a coin flip already scores $1/2$, so what ' +
+      'counts is how far past $1/2$ the attacker gets. In a game where the attacker has to produce ' +
+      'something — a forgery, a collision — pure luck scores nothing, so the score is just its success ' +
+      'probability and there is nothing to subtract.',
+    pre: [{ href: '#/primer/probability', label: 'Probability, only what you need' }, { href: '#/primer/game', label: 'Security games and advantage' }],
     tags: ['definitions', 'notation'],
     body: [
       'For a decision game with a hidden bit $b$, the advantage is $\\Adv(\\A) = |\\Pr[\\A \\text{ wins}] - 1/2|$, or equivalently the **distinguishing** form $\\Adv(\\A) = |\\Pr[\\A^{\\text{left}} = 1] - \\Pr[\\A^{\\text{right}} = 1]|$. The two differ by a factor of $2$; fix a convention and keep it.',
@@ -42,6 +57,12 @@ window.CP_CONCEPTS = [
   {
     id: 'indist',
     title: 'Computational indistinguishability',
+    plain: 'Two things are computationally indistinguishable if no efficient program can tell which of them ' +
+      'it is looking at, any better than by guessing. They may be wildly different objects; what ' +
+      'matters is that no affordable amount of computation exposes the difference. Because this notion ' +
+      'survives being chained together a polynomial number of times, it is the engine behind game ' +
+      'hopping and hybrids.',
+    pre: [{ href: '#/primer/game', label: 'Security games and advantage' }],
     tags: ['definitions'],
     body: [
       'Two ensembles $\\{X_\\lambda\\}$ and $\\{Y_\\lambda\\}$ are computationally indistinguishable, written $X \\approx_c Y$, if for every PPT distinguisher $\\D$, $|\\Pr[\\D(X_\\lambda)=1] - \\Pr[\\D(Y_\\lambda)=1]|$ is negligible.',
@@ -56,6 +77,11 @@ window.CP_CONCEPTS = [
   {
     id: 'games',
     title: 'Security games and experiment notation',
+    plain: 'A security definition is written as a game with a referee (the challenger) who holds the key and ' +
+      'enforces the rules, and the attacker who interacts and finally answers. Writing the game out ' +
+      'line by line, like code, is the habit that catches most proof bugs — the restrictions in the ' +
+      'rules are usually where the whole definition lives.',
+    pre: [{ href: '#/primer/game', label: 'Security games and advantage' }, { href: '#/primer/adversary', label: 'Adversaries and oracles' }],
     tags: ['notation', 'model'],
     body: [
       'A security definition is a game between a challenger and $\\A$. Writing it out explicitly — every line, every oracle — is not busywork: most proof bugs are visible only once the game is written as code.',
@@ -69,6 +95,11 @@ window.CP_CONCEPTS = [
   {
     id: 'primitives',
     title: 'Primitive cheat sheet',
+    plain: 'This page is the vocabulary list: what each building block is supposed to do, stated as the game ' +
+      'it must survive. Read each entry as "here is the ideal object, and the real one must be ' +
+      'indistinguishable from it" — that pattern is what all of them share, and the ideal object is ' +
+      'what tells them apart.',
+    pre: [{ href: '#/primer/game', label: 'Security games and advantage' }],
     tags: ['definitions', 'reference'],
     body: [
       '**OWF** $f$: for all PPT $\\A$, $\\Pr[f(\\A(f(x))) = f(x)]$ is negligible over $x \\rand \\bits^\\lambda$. Note the inversion condition is on the **image**, not on $x$.',
@@ -86,6 +117,12 @@ window.CP_CONCEPTS = [
   {
     id: 'rom',
     title: 'Random oracle model',
+    plain: 'The random oracle model is a deliberate simplification: pretend the hash function is a magic box ' +
+      'that answers every new question with a fresh random value and repeats itself on repeat ' +
+      'questions. Real hashes are not magic boxes, so this is a modelling assumption rather than a ' +
+      'theorem. In exchange the proof gains two powers — it can choose the answers, and it can read the ' +
+      'questions.',
+    pre: [{ href: '#/primer/why-prove', label: 'Why cryptography has to be proved' }],
     tags: ['model'],
     body: [
       'In the ROM, a hash $H$ is modelled as a uniformly random function that all parties, including $\\A$, access only by querying. The reduction **simulates** $H$ by lazy sampling: keep a table, answer a fresh query with a fresh random value, and repeat answers consistently.',
@@ -100,6 +137,10 @@ window.CP_CONCEPTS = [
   {
     id: 'assumptions',
     title: 'Standard hardness assumptions',
+    plain: 'These are the mathematics problems the whole field leans on: everybody believes they are hard, ' +
+      'nobody has proved it. Security proofs borrow that belief. Reach for the weakest assumption that ' +
+      'does the job, because a theorem resting on a weaker assumption is a stronger theorem.',
+    pre: [{ href: '#/primer/groups', label: 'Groups, generators, and discrete log' }, { href: '#/primer/why-prove', label: 'Why cryptography has to be proved' }],
     tags: ['assumptions', 'reference'],
     body: [
       'In a group $\\G$ of prime order $q$ with generator $g$: **DLog** — given $g^x$, find $x$. **CDH** — given $g^x,g^y$, compute $g^{xy}$. **DDH** — distinguish $(g^x,g^y,g^{xy})$ from $(g^x,g^y,g^z)$ for random $x,y,z$.',
@@ -114,6 +155,12 @@ window.CP_CONCEPTS = [
   {
     id: 'birthday',
     title: 'Birthday bound and union bound',
+    plain: 'Two counting facts do most of the probability work in this subject. The union bound says the ' +
+      'chance that at least one bad thing happens is no more than the sum of their chances — always ' +
+      'true, no assumptions needed. The birthday bound says random values start colliding much sooner ' +
+      'than intuition suggests: around the square root of the number of possibilities, which is why a ' +
+      '128-bit block cipher gives out at $2^{64}$ blocks rather than $2^{128}$.',
+    pre: [{ href: '#/primer/probability', label: 'Probability, only what you need' }, { href: '#/primer/counting', label: 'Counting and the pigeonhole principle' }],
     tags: ['probability'],
     body: [
       'Union bound: $\\Pr[\\bigcup_i E_i] \\le \\sum_i \\Pr[E_i]$. It needs no independence, which is why almost every bad-event step in a game hop uses it.',
@@ -127,6 +174,11 @@ window.CP_CONCEPTS = [
   {
     id: 'simulation',
     title: 'The simulation paradigm',
+    plain: 'Some properties are not naturally a guessing game — "the protocol reveals nothing beyond its ' +
+      'output" is a statement about knowledge, not a coin flip. The simulation paradigm turns it into ' +
+      'something provable: if everything the attacker sees could have been fabricated by a machine that ' +
+      'never had access to the secrets, then seeing it taught the attacker nothing.',
+    pre: [{ href: '#/primer/reduction-idea', label: 'What a reduction is, without symbols' }],
     tags: ['definitions', 'model'],
     body: [
       'For secrecy properties that are not phrased as a guessing game ("the protocol leaks nothing beyond the output"), security says: whatever an adversary learns in the **real** execution, a simulator $\\Sim$ could have produced from the ideal functionality\'s output alone.',

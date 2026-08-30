@@ -218,5 +218,199 @@ window.CP_DRILLS = [
     ],
     answer: 0,
     why: 'Advantage in a decision game is measured **relative to guessing**. Under $\\Adv = |\\Pr[\\text{win}]-1/2|$ the win probability is $1/2 + \\varepsilon$; under the doubled convention $\\Adv = 2|\\Pr[\\text{win}]-1/2|$ it is $1/2+\\varepsilon/2$. Fix one convention at the top of the proof and never mix them.'
+  },
+
+  /* Warm-up: the primer material. Wrong answers here are cheap. */
+  {
+    id: 'w1', kind: 'basics',
+    q: 'Which of these functions is **negligible** in $\\lambda$?',
+    options: [
+      '$2^{-\\lambda}$',
+      '$1/\\lambda^{100}$',
+      '$1/(1000\\lambda)$',
+      '$1/\\log \\lambda$'
+    ],
+    answer: 0,
+    why: 'Negligible means smaller than $1/p(\\lambda)$ for **every** polynomial $p$, eventually. Only the exponential qualifies. $1/\\lambda^{100}$ looks tiny at $\\lambda = 128$ but is merely inverse-polynomial: repeat the attack $\\lambda^{100}$ times — still affordable — and it succeeds reliably.'
+  },
+  {
+    id: 'w2', kind: 'basics',
+    q: 'A forger wins the EUF-CMA game with probability $1/2$. What is its advantage?',
+    options: [
+      '$1/2$',
+      '$0$',
+      '$1/4$',
+      'Undefined without knowing the tag length'
+    ],
+    answer: 0,
+    why: 'EUF-CMA is a **search** game: the adversary must produce a forgery, and guessing does not get you there for free. So the advantage is the raw success probability, with no $1/2$ subtracted. Subtracting $1/2$ is correct only in decision games, where a coin flip already wins half the time.'
+  },
+  {
+    id: 'w3', kind: 'basics',
+    q: 'How many strings are in $\\bits^{n}$?',
+    options: [
+      '$2^{n}$',
+      '$n^{2}$',
+      '$2n$',
+      '$n!$'
+    ],
+    answer: 0,
+    why: 'Each of the $n$ positions is independently $0$ or $1$, so the multiplication rule gives $2 \\cdot 2 \\cdots 2 = 2^{n}$. This is why a $128$-bit key space has $2^{128}$ keys and why guessing one costs $2^{-128}$.'
+  },
+  {
+    id: 'w4', kind: 'basics',
+    q: 'What does $x \\rand S$ mean?',
+    options: [
+      '$x$ is drawn uniformly at random from the set $S$',
+      '$x$ is any element of $S$ chosen by the adversary',
+      '$x$ is the smallest element of $S$',
+      '$x$ is a random subset of $S$'
+    ],
+    answer: 0,
+    why: 'The dollar-arrow is uniform sampling: every element of $S$ is equally likely. Both words matter. **Uniform** is what makes brute force cost the full $|S|$; contrast $x \\gets \\A(y)$, the plain arrow, which just means "the output of running an algorithm".'
+  },
+  {
+    id: 'w5', kind: 'basics',
+    q: 'A hash maps $\\bits^{256}$ to $\\bits^{128}$. Do collisions exist?',
+    options: [
+      'Yes, necessarily — by the pigeonhole principle',
+      'No, if the hash is collision-resistant',
+      'Only if the hash is badly designed',
+      'It depends on the hardness assumption'
+    ],
+    answer: 0,
+    why: 'There are $2^{256}$ inputs and only $2^{128}$ outputs, so some output is hit twice. No assumption can change that, which is why collision resistance can only ever mean **hard to find** a collision, never "none exists". Counting arguments settle impossibility; reductions cannot.'
+  },
+  {
+    id: 'w6', kind: 'basics',
+    q: 'Which statement is the contrapositive of "if the scheme is broken then the assumption is false"?',
+    options: [
+      'If the assumption is true then the scheme is not broken',
+      'If the assumption is false then the scheme is broken',
+      'If the scheme is not broken then the assumption is true',
+      'The scheme is broken if and only if the assumption is false'
+    ],
+    answer: 0,
+    why: 'The contrapositive of $P \\implies Q$ is $\\neg Q \\implies \\neg P$, and it is always logically equivalent. Option 2 is the converse and option 3 is the inverse — different claims, neither implied. This particular contrapositive is the shape of every reduction in the app.'
+  },
+  {
+    id: 'w7', kind: 'basics',
+    q: 'You have reached a game where the challenge bit $b$ never influences anything the adversary sees. What is $\\Pr[\\A \\text{ wins}]$?',
+    options: [
+      'Exactly $1/2$',
+      'Negligible',
+      'At most $1/2$ plus a negligible amount',
+      'It depends on how long $\\A$ runs'
+    ],
+    answer: 0,
+    why: 'If $\\A$\'s view is independent of $b$, it is guessing a fair coin, so it wins exactly half the time — no matter how long it runs or how clever it is. Reaching such a game is the whole goal of a game-hopping proof: the final probability is exact, not another bound.'
+  },
+  {
+    id: 'w8', kind: 'basics',
+    q: 'Your reduction $\\B$ answers a decryption query by computing $\\Dec_k(c)$. What should you check first?',
+    options: [
+      'Whether $\\B$ was ever given $k$',
+      'Whether $\\Dec$ runs in polynomial time',
+      'Whether the ciphertext is well-formed',
+      'Whether $\\A$ has exceeded its query budget'
+    ],
+    answer: 0,
+    why: 'Simulating with a secret you were never handed is the single most common way a reduction dies. Trace every value $\\B$ uses back to something it received from its challenger or generated itself. If $k$ is not on that list, the proof does not exist yet — the embedding needs rethinking.'
+  },
+  {
+    id: 'w9', kind: 'basics',
+    q: 'In $\\Z_7^{*}$ with generator $g = 3$, what is $3^{2} \\bmod 7$?',
+    options: [
+      '$2$',
+      '$9$',
+      '$6$',
+      '$1$'
+    ],
+    answer: 0,
+    why: '$3^{2} = 9$, and $9 = 7 + 2$, so $9 \\equiv 2 \\pmod 7$. Reducing mod $7$ at every step is what keeps the numbers small; the full power list is $3, 2, 6, 4, 5, 1$, which hits all six elements — that is what makes $3$ a generator.'
+  },
+  {
+    id: 'w10', kind: 'basics',
+    q: 'Two bad events each have probability at most $2^{-40}$. What bounds the chance that at least one occurs?',
+    options: [
+      '$2^{-39}$, by the union bound',
+      '$2^{-80}$, by independence',
+      'Nothing can be said without knowing if they are independent',
+      '$2^{-40}$, since they are both that small'
+    ],
+    answer: 0,
+    why: 'The union bound gives $\\Pr[E_1 \\cup E_2] \\le \\Pr[E_1] + \\Pr[E_2] = 2^{-40} + 2^{-40} = 2^{-39}$, and it needs **no** independence assumption. That is exactly why it appears in nearly every bad-event step: you rarely know how the events relate.'
+  },
+  {
+    id: 'w11', kind: 'basics',
+    q: 'A hybrid argument uses one hybrid per possible key, so $2^{\\lambda}$ of them, each neighbouring gap negligible. Is it valid?',
+    options: [
+      'No — the chain must be polynomially long',
+      'Yes, since every individual gap is negligible',
+      'Yes, provided each hybrid is efficiently samplable',
+      'Only in the random-oracle model'
+    ],
+    answer: 0,
+    why: 'Negligible functions are closed under multiplication by a **polynomial**, not by an exponential. Summing $2^{\\lambda}$ gaps of size $2^{-\\lambda/2}$ gives something enormous. Before writing any hybrid proof, ask "how many links?" — the answer must be $\\poly(\\lambda)$.'
+  },
+  {
+    id: 'w12', kind: 'basics',
+    q: 'Why must the two messages in the IND-CPA game satisfy $|m_0| = |m_1|$?',
+    options: [
+      'Ciphertext length leaks plaintext length, so otherwise every scheme loses',
+      'To keep the reduction polynomial time',
+      'So the encryption oracle can be simulated',
+      'It is a convention with no effect on the definition'
+    ],
+    answer: 0,
+    why: 'Practically every encryption scheme reveals the length of what it encrypted. Without the restriction the adversary submits a one-bit and a one-megabyte message and wins by measuring, so no scheme would satisfy the definition. Restrictions in a game are usually load-bearing — read them twice.'
+  },
+  {
+    id: 'w13', kind: 'basics',
+    q: 'What does "$\\Pi$ is secure" quantify over, in the standard definition?',
+    options: [
+      'For every PPT $\\A$ there exists a negligible $\\mu$ bounding its advantage',
+      'There exists a negligible $\\mu$ bounding every PPT $\\A$\'s advantage',
+      'For every negligible $\\mu$ there exists a PPT $\\A$ with advantage below $\\mu$',
+      'There exists a PPT $\\A$ whose advantage is negligible'
+    ],
+    answer: 0,
+    why: 'Order matters: $\\mu$ is chosen **after** $\\A$, so each adversary may have its own bound. Option 2 swaps the quantifiers and demands one universal bound — strictly stronger, and not the standard definition. Negating option 1 gives "there exists a PPT $\\A$ with non-negligible advantage", the first line of nearly every proof here.'
+  },
+  {
+    id: 'w14', kind: 'basics',
+    q: 'What does the theorem "if DDH is hard then ElGamal is IND-CPA" actually promise?',
+    options: [
+      'Any efficient break of ElGamal converts into an efficient DDH solver',
+      'ElGamal cannot be broken',
+      'DDH is hard',
+      'ElGamal is secure against unbounded adversaries'
+    ],
+    answer: 0,
+    why: 'The theorem is conditional, and its content is the conversion. It concentrates all the risk into one much-studied problem: break the scheme and you have broken DDH, so the scheme is exactly as trustworthy as the assumption — no more, and importantly no less.'
+  },
+  {
+    id: 'w15', kind: 'basics',
+    q: 'Which is easy, and which is believed hard, in a large prime-order group?',
+    options: [
+      'Computing $g^{x}$ from $x$ is easy; recovering $x$ from $g^{x}$ is hard',
+      'Both are easy',
+      'Computing $g^{x}$ from $x$ is hard; recovering $x$ is easy',
+      'Both are hard'
+    ],
+    answer: 0,
+    why: 'Repeated squaring computes $g^{x}$ in about $\\log x$ multiplications. Going backwards is the discrete logarithm problem, with no known efficient algorithm for a well-chosen group. Public-key cryptography lives entirely in that gap — nothing about the mathematics gets harder in reverse, only the search space.'
+  },
+  {
+    id: 'w16', kind: 'basics',
+    q: 'Why is a deterministic encryption scheme never IND-CPA secure?',
+    options: [
+      'Encrypting the same message twice gives the same ciphertext, which the adversary can detect',
+      'Deterministic algorithms cannot be efficient',
+      'The key would have to be reused',
+      'It is secure, just not provably so'
+    ],
+    answer: 0,
+    why: 'The adversary asks its encryption oracle for $\\Enc(m_0)$, then submits $(m_0, m_1)$ as the challenge, then compares. A match means $b = 0$. Fresh per-message randomness — a nonce, an IV, an ephemeral value — is what closes this, and reusing it reopens it.'
   }
 ];

@@ -3,6 +3,12 @@ window.CP_TECHNIQUES = [
   {
     id: 'reduction',
     title: 'Security by reduction',
+    plain: 'You cannot prove your scheme is unbreakable, so you prove something almost as good: if anyone ' +
+      'could break it, you could take their attack, use it as a black box, and solve a problem the ' +
+      'world already agrees is unsolvable. Since that problem stands, no such attacker exists. The ' +
+      'craft is in dressing the hard problem up so it looks to the attacker exactly like the scheme it ' +
+      'expected — and in answering all its questions without any secret you were never given.',
+    pre: [{ href: '#/primer/reduction-idea', label: 'What a reduction is, without symbols' }, { href: '#/primer/contrapositive', label: 'Contrapositive and contradiction' }],
     oneline: 'Turn an attacker on your scheme into an attacker on an assumption.',
     when: [
       'The statement is "if X is secure then my scheme $\\Pi$ is secure".',
@@ -28,6 +34,11 @@ window.CP_TECHNIQUES = [
   {
     id: 'gamehop',
     title: 'Game hopping',
+    plain: 'Rather than one enormous argument, you walk from the real game to a game that is obviously ' +
+      'unwinnable, changing exactly one thing at each step and charging a small price for each change. ' +
+      'At the far end the attacker is provably just guessing. Add up the prices and you have your ' +
+      'bound. One change per step is the discipline that keeps each price justifiable.',
+    pre: [{ href: '#/primer/game', label: 'Security games and advantage' }],
     oneline: 'Walk from the real game to an obviously-unwinnable game, one small change at a time.',
     when: [
       'Several assumptions or several primitives appear in one scheme.',
@@ -57,6 +68,11 @@ window.CP_TECHNIQUES = [
   {
     id: 'hybrid',
     title: 'Hybrid argument',
+    plain: 'When two situations are far apart, build a chain of intermediate ones where each neighbour ' +
+      'differs in only one small place, so that your assumption covers each single link. Closeness then ' +
+      'travels along the chain. The one thing to check before you start: the chain must be polynomially ' +
+      'long, because you pay for every link.',
+    pre: [{ href: '#/primer/induction', label: 'Induction, and why hybrids are induction' }],
     oneline: 'Bridge two far-apart distributions through polynomially many neighbours, each pair close.',
     when: [
       'You must go from "secure for one message/query" to "secure for $q$ of them".',
@@ -81,6 +97,12 @@ window.CP_TECHNIQUES = [
   {
     id: 'badevent',
     title: 'Identical-until-bad / Difference Lemma',
+    plain: 'Two games are run side by side and they behave identically unless something unlucky happens — a ' +
+      'collision, a repeated value, a lucky forgery. Then the gap between them is at most the ' +
+      'probability of that unlucky event, which you bound separately, usually by counting. The step ' +
+      'that gets skipped and should not: checking that the games really are identical whenever the bad ' +
+      'thing does not happen.',
+    pre: [{ href: '#/primer/probability', label: 'Probability, only what you need' }, { href: '#/primer/counting', label: 'Counting and the pigeonhole principle' }],
     oneline: 'Two games agree until something unlucky happens; charge the whole gap to that event.',
     when: [
       'A collision, a repeated nonce/IV, a lucky forgery, or a guessed random-oracle query would break your simulation.',
@@ -102,6 +124,12 @@ window.CP_TECHNIQUES = [
   {
     id: 'switching',
     title: 'PRP/PRF switching lemma',
+    plain: 'A block cipher is a permutation: it never repeats an output, because it is reversible. A random ' +
+      'function does repeat. That difference is invisible until the attacker has made enough queries ' +
+      'for collisions to matter, so you may treat one as the other and pay a birthday-sized price of ' +
+      'about $q^{2}/2^{n+1}$. Analysing with a random function is much easier, which is why the swap is ' +
+      'worth paying for.',
+    pre: [{ href: '#/primer/counting', label: 'Counting and the pigeonhole principle' }],
     oneline: 'A random permutation looks like a random function until you see a collision.',
     when: [
       'The scheme uses a block cipher (a PRP) but the analysis wants a random function.',
@@ -121,6 +149,12 @@ window.CP_TECHNIQUES = [
   {
     id: 'romprog',
     title: 'Programming the random oracle',
+    plain: 'If the proof is allowed to pretend the hash is a magic random box, then the proof is the one ' +
+      'running the box. That means it can plant a value it wants the attacker to receive (programming), ' +
+      'and it can read every question the attacker asks (extraction) — which is often how the answer ' +
+      'you need falls out. The rules are that answers must stay consistent and must look exactly as ' +
+      'random as real ones.',
+    pre: [{ href: '#/primer/adversary', label: 'Adversaries and oracles' }],
     oneline: 'Plant your challenge in a hash answer, or read the adversary\'s queries to extract a solution.',
     when: [
       'The scheme hashes something, and the proof is allowed to be in the ROM.',
@@ -143,6 +177,12 @@ window.CP_TECHNIQUES = [
   {
     id: 'rewinding',
     title: 'Rewinding and the Forking Lemma',
+    plain: 'Run the attacker to the interesting moment, save its state, let it answer one challenge, then ' +
+      'rewind it to that saved moment and ask a different challenge. Two different answers to two ' +
+      'different challenges about the same commitment usually let you solve for the secret. The care ' +
+      'needed is in the bookkeeping: the second run may fail, and the probability of getting two good ' +
+      'runs is not simply the square of getting one.',
+    pre: [{ href: '#/primer/probability', label: 'Probability, only what you need' }],
     oneline: 'Run the adversary twice from the same state with different challenges, and solve for the secret.',
     when: [
       'Sigma protocols, identification schemes, Fiat-Shamir signatures (Schnorr).',
@@ -165,6 +205,11 @@ window.CP_TECHNIQUES = [
   {
     id: 'infotheoretic',
     title: 'Information-theoretic and counting arguments',
+    plain: 'Some claims hold even against an attacker with unlimited time, and some things are outright ' +
+      'impossible. Neither can be proved by reduction — there is no assumption to lean on. You count ' +
+      'instead: compare how many keys, messages or outputs exist, and show there is not enough room for ' +
+      'the claim to fail (or to hold). Pigeonhole does more work here than any hardness assumption.',
+    pre: [{ href: '#/primer/counting', label: 'Counting and the pigeonhole principle' }],
     oneline: 'No assumption, no adversary running time — just probability and pigeonhole.',
     when: [
       'Perfect secrecy, one-time pads, secret sharing, universal hashing, min-entropy extraction.',

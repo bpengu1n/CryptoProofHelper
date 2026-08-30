@@ -39,6 +39,10 @@ const server = http.createServer((req,res)=>{
   await page.goto('http://localhost:8099/');
   await page.waitForTimeout(400);
   await shot('/', '01-home');
+  await shot('/primer', '01b-primer');
+  await shot('/primer/growth', '01c-lesson');
+  await shot('/glossary', '01d-glossary');
+  await shot('/path', '01e-path');
   await shot('/learn', '02-learn');
   await shot('/learn/gamehop', '03-tech');
   await shot('/proofs', '04-proofs');
@@ -49,9 +53,30 @@ const server = http.createServer((req,res)=>{
   await shot('/checklist', '09-checklist');
 
   // interactions
-  await page.goto('http://localhost:8099/#/drill'); await page.waitForTimeout(250);
+  await page.goto('http://localhost:8099/#/drill/warmup'); await page.waitForTimeout(250);
   await page.click('.opt'); await page.waitForTimeout(250);
   await page.screenshot({ path: SHOTS + '/10-drill-answered.png' });
+
+  // The correct option is always stored first, so the rendered order must vary.
+  const orders = [];
+  for (let i = 0; i < 6; i++) {
+    await page.goto('http://localhost:8099/#/');
+    await page.goto('http://localhost:8099/#/drill/warmup');
+    await page.waitForTimeout(120);
+    orders.push((await page.$$eval('.opt', n => n.map(x => x.textContent))).join('|'));
+  }
+  console.log('DRILL OPTIONS SHUFFLED:', new Set(orders).size > 1);
+
+  // Check-yourself answers stay hidden until asked for.
+  await page.goto('http://localhost:8099/#/primer/probability'); await page.waitForTimeout(250);
+  const hiddenBefore = await page.$$eval('.qans', n => n.every(x => x.hidden));
+  await page.click('.reveal'); await page.waitForTimeout(150);
+  const shownAfter = await page.$eval('.qans', x => !x.hidden);
+  console.log('CHECK REVEAL OK:', hiddenBefore && shownAfter);
+
+  // Plain-English opening is present on the dense pages.
+  await page.goto('http://localhost:8099/#/learn/reduction'); await page.waitForTimeout(200);
+  console.log('PLAIN BOX ON TECHNIQUE:', await page.$$eval('.plain', n => n.length) === 1);
 
   await page.goto('http://localhost:8099/#/build/reduction'); await page.waitForTimeout(250);
   await page.fill('[name=scheme]', 'ElGamal over G');
@@ -60,6 +85,11 @@ const server = http.createServer((req,res)=>{
   const out = await page.textContent('#out');
   console.log('BUILDER OK:', out.includes('\\begin{theorem}') && out.includes('DDH in G'));
   await page.screenshot({ path: SHOTS + '/11-build-generated.png' });
+
+  await page.goto('http://localhost:8099/#/search/negligible'); await page.waitForTimeout(350);
+  const primerHit = await page.$$eval('#res .chip', n =>
+    n.some(x => x.textContent.indexOf('Primer') >= 0));
+  console.log('SEARCH REACHES PRIMER:', primerHit);
 
   await page.goto('http://localhost:8099/#/search/hybrid'); await page.waitForTimeout(350);
   const hits = await page.$$eval('#res .card', n => n.length);
