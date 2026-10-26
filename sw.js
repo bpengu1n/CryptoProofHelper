@@ -1,6 +1,6 @@
 /* Cache-first service worker: the app must work with the radio off.
  * Bump CACHE on every content change to roll users onto the new bundle. */
-var CACHE = 'cph-v6';
+var CACHE = 'cph-v7';
 var ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './css/app.css',

@@ -103,7 +103,8 @@ window.CP_EXAMPLES = [
     remarks: [
       'With AES ($n=128$) the second term forces a rekey long before $2^{64}$ blocks. This is exactly why AES-GCM has a usage limit per key.',
       'If $F$ is a block cipher (a PRP, not a PRF), insert the switching lemma as an extra hop and add $q^{2}\\ell^{2}/2^{n+1}$.',
-      'Deterministic CTR with a fixed IV is trivially insecure — trace which step fails: the bad event has probability $1$.'
+      'Deterministic CTR with a fixed IV is trivially insecure — trace which step fails: the bad event has probability $1$.',
+      'The course (Ch 3) states this theorem as $\\Adv \\le 2\\,\\Adv^{\\PRF} + \\sigma^{2}/2^{n}$. It defines advantage as $2\\Pr[\\text{win}] - 1$, twice the quantity here, and counts total blocks $\\sigma \\le q\\ell$ with a looser per-block overlap count. Same result; see "Two notations, one idea" on the Notation page.'
     ]
   },
   {

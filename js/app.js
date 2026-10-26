@@ -483,12 +483,25 @@
     return { title: 'Drills', html: h, tab: 'drill' };
   }
 
+  /* Results-screen review of missed questions: [{ q, picked, right, why }]. */
+  function missedReviewHTML(missed) {
+    if (!missed.length) return '';
+    var h = '<div class="eyebrow">Review what you missed</div>';
+    missed.forEach(function (m) {
+      h += '<div class="card review-card"><div class="prose"><p>' + t(m.q) + '</p></div>' +
+           '<p class="review-line wrong-line"><b>Your answer:</b> ' + t(m.picked) + '</p>' +
+           '<p class="review-line right-line"><b>Correct:</b> ' + t(m.right) + '</p>' +
+           '<div class="why">' + t(m.why) + '</div></div>';
+    });
+    return h;
+  }
+
   function vDrill(setId) {
     var set = byId(DRILL_SETS, setId || 'all') || DRILL_SETS[3];
     var items = drillItems(set);
     if (!items.length) return notFound();
 
-    var state = { i: 0, right: 0, order: shuffle(items.map(function (d) { return d.id; })), cur: null };
+    var state = { i: 0, right: 0, order: shuffle(items.map(function (d) { return d.id; })), cur: null, missed: [] };
     var bestKey = 'drill:best:' + set.id, best = S.get(bestKey, 0);
     var h = '<div class="progress"><i style="width:0%"></i></div>' +
             '<p class="score" id="score"></p><div id="q"></div>';
@@ -535,6 +548,8 @@
           else if (i === pick) b.className = 'opt wrong';
         });
         if (pick === cur.answer) state.right++;
+        else state.missed.push({ q: cur.d.q, picked: cur.d.options[cur.perm[pick]],
+                                 right: cur.d.options[cur.d.answer], why: cur.d.why });
         scoreLine(state.i + 1);
         bar.style.width = (100 * (state.i + 1) / state.order.length) + '%';
         var box = document.createElement('div');
@@ -555,13 +570,13 @@
         qEl.innerHTML = '<div class="card"><h3>' + state.right + ' / ' + state.order.length +
           '</h3><p>' + (state.right === state.order.length
             ? 'Every one. Go write the proof.'
-            : 'Revisit the ones you missed — the explanation names the underlying rule each time.') +
-          '</p></div>' +
+            : 'The questions you missed are below — each explanation names the underlying rule.') +
+          '</p></div>' + missedReviewHTML(state.missed) +
           '<button class="btn wide" id="again">Run again (reshuffled)</button>' +
           '<a class="btn wide ghost" href="#/drill">Other drill sets</a>' +
           '<a class="btn wide ghost" href="#/learn">Back to the techniques</a>';
         document.getElementById('again').onclick = function () {
-          state.i = 0; state.right = 0; state.order = shuffle(state.order); paint(); window.scrollTo(0,0);
+          state.i = 0; state.right = 0; state.missed = []; state.order = shuffle(state.order); paint(); window.scrollTo(0,0);
         };
       }
       paint();
@@ -931,7 +946,7 @@
     var saved = S.get(courseQuizKey(chId), null);
     var h = '<div class="eyebrow">Chapter mastery quiz</div>' +
             '<p class="lead sm">Answer all questions to gauge your understanding. Your best score is saved.</p>';
-    if (saved) h += '<div class="cq-saved">Your best score: <b>' + saved + ' / ' + ch.mastery.length + '</b></div>';
+    if (saved !== null) h += '<div class="cq-saved">Your best score: <b>' + saved + ' / ' + ch.mastery.length + '</b></div>';
     h += '<div id="mastery-quiz"></div>' +
          '<button class="btn wide" id="mastery-start">Start quiz</button>';
     return h;
@@ -1038,7 +1053,10 @@
         startBtn.onclick = function () {
           startBtn.hidden = true;
           var items = shuffle(ch.mastery.slice());
-          var state = { i: 0, right: 0 };
+          var state = { i: 0, right: 0, missed: [] };
+
+          // Keep the quiz in view: it sits at the bottom of a very long chapter.
+          function toQuiz() { quizBox.scrollIntoView({ block: 'start' }); }
 
           function paintQ() {
             if (state.i >= items.length) return finish();
@@ -1063,6 +1081,7 @@
                   else if (xk === k) x.className = 'opt wrong';
                 });
                 if (k === ans) state.right++;
+                else state.missed.push({ q: item.q, picked: item.opts[perm[k]], right: item.opts[item.answer], why: item.why });
                 var why = document.createElement('div');
                 why.className = 'why';
                 why.innerHTML = '<b>' + (k === ans ? 'Correct.' : 'Not quite.') + '</b> ' + t(item.why);
@@ -1070,7 +1089,7 @@
                 var nx = document.createElement('button');
                 nx.className = 'btn wide'; nx.style.marginTop = '12px';
                 nx.textContent = state.i < items.length - 1 ? 'Next question' : 'See results';
-                nx.onclick = function () { state.i++; paintQ(); window.scrollTo(0,0); };
+                nx.onclick = function () { state.i++; paintQ(); toQuiz(); };
                 quizBox.appendChild(nx);
                 why.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
               };
@@ -1079,17 +1098,18 @@
 
           function finish() {
             var total = items.length;
-            var prev = S.get(courseQuizKey(id), 0);
-            if (state.right > prev) S.set(courseQuizKey(id), state.right);
+            var prev = S.get(courseQuizKey(id), null);
+            if (prev === null || state.right > prev) S.set(courseQuizKey(id), state.right);
             quizBox.innerHTML = '<div class="card"><h3>' + state.right + ' / ' + total + '</h3>' +
               '<p>' + (state.right === total
                 ? 'Perfect. On to the next chapter.'
-                : 'Review the explanations above, then try again.') + '</p></div>' +
+                : 'The questions you missed are below, with explanations. Then try again.') + '</p></div>' +
+              missedReviewHTML(state.missed) +
               '<button class="btn wide" id="mq-again">Try again (reshuffled)</button>' +
               '<a class="btn wide ghost" href="#/course">Back to course map</a>';
             document.getElementById('mq-again').onclick = function () {
-              state.i = 0; state.right = 0;
-              items = shuffle(ch.mastery.slice()); paintQ(); window.scrollTo(0,0);
+              state.i = 0; state.right = 0; state.missed = [];
+              items = shuffle(ch.mastery.slice()); paintQ(); toQuiz();
             };
           }
           paintQ();

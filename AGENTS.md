@@ -133,12 +133,12 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v6'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v7'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v6'` → `'cph-v7'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v7'` → `'cph-v8'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
 
