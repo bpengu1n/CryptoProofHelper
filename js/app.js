@@ -297,6 +297,8 @@
     var read = readSet();
     var h = '<p class="lead">If you are starting cold, this is the order that works. Each step ' +
             'assumes the one before it and nothing else.</p>';
+    h += '<a class="card" href="#/course"><h3>Prefer one guided route?</h3><p>The course walks through ' +
+         'Bellare &amp; Rogaway chapter by chapter, linking back to these lessons when you need them.</p></a>';
     PATH.forEach(function (st, i) {
       var lid = st.href.indexOf('#/primer/') === 0 ? st.href.slice(9) : null;
       h += '<a class="card step-card' + (lid && read[lid] ? ' read' : '') + '" href="' + st.href + '">' +
@@ -1076,6 +1078,7 @@
   function vChapter(id, secId) {
     var ch = byId(COURSE, id);
     if (!ch || ch.locked) return notFound();
+    if (secId && !byId(ch.sections, secId)) secId = null;   // unknown section: open the chapter
     markChapterVisited(id);
     var n = ch.sections.length;
 
@@ -1142,12 +1145,22 @@
     return { title: 'Ch ' + ch.num + ': ' + ch.title, html: h, tab: 'course', back: '#/course',
       anchor: secId ? 'sec-' + secId : null,
       after: function () {
+        /* Index links scroll in place: re-rendering would wipe quiz answers in progress. */
+        Array.prototype.forEach.call(main.querySelectorAll('.toc a'), function (a) {
+          a.onclick = function (e) {
+            var el = document.getElementById('sec-' + a.getAttribute('href').split('/').pop());
+            if (!el) return;
+            e.preventDefault();
+            history.replaceState(null, '', a.getAttribute('href'));
+            scrollToEl(el);
+          };
+        });
         /* Remember the section the learner is reading (the last one whose top has scrolled past the header). */
         var secs = main.querySelectorAll('.ch-sec'), saved = null;
         onScroll = function () {
           var cur = null;
           for (var i = 0; i < secs.length; i++) {
-            if (secs[i].getBoundingClientRect().top < 140) cur = secs[i].getAttribute('data-sec'); else break;
+            if (secs[i].getBoundingClientRect().top < headerOffset() + 70) cur = secs[i].getAttribute('data-sec'); else break;
           }
           if (cur && cur !== saved) { saved = cur; S.set(coursePosKey(id), cur); }
         };
@@ -1400,10 +1413,10 @@
             (sec.quiz || []).map(function (q) { return q.q + ' ' + q.why; }).join(' ') });
       });
     });
-    // The title is matched as rendered text too, so symbols such as "σ" are searchable.
+    // Rendered text is indexed too, so symbols such as "σ" or "⊕" are searchable.
+    function shown(x) { return t(x).replace(/<[^>]+>/g, ''); }
     INDEX.forEach(function (e) {
-      var shown = t(e.title).replace(/<[^>]+>/g, '');
-      e.hay = (stripMath(e.title) + ' ' + shown + ' \n ' + stripMath(e.text)).toLowerCase();
+      e.hay = (stripMath(e.title) + ' ' + shown(e.title) + ' \n ' + stripMath(e.text) + ' ' + shown(e.text)).toLowerCase();
     });
     return INDEX;
   }
@@ -1459,8 +1472,8 @@
     });
   }
 
-  /* About 150 characters of `text` around the first matching word, rendered,
-     never cutting a $math$ span in half. */
+  /* About 150 characters of `text` around the first matching word, rendered.
+     The window is widened to whole $...$ / $$...$$ spans, never cutting one in half. */
   function snippet(text, words) {
     var lower = text.toLowerCase(), i = -1;
     words.forEach(function (re) {
@@ -1468,13 +1481,11 @@
       var m = re.exec(lower);
       if (m && (i < 0 || m.index < i)) i = m.index;
     });
-    var s = Math.max(0, i - 55), e = Math.min(text.length, s + 150);
-    function dollarsBefore(k) { return (text.slice(0, k).match(/\$/g) || []).length; }
-    if (dollarsBefore(s) % 2) s = text.lastIndexOf('$', s - 1);
-    if (text[s] === '$' && text[s - 1] === '$') s--;
-    if (dollarsBefore(e) % 2) {
-      var close = text.indexOf('$', e);
-      e = close < 0 ? text.length : close + (text[close + 1] === '$' ? 2 : 1);
+    var s = Math.max(0, i - 55), e = Math.min(text.length, s + 150), m, span = /\$\$[\s\S]*?\$\$|\$[^$]*\$/g;
+    while ((m = span.exec(text))) {
+      var a = m.index, b = a + m[0].length;
+      if (a < s && s < b) s = a;
+      if (a < e && e < b) e = b;
     }
     return (s > 0 ? '&hellip;' : '') + t(text.slice(s, e)) + (e < text.length ? '&hellip;' : '');
   }
@@ -1506,7 +1517,7 @@
     [/^\/install$/,          function () { return vInstall(); }],
     [/^\/search\/?(.*)$/,    function (m) { return vSearch(decodeURIComponent(m[1] || '')); }],
     [/^\/course$/,           function () { return vCourse(); }],
-    [/^\/course\/([^\/]+)(?:\/(.+))?$/, function (m) { return vChapter(m[1], m[2]); }]
+    [/^\/course\/([^\/]+)(?:\/([^\/]+))?$/, function (m) { return vChapter(m[1], m[2]); }]
   ];
 
   function route() {
@@ -1546,8 +1557,14 @@
     if (view.after) view.after();
     var anchor = view.anchor && document.getElementById(view.anchor);
     // Land the anchor just below the sticky header.
-    window.scrollTo(0, anchor ? anchor.getBoundingClientRect().top + window.pageYOffset - 68 : 0);
+    window.scrollTo(0, 0);
+    if (anchor) scrollToEl(anchor);
   }
+
+  /* Height of the sticky header (taller on notched phones), plus a little air. */
+  function headerOffset() { return document.querySelector('header').offsetHeight + 4; }
+  /* Put el just below the sticky header. scrollIntoView copes with the text-size zoom. */
+  function scrollToEl(el) { el.scrollIntoView(true); window.scrollBy(0, -headerOffset()); }
 
   /* One scroll listener; a view's after() may set onScroll, and route() clears it. */
   var onScroll = null, scrollTimer = null;
