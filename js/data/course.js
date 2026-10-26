@@ -12,6 +12,7 @@
       num: 1,
       title: 'Introduction',
       blurb: 'What cryptography actually solves, the players involved, and the modern way of proving a scheme is secure.',
+      book: 'Bellare & Rogaway, Chapter 1 (Introduction).',
       prereq: ['#/primer/why-prove', '#/primer/reduction-idea'],
       sections: [
         {
@@ -147,6 +148,7 @@
       num: 2,
       title: 'Classical Encryption',
       blurb: 'Substitution ciphers and why they fail, the one-time pad, and Shannon\'s notion of perfect security.',
+      book: 'Bellare & Rogaway, Chapter 2 (Classical Encryption).',
       prereq: ['#/primer/probability', '#/primer/counting'],
       sections: [
         {
@@ -325,6 +327,7 @@
       num: 3,
       title: 'Symmetric Encryption',
       blurb: 'Pseudorandom functions, the IND-CPA game, and why counter mode is secure while ECB is not.',
+      book: 'Bellare & Rogaway, Chapters 3–5 (Blockciphers, Pseudorandom Functions, Symmetric Encryption), condensed.',
       prereq: ['#/primer/adversary', '#/primer/game', '#/basics/advantage'],
       sections: [
         {
@@ -563,6 +566,7 @@
       num: 4,
       title: 'Message Authentication',
       blurb: 'MACs, pseudorandom functions, and integrity without secrecy.',
+      book: 'Bellare & Rogaway, Chapter 7 (Message Authentication), with a first look at Chapter 8 (Authenticated Encryption).',
       prereq: ['#/course/ch3', '#/basics/games'],
       sections: [
         {
@@ -760,6 +764,17 @@
           ],
           answer: 2,
           why: 'With independent keys, tagging the whole ciphertext means any modification of it is caught before decryption, and the tag reveals nothing about the plaintext beyond what the ciphertext already does.'
+        },
+        {
+          q: 'An adversary gets tag $T$ on message $M$, then outputs a different tag $T\' \\ne T$ that also verifies for $M$. Which notion counts this as a forgery?',
+          opts: [
+            'Strong unforgeability (SUF-CMA), but not UF-CMA.',
+            'UF-CMA, but not strong unforgeability.',
+            'Both, since any accepted pair the adversary made itself counts.',
+            'Neither: a tag on a message that was already tagged never counts.'
+          ],
+          answer: 0,
+          why: 'UF-CMA requires a new message. SUF-CMA counts any accepted pair the tagging oracle never returned, including a new tag on an old message. For a deterministic MAC whose verification recomputes the tag this cannot happen, since each message has one valid tag.'
         }
       ]
     },
@@ -772,6 +787,7 @@
       num: 5,
       title: 'Hash Functions',
       blurb: 'Collision resistance, the birthday attack, Merkle–Damgård, and the random oracle model.',
+      book: 'Bellare & Rogaway, Chapter 6 (Hash Functions). The book covers hashing before MACs; this course swaps them.',
       prereq: ['#/primer/counting', '#/basics/birthday'],
       sections: [
         {
@@ -805,7 +821,8 @@
             'The collision-resistance game: pick $K$ at random, give it to $A$, and let $A$ output two inputs $x_1, x_2$. The adversary wins if $x_1 \\ne x_2$ and $H_K(x_1) = H_K(x_2)$. As in earlier chapters, $H$ is collision resistant if every adversary with reasonable running time has small advantage.',
             '$$\\Adv^{\\mathrm{cr}}_H(A) = \\Pr[x_1 \\ne x_2 \\text{ and } H_K(x_1) = H_K(x_2)]$$',
             'Why bother with a key nobody keeps secret? Because of a subtle problem with unkeyed functions. For a fixed function like SHA-256, a collision exists, so an adversary that simply prints out that collision exists too. It runs in constant time and has advantage $1$. We just don\'t know which program it is. A definition that cannot distinguish "an adversary exists" from "we know an adversary" says nothing useful. The random public key fixes this: for a well-designed family, no single hardcoded pair works for more than a tiny fraction of keys. (B&R also discuss weaker variants, for example where the adversary must commit to $x_1$ before seeing the key; this chapter uses the strongest common one.)',
-            'In practice, SHA-256 has no key, and people reason about it informally: "nobody knows how to find collisions". The keyed definition is the cleanest way to make that statement precise enough to use in proofs.'
+            'In practice, SHA-256 has no key, and people reason about it informally: "nobody knows how to find collisions". The keyed definition is the cleanest way to make that statement precise enough to use in proofs.',
+            'Here is the "fingerprint" idea from the previous section made precise. Suppose a signature scheme signs $H(M)$ instead of $M$ (hash-then-sign). A forger who produces a valid signature on a new message $M\'$ has done one of two things. Either $H(M\')$ equals $H(M)$ for some message $M$ that was legitimately signed, which is a collision in $H$, or $H(M\')$ is a hash value that was never signed, which is a forgery against the underlying scheme. A reduction can turn the forger into one or the other, so hash-then-sign is secure if $H$ is collision resistant and the scheme is secure on short inputs.'
           ],
           quiz: [
             {
@@ -990,6 +1007,17 @@
           ],
           answer: 1,
           why: 'SHA-256 is a Merkle–Damgård hash, so its output is a full chaining state that can be extended. That gives a forgery without any knowledge of $K$ (beyond its length, which is usually public).'
+        },
+        {
+          q: 'In hash-then-sign, a forger outputs a valid signature on a new message $M\'$ with $H(M\') = H(M)$ for a message $M$ that was signed. What has it found?',
+          opts: [
+            'A collision in $H$.',
+            'A preimage of a random value under $H$.',
+            'A forgery against the underlying signature scheme on a new input.',
+            'Nothing useful, because forgeries on equal hashes are always allowed.'
+          ],
+          answer: 0,
+          why: '$M\' \\ne M$ but $H(M\') = H(M)$: that is exactly a collision. The underlying scheme was never asked to sign anything new, since $H(M\')$ had already been signed.'
         }
       ]
     },
@@ -1002,6 +1030,7 @@
       num: 6,
       title: 'Public-Key Encryption',
       blurb: 'RSA, ElGamal, and provable security in the public-key setting.',
+      book: 'Bellare & Rogaway, Chapters 9–11 (Computational Number Theory, Number-Theoretic Primitives, Asymmetric Encryption), condensed.',
       prereq: ['#/primer/modular', '#/primer/groups'],
       sections: [
         {
@@ -1075,6 +1104,17 @@
               ],
               answer: 1,
               why: 'The exponent $ed$ is $1$ more than a multiple of $\\varphi(N)$. Every full multiple of $\\varphi(N)$ in the exponent contributes a factor of $1$, leaving $x^1$.'
+            },
+            {
+              q: 'What is known about inverting the RSA function compared with factoring $N$?',
+              opts: [
+                'Factoring $N$ lets you invert RSA; whether the converse holds is open.',
+                'Inverting RSA has been proven to be exactly as hard as factoring $N$.',
+                'Inverting RSA is easy, even for moduli that are hard to factor.',
+                'The two problems are unrelated: neither one helps with the other.'
+              ],
+              answer: 0,
+              why: 'With $p$ and $q$ you can compute $\\varphi(N)$ and then $d$, so factoring breaks RSA. Recovering $d$ is as hard as factoring, but no one has proved that every way of inverting RSA needs either. That gap is why the RSA assumption is stated on its own.'
             }
           ]
         },
@@ -1086,6 +1126,7 @@
             'It is deterministic, so by the argument at the start of this chapter it is not IND-CPA secure: given $C$, encrypt both candidate messages and compare.',
             'It is also **malleable**. Given $C = M^e \\bmod N$, anyone can compute $C \\cdot 2^e \\bmod N = (2M)^e \\bmod N$, a valid encryption of $2M$, without knowing $M$. In a protocol where the adversary can see decryptions of modified ciphertexts, this leaks the plaintext.',
             'And the RSA assumption only says it is hard to invert $f$ on a *random* input. Real messages are not random: they are short, structured, or guessable. If $M$ is a small number and $e = 3$, then $M^3$ may be less than $N$, and the "encryption" can be undone with an ordinary cube root.',
+            'A simple scheme shows how randomness plus a random oracle $H$ (Chapter 5) fixes these problems. To encrypt $M$, pick a random $r \\in \\Z_N^*$ and output $(r^e \\bmod N,\; H(r) \\oplus M)$. Unless the adversary can invert RSA on the random value $r^e$, it never learns $r$, so it never asks $H$ about $r$, and $H(r)$ stays a uniformly random pad: the message is one-time padded. The proof turns this into a reduction: if the adversary ever does query $H$ at $r$, the reduction sees that query and has inverted RSA. This scheme is IND-CPA secure in the random oracle model, but not IND-CCA secure.',
             'Secure RSA encryption first transforms the message with randomized padding. **RSA-OAEP**, the standardized method, applies two hash-based mixing rounds with fresh randomness before applying $f$. It is proved IND-CCA secure (secure even when the adversary can see decryptions of other ciphertexts; defined at the end of this chapter) under the RSA assumption, in the random oracle model. The original 1994 proof had a gap, found by Shoup in 2001 and repaired for RSA soon after — a good lesson in why proofs get checked.'
           ],
           quiz: [
@@ -1138,7 +1179,8 @@
             'Instead, systems use **hybrid encryption**. To send $M$ to Bob: pick a fresh random symmetric key $K$; encrypt $K$ under Bob\'s public key (or, equivalently, derive $K$ together with an encapsulation of it, as below); encrypt $M$ under $K$ with an authenticated symmetric scheme (Chapter 4\'s Encrypt-then-MAC, or GCM). Bob decrypts $K$ with $sk$, then decrypts $M$ with $K$.',
             'Formally, a **key encapsulation mechanism** (KEM) outputs a fresh key $K$ and an encapsulation $C_1$ that only $sk$ can open — for example $C_1 = g^y$ and $K = H(X^y)$, which is hashed ElGamal. A **data encapsulation mechanism** (DEM) encrypts $M$ under $K$. Since each $K$ is used only once, the DEM only needs one-time security. The KEM/DEM theorem bounds the combined scheme\'s advantage by a small multiple of the KEM\'s advantage plus the DEM\'s — another reduction in the now-familiar pattern.',
             'PGP, HPKE (RFC 9180) and age use hybrid encryption directly. TLS 1.3 and Signal use the closely related Diffie–Hellman key exchange to agree on $K$, then the same symmetric machinery. Either way, it uses every chapter of this course: a hash function to derive keys (Chapter 5), a MAC for integrity (Chapter 4), a PRF-based symmetric scheme for bulk data (Chapter 3), and a public-key primitive to establish the key in the first place.',
-            'Finally, a word on stronger attacks. Real adversaries can often send modified ciphertexts and observe how the receiver reacts — an error message, a timing difference. Bleichenbacher\'s 1998 "million-message" attack decrypted SSL key-exchange ciphertexts by sending about a million modified ciphertexts and watching whether the server reported a padding error. The padding scheme (PKCS #1 v1.5) had no security proof, and certainly none against such attacks. The modern target is **IND-CCA** security, where the adversary may also ask for decryptions of any ciphertext other than its challenge. RSA-OAEP achieves it (in the random oracle model), and so does hybrid encryption when *both* the KEM is CCA-secure and the DEM is authenticated.'
+            'Finally, a word on stronger attacks. Real adversaries can often send modified ciphertexts and observe how the receiver reacts — an error message, a timing difference. Bleichenbacher\'s 1998 "million-message" attack decrypted SSL key-exchange ciphertexts by sending about a million modified ciphertexts and watching whether the server reported a padding error. The padding scheme (PKCS #1 v1.5) had no security proof, and certainly none against such attacks. The modern target is **IND-CCA** security, where the adversary may also ask for decryptions of any ciphertext other than its challenge. RSA-OAEP achieves it (in the random oracle model), and so does hybrid encryption when *both* the KEM is CCA-secure and the DEM is authenticated.',
+            'Formally, the **IND-CCA** game is the IND-CPA game plus a decryption oracle $\\mathcal{D}_{sk}(\\cdot)$. The adversary may ask it to decrypt any ciphertext except the challenge it got back from the left-or-right oracle, since decrypting that would trivially reveal $b$. Textbook RSA fails at once: given the challenge $C$, ask for the decryption of $C \\cdot 2^e \\bmod N$, which is a different ciphertext, and halve the answer.'
           ],
           quiz: [
             {
@@ -1151,6 +1193,17 @@
               ],
               answer: 1,
               why: 'The public-key operation is expensive and handles only short inputs, so it is used once to transport a symmetric key. The fast symmetric scheme then handles the bulk data.'
+            },
+            {
+              q: 'In the IND-CCA game, which decryption query is the adversary not allowed to make?',
+              opts: [
+                'Decrypting the challenge ciphertext it received from the left-or-right oracle.',
+                'Decrypting any ciphertext that was produced under the public key $pk$.',
+                'Decrypting more than one ciphertext over the whole course of the game.',
+                'Decrypting anything before the challenge ciphertext has been issued.'
+              ],
+              answer: 0,
+              why: 'Decrypting the challenge would reveal $b$ immediately, so it is the one forbidden query. Every other ciphertext, before or after the challenge, is allowed, which is what makes IND-CCA much stronger than IND-CPA.'
             }
           ]
         }
@@ -1210,6 +1263,17 @@
           ],
           answer: 1,
           why: 'Hybrid encryption uses one public-key operation to transport a symmetric key, then fast symmetric encryption for everything else. It is provably secure when both the KEM and the DEM meet the required security notions.'
+        },
+        {
+          q: 'In a group $G$ with generator $g$, which assumption asks the most, so that it can fail even where the others hold?',
+          opts: [
+            'DDH: $g^{xy}$ cannot be told apart from a random group element.',
+            'CDH: $g^{xy}$ cannot be computed from $g^x$ and $g^y$.',
+            'DL: $x$ cannot be computed from $g^x$.',
+            'None of them, since all three are equivalent in every group.'
+          ],
+          answer: 0,
+          why: 'Solving DL lets you solve CDH (find $x$, then compute $(g^y)^x$), and solving CDH lets you solve DDH (compute $g^{xy}$ and compare). So assuming DDH is hard is the strongest of the three, and it fails in some groups, such as the full group $\\Z_p^*$, where DL is still believed hard.'
         }
       ]
     }
