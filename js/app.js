@@ -15,7 +15,25 @@
       back = document.getElementById('back'),
       tabs = document.getElementById('tabs');
 
-  function t(s) { return M.text(s); }
+  // Binary operators get their own font stack (see .mop in app.css): the math
+  // fonts often lack them, and the browser's fallback glyph can be oversized.
+  var MOP = /<span class="msym">([\u2295\u2297\u2016\u2218])<\/span>/g;
+  function t(s) {
+    return M.text(s)
+      .replace(MOP, '<span class="msym mop">$1</span>')
+      // Keep an end-of-proof mark on the line it closes.
+      .replace(/\s+(<span class="math"><span class="(?:mu|msym)">[\u220e\u25a1])/g, '\u00a0$1');
+  }
+  /** First ~n characters of a prose string, never cut inside $math$. */
+  function teaser(s, n) {
+    s = String(s);
+    if (s.length <= n) return t(s);
+    var c = s.slice(0, n).replace(/\s+\S*$/, '');
+    // Back out of an unclosed $$display$$ first, then an unclosed $inline$.
+    if ((c.match(/\$\$/g) || []).length % 2) c = c.slice(0, c.lastIndexOf('$$'));
+    if ((c.replace(/\$\$/g, '').match(/\$/g) || []).length % 2) c = c.slice(0, c.lastIndexOf('$'));
+    return t(c.replace(/\s+\S*$/, '')) + '&hellip;';
+  }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                                    .replace(/"/g,'&quot;'); }
   function byId(list, id) { for (var i=0;i<list.length;i++) if (list[i].id===id) return list[i]; return null; }
@@ -80,8 +98,38 @@
       ? '<p class="kbd">Installed and fully offline.</p>'
       : '<a class="card" href="#/install" style="margin-top:12px"><h3>Add to your ' +
         'home screen</h3><p>Two taps, and it works with no connection.</p></a>';
-    return { title: 'Proof Helper', html: h, tab: 'home' };
+    h += '<div class="eyebrow" id="textsize-label">Text size</div>' +
+         '<div class="row seg" id="textsize" role="group" aria-labelledby="textsize-label">';
+    TEXT_SIZES.forEach(function (z) {
+      h += '<button class="btn ghost' + (z.id === textSize() ? ' on' : '') + '" data-ts="' + z.id + '"' +
+           ' aria-label="A, ' + z.name.toLowerCase() + ' text" aria-pressed="' + (z.id === textSize()) + '" style="font-size:' + z.demo + '">' + z.label + '</button>';
+    });
+    h += '</div>';
+    return { title: 'Proof Helper', html: h, tab: 'home', after: function () {
+      Array.prototype.forEach.call(document.querySelectorAll('#textsize button'), function (b) {
+        b.onclick = function () {
+          S.set('textsize', b.dataset.ts); applyTextSize();
+          Array.prototype.forEach.call(document.querySelectorAll('#textsize button'), function (x) {
+            var on = x === b;
+            x.className = 'btn ghost' + (on ? ' on' : '');
+            x.setAttribute('aria-pressed', String(on));
+          });
+        };
+      });
+    }};
   }
+
+  /* Text size: scales the page content (not the header or tab bar). */
+  var TEXT_SIZES = [
+    { id: 'md', label: 'A', demo: '14px', name: 'Normal' },
+    { id: 'lg', label: 'A', demo: '17px', name: 'Large' },
+    { id: 'xl', label: 'A', demo: '20px', name: 'Largest' }
+  ];
+  function textSize() { return S.get('textsize', 'md'); }
+  function applyTextSize() {
+    document.body.className = document.body.className.replace(/\s*\bts-\w+/g, '') + ' ts-' + textSize();
+  }
+  applyTextSize();
   function card(href, hd, sub) {
     return '<a class="card" href="' + href + '"><h3>' + hd + '</h3><p>' + sub + '</p></a>';
   }
@@ -94,7 +142,7 @@
          'maths and the proof-writing basics these definitions assume.</p></a>';
     CONCEPTS.forEach(function (c) {
       h += '<a class="card" href="#/basics/' + c.id + '"><h3>' + t(c.title) + '</h3>' +
-           '<p>' + t(c.body[0].slice(0, 110).replace(/\s+\S*$/, '')) + '&hellip;</p></a>';
+           '<p>' + teaser(c.body[0], 110) + '</p></a>';
     });
     return { title: 'Foundations', html: h, tab: 'home', back: '#/' };
   }
@@ -327,7 +375,7 @@
       h += '<div class="eyebrow">Worked proofs using it</div>';
       rel.forEach(function (e) {
         h += '<a class="card" href="#/proofs/' + e.id + '"><h3>' + t(e.title) + '</h3>' +
-             '<p>' + t(e.idea.slice(0, 100).replace(/\s+\S*$/, '')) + '&hellip;</p></a>';
+             '<p>' + teaser(e.idea, 100) + '</p></a>';
       });
     }
     h += '<a class="btn wide ghost" href="#/build/' + templateFor(x.id) +
@@ -357,7 +405,7 @@
     EXAMPLES.forEach(function (e) {
       var tech = byId(TECHS, e.technique);
       h += '<a class="card" href="#/proofs/' + e.id + '"><h3>' + t(e.title) + '</h3>' +
-           '<p>' + t(e.idea.slice(0, 120).replace(/\s+\S*$/, '')) + '&hellip;</p>' +
+           '<p>' + teaser(e.idea, 120) + '</p>' +
            '<span class="chip ' + e.difficulty + '">' + e.difficulty + '</span>' +
            '<span class="chip tech">' + t(tech ? tech.title : e.technique) + '</span></a>';
     });
@@ -640,18 +688,18 @@
       '<text x="152" y="51" text-anchor="middle" class="af">Bob</text>' +
       '<line x1="68" y1="46" x2="122" y2="46" stroke="#7aa2f7" stroke-opacity=".7"/>' +
       '<text x="95" y="42" text-anchor="middle" class="af" style="font-size:10px;fill:#7aa2f7">K</text>' +
-      '<text x="95" y="84" text-anchor="middle" class="af af-lbl">shared secret key</text>' +
+      '<text x="95" y="126" text-anchor="middle" class="af af-lbl">shared secret key</text>' +
       /* Separator */ '<line x1="190" y1="20" x2="190" y2="150" stroke="currentColor" stroke-opacity=".15"/>' +
       /* Public-key side */ '<text x="285" y="18" text-anchor="middle" class="af" font-weight="700">Public-key</text>' +
       '<rect x="200" y="28" width="60" height="36" rx="8" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
       '<text x="230" y="51" text-anchor="middle" class="af">Alice</text>' +
       '<rect x="312" y="28" width="60" height="36" rx="8" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
       '<text x="342" y="51" text-anchor="middle" class="af">Bob</text>' +
-      '<text x="342" y="92" text-anchor="middle" class="af" style="font-size:10px;fill:#9d7cd8">pk (public)</text>' +
-      '<text x="342" y="106" text-anchor="middle" class="af" style="font-size:10px;fill:#e57a7a">sk (private)</text>' +
+      '<text x="342" y="80" text-anchor="middle" class="af" style="font-size:10px;fill:#9d7cd8">pk (public)</text>' +
+      '<text x="342" y="94" text-anchor="middle" class="af" style="font-size:10px;fill:#e57a7a">sk (private)</text>' +
       '<line x1="260" y1="46" x2="312" y2="46" stroke="#9d7cd8" stroke-opacity=".7" stroke-dasharray="3,2"/>' +
       '<text x="286" y="42" text-anchor="middle" class="af" style="font-size:10px;fill:#9d7cd8">pk</text>' +
-      '<text x="285" y="84" text-anchor="middle" class="af af-lbl">no prior meeting needed</text>' +
+      '<text x="285" y="126" text-anchor="middle" class="af af-lbl">no prior meeting needed</text>' +
       '</svg>' +
       '<figcaption>Symmetric encryption requires a shared secret key. Public-key encryption lets anyone encrypt using a published key; only the key holder can decrypt.</figcaption>' +
       '</figure>';
@@ -708,7 +756,7 @@
 
     if (key === 'otp-xor') return '' +
       '<figure class="anim-fig" aria-label="One-time pad XOR encryption">' +
-      '<svg viewBox="0 0 360 130" xmlns="http://www.w3.org/2000/svg">' +
+      '<svg viewBox="0 0 390 130" xmlns="http://www.w3.org/2000/svg">' +
       '<style>.xf{font:13px/1.4 ui-monospace,monospace;fill:currentColor}.xl{font:11px system-ui;fill:currentColor;opacity:.6}</style>' +
       /* Labels */ '<text x="8" y="36" class="xl">M (message)</text>' +
       '<text x="8" y="72" class="xl">K (key)</text>' +
@@ -922,6 +970,16 @@
     return '';
   }
 
+  /* A figure, with its SVG hidden from screen readers (the figure's label and
+     caption describe it) and plain-text operators given the .mop font stack. */
+  function figureHTML(key) {
+    var parts = animHTML(key).split('<figcaption>');
+    parts[0] = parts[0].replace('<svg ', '<svg aria-hidden="true" focusable="false" ')
+                       .replace(/\u2295/g, '<tspan class="mop">\u2295</tspan>');
+    if (parts[1]) parts[1] = parts[1].replace(/\u2295/g, '<span class="mop">\u2295</span>');
+    return parts.join('<figcaption>');
+  }
+
   /* Inline multiple-choice quiz for a section. */
   function sectionQuizHTML(items, quizId) {
     if (!items || !items.length) return '';
@@ -1007,7 +1065,8 @@
       h += '<div class="prose">';
       sec.body.forEach(function (para) { h += '<p>' + t(para) + '</p>'; });
       h += '</div>';
-      if (sec.anim) h += animHTML(sec.anim);
+      // The figure's aria-label and caption describe it; hide the SVG's loose text nodes.
+      if (sec.anim) h += figureHTML(sec.anim);
       if (sec.quiz && sec.quiz.length) h += sectionQuizHTML(sec.quiz, sec.id);
     });
 
@@ -1041,6 +1100,7 @@
                 if (bj === correct) b.className = 'cq-opt right';
                 else if (bj === j) b.className = 'cq-opt wrong';
               });
+              why.innerHTML = '<b>' + (j === correct ? 'Correct.' : 'Not quite.') + '</b> ' + why.innerHTML;
               why.hidden = false;
             };
           });
@@ -1057,8 +1117,11 @@
 
           // Keep the quiz in view: it sits at the bottom of a very long chapter.
           // Manual offset clears the sticky header (no scroll-margin-top on iOS 12).
+          // scrollIntoView lets the engine handle the text-size zoom on main
+          // (WebKit's getBoundingClientRect does not); then clear the sticky header.
           function toQuiz() {
-            window.scrollTo(0, quizBox.getBoundingClientRect().top + window.pageYOffset - 72);
+            quizBox.scrollIntoView(true);
+            window.scrollBy(0, -72);
           }
 
           function paintQ() {
