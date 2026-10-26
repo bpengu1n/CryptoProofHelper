@@ -1414,7 +1414,8 @@
       });
     });
     // Rendered text is indexed too, so symbols such as "σ" or "⊕" are searchable.
-    function shown(x) { return t(x).replace(/<[^>]+>/g, ''); }
+    var scratch = document.createElement('div');
+    function shown(x) { scratch.innerHTML = t(x); return scratch.textContent; }
     INDEX.forEach(function (e) {
       e.hay = (stripMath(e.title) + ' ' + shown(e.title) + ' \n ' + stripMath(e.text) + ' ' + shown(e.text)).toLowerCase();
     });
