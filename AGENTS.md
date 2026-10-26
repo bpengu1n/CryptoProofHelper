@@ -134,12 +134,12 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v8'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v9'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v8'` → `'cph-v9'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v9'` → `'cph-v10'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
 
@@ -276,6 +276,7 @@ All keys are plain strings; no namespacing beyond what is listed.
 | `drill:best:<setId>` | JSON `{ best, total }` | Best drill score per set |
 | `draft:<templateId>` | String | In-progress proof draft text |
 | `checklist` | JSON object `{ [itemId]: bool }` | Proof-writing checklist state |
+| `textsize` | String `md` \| `lg` \| `xl` | Text size chosen on the Start page |
 
 ---
 

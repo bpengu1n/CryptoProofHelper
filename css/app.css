@@ -2,7 +2,7 @@
   --bg:#0f1216; --bg2:#161b22; --bg3:#1d232c; --line:#2a323d;
   --fg:#e6edf3; --fg2:#a6b2c0; --fg3:#7d8998;
   --accent:#7aa2f7; --accent2:#9d7cd8; --ok:#5ec38a; --warn:#e0a35e; --bad:#e57a7a;
-  --r:14px; --tab:60px;
+  --r:14px; --tab:62px; --on-accent:#0b0e12;
   --safe-b:env(safe-area-inset-bottom,0px);
   --safe-t:env(safe-area-inset-top,0px);
 }
@@ -11,6 +11,7 @@
     --bg:#f7f8fa; --bg2:#ffffff; --bg3:#eef1f5; --line:#dde3ea;
     --fg:#141a21; --fg2:#4a5563; --fg3:#6b7684;
     --accent:#2f5fd0; --accent2:#6f42c1; --ok:#1f8a52; --warn:#9a6408; --bad:#b3352f;
+    --on-accent:#ffffff;   /* white on #2f5fd0 is 5.6:1; near-black was 3.4:1 */
   }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -88,15 +89,19 @@ ul.tight li{margin:0 0 7px}
 .math i,.mathblock i{font-style:italic;font-family:inherit}
 .mu{font-style:normal;font-family:inherit}
 .msym{font-style:normal;font-family:inherit}
+/* Operators the math fonts often lack (see t() in app.js): use fonts known to have them. */
+.mop{font-family:"STIX Two Math","Cambria Math","Segoe UI Symbol",-apple-system,BlinkMacSystemFont,
+  "Segoe UI",Roboto,"Helvetica Neue",sans-serif;margin:0 .08em}
+.mu sub{font-size:.85em}
 .mthin{display:inline-block;width:.17em}.mquad{display:inline-block;width:1em}
-.mfrac{display:inline-flex;flex-direction:column;vertical-align:-.55em;text-align:center;
+.mfrac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;
   font-size:.86em;margin:0 .18em}
 .mnum{border-bottom:1px solid currentColor;padding:0 .3em}
 .mden{padding:0 .3em}
 .mover{border-top:1px solid currentColor}
-.mbinom{display:inline-flex;flex-direction:column;vertical-align:-.5em;text-align:center;
+.mbinom{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;
   font-size:.84em;line-height:1.15;margin:0 .05em}
-sub,sup{font-size:.72em;line-height:0}
+sub,sup{font-size:.72em;line-height:0;white-space:nowrap}
 /* ---------- forms ---------- */
 label.f{display:block;margin:0 0 14px}
 label.f > span{display:block;font-size:14px;font-weight:600;margin-bottom:5px}
@@ -105,8 +110,8 @@ input[type=text],textarea{width:100%;background:var(--bg2);border:1px solid var(
   color:var(--fg);border-radius:10px;padding:10px 12px;font:15px/1.5 inherit;resize:vertical}
 input[type=text]:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--accent) 55%,transparent);
   outline-offset:-1px;border-color:var(--accent)}
-.btn{display:inline-block;background:var(--accent);color:#0b0e12;border:0;border-radius:11px;
-  padding:12px 16px;font:600 15px inherit;cursor:pointer;text-align:center}
+.btn{display:inline-block;background:var(--accent);color:var(--on-accent);border:0;border-radius:11px;
+  padding:12px 16px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;text-align:center}
 [hidden]{display:none!important}
 .btn.ghost{background:var(--bg3);color:var(--fg);border:1px solid var(--line)}
 .btn.wide{width:100%;margin-bottom:10px}
@@ -135,9 +140,9 @@ nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
   background:color-mix(in srgb,var(--bg) 97%,transparent);backdrop-filter:blur(16px);
   border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
 nav.tabs a{flex:1;min-width:0;padding:8px 1px 7px;text-align:center;text-decoration:none;
-  color:var(--fg3);font-size:10.5px;font-weight:600;letter-spacing:.01em;
+  color:var(--fg3);font-size:11.5px;font-weight:600;letter-spacing:.01em;
   white-space:nowrap;overflow:hidden;text-overflow:clip}
-@media (max-width:360px){nav.tabs a{font-size:9.5px;letter-spacing:0}}
+@media (max-width:360px){nav.tabs a{font-size:10.5px;letter-spacing:0}}
 nav.tabs a .ic{display:block;font-size:19px;line-height:1.25;margin-bottom:1px}
 nav.tabs a.on{color:var(--accent)}
 /* ---------- install ---------- */
@@ -202,7 +207,7 @@ dl.jargon.sym dd b{display:block;color:var(--fg);font-weight:600;margin-bottom:1
 .row.nav .btn{margin-bottom:0;text-decoration:none;line-height:1.4}
 /* ---------- course (B&R) ---------- */
 /* Tab bar compresses to 9px at very small widths for 7 tabs. */
-@media (max-width:390px){nav.tabs a{font-size:9px;padding:8px 0 7px}}
+@media (max-width:390px){nav.tabs a{font-size:11px;padding:8px 0 7px}}
 /* Chapter map cards */
 .chapter-card h3{display:flex;align-items:baseline;gap:10px;margin-bottom:5px}
 .ch-num{flex:none;font-size:11px;font-weight:700;color:var(--accent2);background:color-mix(in srgb,var(--accent2) 12%,var(--bg3));
@@ -220,7 +225,7 @@ h2.sec-heading:first-of-type{border-top:0;padding-top:0;margin-top:8px}
 .anim-fig{margin:16px 0 20px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .anim-fig svg{max-width:100%;display:block;margin:0 auto;padding:14px 10px 6px}
 @media (prefers-reduced-motion:reduce){.anim-fig *{animation:none!important}}
-.anim-fig figcaption{font-size:13px;color:var(--fg3);padding:6px 14px 12px;line-height:1.45;margin:0}
+.anim-fig figcaption{font-size:14px;color:var(--fg2);padding:6px 14px 12px;line-height:1.45;margin:0}
 /* Inline section quiz */
 .cq-block{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0}
 .cq-q{margin:0 0 12px;font-size:15px;font-weight:560}
@@ -235,3 +240,8 @@ h2.sec-heading:first-of-type{border-top:0;padding-top:0;margin-top:8px}
 .ch-divider{height:1px;background:var(--line);margin:36px 0 24px}
 .cq-saved{font-size:14px;color:var(--ok);margin:-6px 0 14px;font-weight:600}
 
+/* Text size (Start page). zoom reflows the content column; header and tabs stay put. */
+body.ts-lg main{zoom:1.12}
+body.ts-xl main{zoom:1.25}
+.row.seg .btn{margin-bottom:0;padding:8px 0;line-height:1.2}
+.row.seg .btn.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg2))}
