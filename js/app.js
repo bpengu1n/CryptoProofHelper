@@ -463,7 +463,9 @@
       title: 'Which technique?', sub: 'Read the problem, name the move it calls for' },
     { id: 'flaw',      kinds: ['flaw'],
       title: 'Spot the flaw', sub: 'The errors that actually cost marks' },
-    { id: 'all',       kinds: ['basics', 'technique', 'flaw'],
+    { id: 'numtheory', kinds: ['numtheory'],
+      title: 'Number theory', sub: 'Inverses, Euler, CRT, generators — the Ch 6 toolkit' },
+    { id: 'all',       kinds: ['basics', 'technique', 'flaw', 'numtheory'],
       title: 'Everything', sub: 'All of it, shuffled together' }
   ];
 
@@ -497,7 +499,7 @@
   }
 
   function vDrill(setId) {
-    var set = byId(DRILL_SETS, setId || 'all') || DRILL_SETS[3];
+    var set = byId(DRILL_SETS, setId || 'all') || byId(DRILL_SETS, 'all');
     var items = drillItems(set);
     if (!items.length) return notFound();
 
@@ -590,6 +592,18 @@
     var v = courseVisited(); if (v[id]) return; v[id] = 1; S.set('course:visited', v);
   }
   function courseQuizKey(id) { return 'course:quiz:' + id; }
+
+  /* Number Theory was inserted as Ch 6, pushing Public-Key Encryption from
+     'ch6' to 'ch7'. Carry saved progress across once so it isn't credited
+     to the wrong chapter. */
+  (function migrateCourseIds() {
+    if (S.get('course:ids', 1) >= 2) return;
+    var v = courseVisited();
+    if (v.ch6) { delete v.ch6; v.ch7 = 1; S.set('course:visited', v); }
+    var old = S.get(courseQuizKey('ch6'), null);
+    if (old !== null) { S.set(courseQuizKey('ch7'), old); S.set(courseQuizKey('ch6'), null); }
+    S.set('course:ids', 2);
+  })();
 
   /* SVG diagrams – keyed by the section.anim field. */
   function animHTML(key) {
@@ -1008,6 +1022,7 @@
       sec.body.forEach(function (para) { h += '<p>' + t(para) + '</p>'; });
       h += '</div>';
       if (sec.anim) h += animHTML(sec.anim);
+      if (sec.widget && window.CPWidgets) h += window.CPWidgets.html(sec.widget);
       if (sec.quiz && sec.quiz.length) h += sectionQuizHTML(sec.quiz, sec.id);
     });
 
@@ -1027,6 +1042,8 @@
 
     return { title: 'Ch ' + ch.num + ': ' + ch.title, html: h, tab: 'course', back: '#/course',
       after: function () {
+        if (window.CPWidgets) window.CPWidgets.wire(main);
+
         /* Inline section quiz interactivity */
         Array.prototype.forEach.call(main.querySelectorAll('.cq-block'), function (block) {
           var correct = parseInt(block.dataset.answer, 10);

@@ -412,5 +412,92 @@ window.CP_DRILLS = [
     ],
     answer: 0,
     why: 'The adversary asks its encryption oracle for $\\Enc(m_0)$, then submits $(m_0, m_1)$ as the challenge, then compares. A match means $b = 0$. Fresh per-message randomness — a nonce, an IV, an ephemeral value — is what closes this, and reusing it reopens it.'
+  },
+
+  /* Number theory: the Chapter 6 toolkit. Arithmetic you must do by hand on exams. */
+  {
+    id: 'n1', kind: 'numtheory',
+    q: 'Compute $9^{-1} \\bmod 29$.',
+    options: ['$13$', '$10$', '$20$', 'It does not exist'],
+    answer: 0,
+    why: '$9 \\cdot 13 = 117 = 4 \\cdot 29 + 1$. Extended Euclid: $29 = 3 \\cdot 9 + 2$, $9 = 4 \\cdot 2 + 1$, so $1 = 9 - 4 \\cdot 2 = 9 - 4(29 - 3 \\cdot 9) = 13 \\cdot 9 - 4 \\cdot 29$. Always check an inverse by multiplying it back.'
+  },
+  {
+    id: 'n2', kind: 'numtheory',
+    q: 'Compute $\\varphi(100)$.',
+    options: ['$40$', '$99$', '$50$', '$80$'],
+    answer: 0,
+    why: '$100 = 2^2 \\cdot 5^2$, so $\\varphi(100) = 100 \\cdot (1 - \\tfrac12)(1 - \\tfrac15) = 40$. The common slip is $\\varphi(N) = N - 1$, which holds only for prime $N$.'
+  },
+  {
+    id: 'n3', kind: 'numtheory',
+    q: 'Compute $7^{222} \\bmod 11$.',
+    options: ['$5$', '$7$', '$1$', '$4$'],
+    answer: 0,
+    why: 'Fermat: $7^{10} \\equiv 1 \\pmod{11}$, so reduce the exponent mod $10$: $222 \\bmod 10 = 2$. Then $7^2 = 49 = 4 \\cdot 11 + 5$. Reduce the exponent mod $p - 1$, not mod $p$.'
+  },
+  {
+    id: 'n4', kind: 'numtheory',
+    q: 'A student writes: "$a^{x} \\equiv a^{x \\bmod N} \\pmod N$ for every $a$." What is wrong?',
+    options: [
+      'Exponents reduce mod $\\varphi(N)$ (or mod the order of $a$), not mod $N$, and only for $a \\in \\Z_N^*$',
+      'Nothing — exponents always reduce mod the modulus',
+      'Exponents can never be reduced',
+      'It should be $x \\bmod (N + 1)$'
+    ],
+    answer: 0,
+    why: 'Euler\'s theorem says $a^{\\varphi(N)} \\equiv 1$, so the powers of $a$ repeat with a period dividing $\\varphi(N)$. Example: $2^{7} = 128 \\equiv 2 \\pmod 7$ but $2^{7 \\bmod 7} = 2^0 = 1$.'
+  },
+  {
+    id: 'n5', kind: 'numtheory',
+    q: 'Solve $x \\equiv 3 \\pmod 7$, $x \\equiv 4 \\pmod 9$ for $x \\in \\Z_{63}$.',
+    options: ['$31$', '$13$', '$40$', '$58$'],
+    answer: 0,
+    why: 'Numbers $\\equiv 4 \\pmod 9$: $4, 13, 22, 31, \\ldots$ Check mod $7$: $31 = 4 \\cdot 7 + 3$. By the CRT it is the unique solution mod $63$.'
+  },
+  {
+    id: 'n6', kind: 'numtheory',
+    q: 'What is the order of $2$ in $\\Z_{7}^*$?',
+    options: ['$3$', '$6$', '$2$', '$7$'],
+    answer: 0,
+    why: '$2^1 = 2$, $2^2 = 4$, $2^3 = 8 \\equiv 1$. The order is $3$, a divisor of $|\\Z_7^*| = 6$ (Lagrange), so $2$ is not a generator of $\\Z_7^*$.'
+  },
+  {
+    id: 'n7', kind: 'numtheory',
+    q: 'Is $3$ a generator of $\\Z_{17}^*$? ($16 = 2^4$.)',
+    options: [
+      'Yes: the only prime factor of $16$ is $2$, and $3^{8} \\equiv -1 \\neq 1$',
+      'No: $3^{16} \\equiv 1$',
+      'No: $3$ is odd',
+      'Cannot tell without listing all $16$ powers'
+    ],
+    answer: 0,
+    why: '$g$ generates iff $g^{(p-1)/q} \\neq 1$ for each prime $q \\mid p - 1$. Here only $q = 2$: $3^8 = 6561 = 386 \\cdot 17 - 1 \\equiv -1$. Note $3^{16} \\equiv 1$ holds for *every* element (Fermat), so it proves nothing.'
+  },
+  {
+    id: 'n8', kind: 'numtheory',
+    q: 'Which element has **no** inverse modulo the given modulus?',
+    options: ['$10 \\bmod 25$', '$10 \\bmod 21$', '$4 \\bmod 9$', '$15 \\bmod 26$'],
+    answer: 0,
+    why: '$\\gcd(10, 25) = 5 \\neq 1$, so $10$ has no inverse mod $25$. The others are coprime pairs: $\\gcd(10, 21) = \\gcd(4, 9) = \\gcd(15, 26) = 1$.'
+  },
+  {
+    id: 'n9', kind: 'numtheory',
+    q: 'Why is it safe to publish $N = pq$ but not $\\varphi(N)$?',
+    options: [
+      'From $N$ and $\\varphi(N)$ you get $p + q = N - \\varphi(N) + 1$, then $p, q$ as roots of a quadratic',
+      'Because $\\varphi(N)$ is larger than $N$',
+      'Because $\\varphi(N)$ reveals the message',
+      'It is safe to publish both'
+    ],
+    answer: 0,
+    why: 'Knowing $\\varphi(N)$ is equivalent to knowing the factorisation, so it must stay secret along with $d$.'
+  },
+  {
+    id: 'n10', kind: 'numtheory',
+    q: 'Euclid\'s algorithm on two 1024-bit numbers takes at most roughly how many division steps?',
+    options: ['About $2000$', 'About $2^{512}$', 'About $2^{1024}$', 'About $1024^3$'],
+    answer: 0,
+    why: 'The larger number at least halves every two steps, giving at most about $2 \\cdot 1024$ steps. The work is linear in the bit length, which is why inverses are cheap even though factoring is not.'
   }
 ];

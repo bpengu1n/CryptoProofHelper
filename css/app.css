@@ -235,3 +235,74 @@ h2.sec-heading:first-of-type{border-top:0;padding-top:0;margin-top:8px}
 .ch-divider{height:1px;background:var(--line);margin:36px 0 24px}
 .cq-saved{font-size:14px;color:var(--ok);margin:-6px 0 14px;font-weight:600}
 
+/* ---------- interactive widgets (js/widgets.js) ---------- */
+.wg{margin:16px 0 20px;background:var(--bg2);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));
+  border-radius:var(--r);padding:13px 14px 6px;font-size:14.5px}
+.wg p{margin:0 0 10px}
+.wg-h{font-weight:650;font-size:15px;margin:0 0 11px;display:flex;align-items:center;gap:9px}
+.wg-h2{font-weight:640;font-size:14.5px;margin:4px 0 8px}
+.wg-tag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0b0e12;
+  background:var(--accent);border-radius:6px;padding:2px 7px}
+.wg-in{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;margin:0 0 10px}
+.wg-f{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--fg2)}
+.wg-f input,.wg-f select{width:4.6em;background:var(--bg);border:1px solid var(--line);color:var(--fg);
+  border-radius:9px;padding:7px 9px;font:15px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace}
+.wg-f select{width:auto;font-family:inherit}
+.wg-f input.bad{border-color:var(--bad);outline:1px solid var(--bad)}
+.wg-lbl{font-size:14px;color:var(--fg2);margin-right:6px;align-self:center}
+.wg-btns{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.wg .btn.sm[disabled]{opacity:.45;cursor:default}
+.wg-seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0 0 10px;width:max-content;max-width:100%}
+.wg-seg button{background:var(--bg3);color:var(--fg2);border:0;border-right:1px solid var(--line);padding:8px 13px;
+  font:600 14px inherit;cursor:pointer}
+.wg-seg button:last-child{border-right:0}
+.wg-seg button.on{background:var(--accent);color:#0b0e12}
+.wg-big{font-size:17px;margin:4px 0 10px}
+.wg-dim{color:var(--fg3);font-size:13.5px}
+.wg-ok{color:var(--ok)} .wg-bad{color:var(--bad)} .wg-warn{color:var(--warn)}
+.wg-mono{font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg2);overflow-wrap:anywhere}
+.wg-scroll{overflow-x:auto;margin:0 0 10px;-webkit-overflow-scrolling:touch}
+.wg-tall{max-height:300px;overflow-y:auto}
+table.wg-t{border-collapse:collapse;font-size:13.5px;min-width:100%;margin:0 0 10px}
+.wg-scroll table.wg-t{margin:0}
+.wg-t th,.wg-t td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.wg-t th{color:var(--fg3);font-weight:600;font-size:12px}
+.wg-t tr.dim td{opacity:.45}
+.wg-t tr.hi td{background:color-mix(in srgb,var(--ok) 11%,transparent)}
+.wg-bit{font:700 14px ui-monospace,Menlo,monospace;text-align:center!important}
+.wg-bit.b1{color:var(--accent)} .wg-bit.b0{color:var(--fg3)}
+.wg-crt td,.wg-crt th{text-align:center!important;min-width:2.1em}
+.wg-crt td.tgt{background:var(--ok);color:#0b0e12;font-weight:700}
+.wg-crt td.clash{background:color-mix(in srgb,var(--bad) 22%,transparent)}
+.wg-crt td.new{background:color-mix(in srgb,var(--accent) 30%,transparent)}
+.wg-grid{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 12px}
+.wg-cell{min-width:38px;height:38px;padding:0 4px;border-radius:9px;border:1px solid var(--line);background:var(--bg3);
+  color:var(--fg3);font:600 14px ui-monospace,Menlo,monospace;cursor:pointer;position:relative;line-height:1.1}
+.wg-cell small{display:block;font-size:9px;font-weight:500;opacity:.75}
+.wg-cell.u{color:var(--fg);border-color:color-mix(in srgb,var(--accent) 55%,var(--line));
+  background:color-mix(in srgb,var(--accent) 14%,var(--bg3))}
+.wg-cell.sel{background:var(--accent);color:#0b0e12;border-color:var(--accent)}
+.wg-cell.pair{background:var(--ok);color:#0b0e12;border-color:var(--ok)}
+.wg-chips{display:flex;flex-wrap:wrap;align-items:center;gap:4px 2px;margin:0 0 12px}
+.wg-chip{display:inline-flex;flex-direction:column;align-items:center;min-width:30px;padding:3px 6px;border-radius:8px;
+  background:var(--bg3);border:1px solid var(--line);font:600 14px ui-monospace,Menlo,monospace}
+.wg-chip sup{font-size:9.5px;font-weight:500;color:var(--fg3);line-height:1.2}
+.wg-chip.one{border-color:var(--ok);color:var(--ok)}
+.wg-chip.rep{border-style:dashed;opacity:.65}
+.wg-arr{color:var(--fg3);font-size:12px}
+.wg-fig svg{display:block;max-width:260px;width:100%;margin:0 auto 10px}
+.wg-ring .track{fill:none;stroke:var(--line);stroke-width:1.5}
+.wg-ring .chord{stroke:var(--accent);stroke-opacity:.55;stroke-width:1.5}
+.wg-ring .node circle{fill:var(--bg3);stroke:var(--line);transition:fill .12s}
+.wg-ring .node text{fill:var(--fg2);font-family:ui-monospace,Menlo,monospace;font-weight:600}
+.wg-ring .node.a circle{fill:var(--accent);stroke:var(--accent)}
+.wg-ring .node.r circle{fill:var(--ok);stroke:var(--ok)}
+.wg-ring .node.cur circle{fill:var(--warn);stroke:var(--warn)}
+.wg-ring .node.a text,.wg-ring .node.r text,.wg-ring .node.cur text{fill:#0b0e12}
+.wg-sub{border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+.wg-streak{font-size:13px;color:var(--fg3);align-self:center;margin-left:auto}
+.wg-streak b{color:var(--fg)}
+ol.wg-steps{margin:0 0 12px;padding-left:20px;color:var(--fg2)}
+ol.wg-steps li{margin:0 0 6px}
+.wg ul.tight{color:var(--fg)}
+.wg-t .math{white-space:nowrap}

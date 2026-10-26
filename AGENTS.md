@@ -34,8 +34,9 @@ js/
   store.js                 Instantiates this app's CPStore from vendor/puzzlepieces
   install.js               This app's install-banner UI, wrapping vendor/puzzlepieces
   app.js                   Router, views, all UI logic
+  widgets.js               window.CPWidgets — interactive "Try it" widgets for course sections
 js/data/
-  course.js                window.CP_COURSE — B&R course chapters 1–6
+  course.js                window.CP_COURSE — B&R course chapters 1–7
   primer.js                window.CP_PRIMER — standalone primer lessons
   concepts.js              window.CP_CONCEPTS — definition cards
   techniques.js            window.CP_TECHNIQUES — proof-technique library
@@ -133,7 +134,7 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v7'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v8'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
@@ -227,6 +228,17 @@ To add a new animation key (referenced via `anim: 'key-name'` in a section):
 2. Return an inline SVG string. Use `fill="currentColor"` for text and structural elements to respect dark/light mode. Hardcode accent colors where needed (e.g. `#7aa2f7` for highlights).
 3. No external files — the SVG must be fully inline.
 
+### Interactive widget
+
+A section can carry `widget: 'key'` (alongside or instead of `anim`). `vChapter()` renders `CPWidgets.html(key)` below the section body and calls `CPWidgets.wire(main)` after insertion.
+
+1. Add an entry `W['key'] = { title, html: function () {...}, init: function (el) {...} }` in `js/widgets.js`.
+2. `html()` returns the controls; `init(el)` wires them. Use the `field()`, `intOf()`, `stepper()`, `player()` and `ringSVG()` helpers in that file. Labels and prose go through `T()` so `$...$` renders.
+3. Arithmetic uses plain JS numbers: cap every input so intermediate products stay below $2^{53}$.
+4. Timers must stop when the widget leaves the page — `player()` and `alive(el)` handle this.
+
+Existing keys (Ch 6): `mod-clock`, `euclid`, `egcd`, `units`, `powers`, `modexp`, `crt`, `generators`, `qr`, `factor`, `nt-practice`.
+
 ### Primer lesson
 
 Add to `window.CP_PRIMER` in `js/data/primer.js`:
@@ -273,6 +285,8 @@ All keys are plain strings; no namespacing beyond what is listed.
 | `drill:best:<setId>` | JSON `{ best, total }` | Best drill score per set |
 | `draft:<templateId>` | String | In-progress proof draft text |
 | `checklist` | JSON object `{ [itemId]: bool }` | Proof-writing checklist state |
+| `course:ids` | JSON number | Course-ID schema version; `2` once old `ch6` (Public-Key) progress has been moved to `ch7` |
+| `nt:practice:best` | JSON number | Best streak in the Ch 6 practice widget |
 
 ---
 
@@ -301,7 +315,8 @@ Completed on this branch:
 - B&R Chapter 3 (Symmetric Encryption) — PRFs, IND-CPA (left-or-right), ECB/CBC/CTR, CTR proof; 2 SVG animations (`prf-game`, `lr-oracle`)
 - B&R Chapter 4 (Message Authentication) — UF-CMA, PRF-as-MAC proof, CBC-MAC extension forgery, HMAC, Encrypt-then-MAC; 1 SVG animation (`uf-cma`)
 - B&R Chapter 5 (Hash Functions) — collision resistance, birthday attack, preimage notions, Merkle–Damgård, random oracle model; 2 SVG animations (`birthday`, `merkle-damgard`)
-- B&R Chapter 6 (Public-Key Encryption) — number theory, RSA, textbook-RSA pitfalls, DDH/ElGamal proof, hybrid encryption; 1 SVG animation (`rsa-trapdoor`)
+- Chapter 6 (Number Theory) — divisibility, congruences, Euclid, Bézout/inverses, groups and $\varphi$, Lagrange/Fermat/Euler, square-and-multiply, CRT, cyclic groups and discrete log, quadratic residues, easy-vs-hard problems; 11 interactive widgets (`js/widgets.js`) incl. an endless practice generator; `numtheory` drill set
+- B&R Chapter 7 (Public-Key Encryption; was Ch 6) — RSA, textbook-RSA pitfalls, DDH/ElGamal proof, hybrid encryption; 1 SVG animation (`rsa-trapdoor`)
 - `tools/lint-content.js` now also lints `CP_COURSE`
 
 **Pending:** none of the course chapters are locked any more. Possible next steps: digital signatures and key exchange as Ch 7+, or drill sets keyed to Ch 3–6.
