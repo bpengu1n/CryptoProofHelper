@@ -74,10 +74,10 @@
             {
               q: 'What does it mean for a cipher to be "provably secure"?',
               opts: [
-                'No adversary has ever broken it in practice.',
-                'Any efficient algorithm that breaks it could be turned into one that solves a problem believed to be hard.',
-                'It uses keys long enough to resist brute-force search.',
-                'It has been approved by a standards body.'
+                'No adversary has broken it, even after years of public analysis by experts.',
+                'Any efficient attack on it could be turned into a solver for a problem believed hard.',
+                'Its keys are long enough that trying every key would outlast the universe.',
+                'A standards body has reviewed its design in detail and approved it for sensitive data.'
               ],
               answer: 1,
               why: 'Provable security means there is a mathematical proof: any efficient algorithm that breaks the cipher can be turned into one that solves a hard problem (like factoring). Security is conditional on that problem being hard.'
@@ -101,9 +101,9 @@
           q: 'In a symmetric encryption scheme $(\\mathcal{K}, \\mathcal{E}, \\mathcal{D})$, which statement is always required to be true?',
           opts: [
             '$\\mathcal{D}_K(\\mathcal{E}_K(M)) = M$ for every valid $K$ and $M$.',
-            'The key $K$ is publicly known.',
-            'The adversary can compute $K$ from the ciphertext $C$.',
-            'Encryption and decryption always use different keys.'
+            'The key $K$ is publicly known, so anyone can decrypt but only the sender encrypts.',
+            'The adversary can compute $K$ from enough ciphertexts, so keys must change often.',
+            'Encryption and decryption always use two different keys, one public and one private.'
           ],
           answer: 0,
           why: 'Correctness is the defining requirement of any encryption scheme: decryption must undo encryption exactly. The key is kept private (not public), and using different keys for encryption and decryption is the public-key setting, not symmetric.'
@@ -117,10 +117,10 @@
         {
           q: 'A security proof shows: "If algorithm $\\mathcal{A}$ breaks scheme $\\mathcal{E}$, then algorithm $\\mathcal{B}$ factors large integers efficiently." This is a:',
           opts: [
-            'Counterexample demonstrating $\\mathcal{E}$ is broken.',
-            'Reduction showing that breaking $\\mathcal{E}$ is at least as hard as factoring.',
-            'Proof that factoring is computationally hard.',
-            'Attack on $\\mathcal{E}$.'
+            'Counterexample showing $\\mathcal{E}$ falls to anyone with enough computing power.',
+            'Reduction: breaking $\\mathcal{E}$ is at least as hard as factoring.',
+            'Proof that factoring large integers is computationally hard.',
+            'Attack on $\\mathcal{E}$ that recovers the key by factoring a modulus.'
           ],
           answer: 1,
           why: 'This is a reduction: it shows that breaking $\\mathcal{E}$ would imply solving factoring — which we believe is hard. So $\\mathcal{E}$ must also be hard to break, assuming factoring is.'
@@ -187,9 +187,9 @@
               q: 'Why is $\\Pr[\\mathcal{E}_\\pi(\\text{FAR}) = \\text{XYY}] = 0$?',
               opts: [
                 'FAR has three distinct letters, so it cannot encrypt to a ciphertext with a repeated letter.',
-                'A permutation cannot map two different plaintext letters (A and R) to the same ciphertext letter (Y).',
-                'The letter F cannot map to X under any permutation.',
-                'XYY is not in the ciphertext space of the substitution cipher.'
+                'A permutation cannot send two different letters (A and R) to the same letter (Y).',
+                'The letter F cannot map to X under any permutation of the 26-letter alphabet.',
+                'XYY is not a valid ciphertext, because the cipher never outputs repeated letters.'
               ],
               answer: 1,
               why: 'A permutation is a bijection: distinct inputs must map to distinct outputs. Since A ≠ R, both mapping to Y is impossible. This forces the probability to 0.'
@@ -236,10 +236,10 @@
             {
               q: 'Why does the OTP proof conclude $\\Pr[\\mathcal{E}_K(M) = C] = 1/2^m$ for any $M$ and $C$?',
               opts: [
-                'There are $2^m$ possible ciphertexts and each is equally likely to appear.',
-                'For any $M$ and $C$, exactly one key maps $M$ to $C$, and that key has probability $1/2^m$.',
-                'XOR always produces uniformly distributed output.',
-                'The key and message have the same length.'
+                'There are $2^m$ ciphertexts, and encryption picks one of them uniformly at random.',
+                'Exactly one key, $M \\oplus C$, maps $M$ to $C$, and it has probability $1/2^m$.',
+                'XOR of any two bit strings always produces a uniformly distributed output.',
+                'The key and the message have the same length $m$, so their probabilities match.'
               ],
               answer: 1,
               why: 'For fixed M and C, the equation K⊕M=C has exactly one solution: K=M⊕C. Since K is uniform over 2^m values, that specific key appears with probability 1/2^m. This is true for every M, giving equal probabilities across all messages.'
@@ -247,10 +247,10 @@
             {
               q: 'The key-length lower bound says $|\\mathcal{K}| \\geq |\\mathcal{M}|$ for any perfectly secure cipher. What forces this?',
               opts: [
-                'Longer keys take longer to brute-force.',
-                'Perfect security requires every message to be a plausible source of any ciphertext — which requires at least one distinct key per message.',
-                'XOR only works correctly when key and message have equal length.',
-                'Shannon proved this using information-theoretic entropy.'
+                'Longer keys take longer to brute-force, and perfect security must resist any search.',
+                'Every message must be able to produce a given ciphertext, each with its own key.',
+                'XOR only works correctly when the key and message have exactly equal length.',
+                'Shannon derived it from the entropy of English text, which bounds the key size.'
               ],
               answer: 1,
               why: 'If some message $M^*$ had zero probability of producing ciphertext C, seeing C would let an adversary rule out $M^*$ — leaking information. Avoiding this requires every M to be reachable from every C using some key, and those keys must be distinct (due to correctness). So |K| ≥ |M|.'
@@ -262,10 +262,10 @@
         {
           q: 'A substitution cipher over a 26-letter alphabet has $26!$ possible keys. Why is it still insecure against a realistic adversary?',
           opts: [
-            'The key space $26!$ is too small to resist brute-force search.',
-            'The cipher preserves the letter-frequency pattern of the plaintext in the ciphertext.',
-            'The decryption algorithm is publicly known.',
-            'A permutation can be recovered directly from a single ciphertext.'
+            'The key space of $26!$ is too small to resist brute-force search on modern hardware.',
+            'It preserves the plaintext\'s letter-frequency pattern in the ciphertext.',
+            'The decryption algorithm is public, so anyone can run it on a ciphertext.',
+            'The permutation can be read off directly from any single ciphertext letter.'
           ],
           answer: 1,
           why: 'Key-space size is necessary but not sufficient for security. A substitution cipher maps each plaintext letter to a fixed ciphertext letter, so English letter frequencies survive intact. Frequency analysis exploits this — no brute force needed.'
@@ -273,10 +273,10 @@
         {
           q: 'What makes the one-time pad "one-time"?',
           opts: [
-            'You can only encrypt messages of exactly one bit.',
-            'The key must be used for exactly one encryption; reusing it lets an adversary learn M0⊕M1.',
-            'A new encryption algorithm must be chosen for each message.',
-            'The pad is physically destroyed after use.'
+            'Each pad encrypts only a single bit, so long messages need many pads.',
+            'The key may encrypt only one message; reuse leaks $M_0 \\oplus M_1$.',
+            'A new encryption algorithm must be designed for every message sent.',
+            'The paper pad must be physically destroyed after use so it cannot be stolen.'
           ],
           answer: 1,
           why: 'If two messages M0 and M1 are encrypted with the same key K, the adversary can XOR the two ciphertexts to get M0⊕M1 (the key cancels). For natural-language text, that is often enough to recover both messages.'
@@ -295,10 +295,10 @@
         {
           q: 'To disprove that a cipher is perfectly secure, what exactly do you need to show?',
           opts: [
-            'An efficient algorithm that finds the key.',
+            'An efficient algorithm that, given any ciphertext $C$ produced by the cipher, outputs the key $K$ that was used.',
             'A pair of plaintexts $M_0, M_1$ and a ciphertext $C$ where $\\Pr[\\mathcal{E}_K(M_0)=C] \\neq \\Pr[\\mathcal{E}_K(M_1)=C]$.',
-            'That the cipher has been broken by a known attack.',
-            'That the key space is smaller than the message space.'
+            'A published attack that recovers plaintexts faster than brute force does.',
+            'That $|\\mathcal{K}| \\ge |\\mathcal{M}|$ fails for the cipher, i.e. that it has more keys than possible messages.'
           ],
           answer: 1,
           why: 'Perfect security requires equal ciphertext distributions for every message pair. One counterexample — one pair M0, M1 and one C with unequal probabilities — suffices to disprove it entirely. The substitution cipher proof found exactly such a triple: FEE, FAR, XYY.'
@@ -306,10 +306,10 @@
         {
           q: 'For the OTP over $m$-bit messages, the key-length lower bound says $|\\mathcal{K}| \\geq |\\mathcal{M}|$. What are these values?',
           opts: [
-            '$|\\mathcal{K}| = m$ and $|\\mathcal{M}| = m$.',
-            '$|\\mathcal{K}| = 2^m$ and $|\\mathcal{M}| = 2^m$. The OTP meets the bound exactly.',
-            '$|\\mathcal{K}| = 26!$ and $|\\mathcal{M}| = 26^m$.',
-            '$|\\mathcal{K}| > 2^m$; the OTP exceeds the minimum requirement.'
+            '$|\\mathcal{K}| = m$ and $|\\mathcal{M}| = m$, since both are $m$-bit strings.',
+            '$|\\mathcal{K}| = |\\mathcal{M}| = 2^m$, so the OTP meets the bound exactly.',
+            '$|\\mathcal{K}| = 26!$ and $|\\mathcal{M}| = 26^m$, as for a substitution cipher.',
+            '$|\\mathcal{K}| > 2^m$, so the OTP uses more key than the bound requires.'
           ],
           answer: 1,
           why: 'The OTP key is a uniform $m$-bit string, so $|\\mathcal{K}| = 2^m$. Messages are also $m$-bit strings, so $|\\mathcal{M}| = 2^m$. The OTP meets the lower bound with equality — the key is exactly as long as the message, no more.'
@@ -342,10 +342,10 @@
             {
               q: 'Why can\'t a scheme that encrypts many long messages under a short key be perfectly secure?',
               opts: [
-                'Short keys are always easy to guess.',
-                'Perfect security requires $|\\mathcal{K}| \\ge |\\mathcal{M}|$, and the total message space here is far larger than the key space.',
-                'Perfect security only applies to the one-time pad.',
-                'Computational adversaries can break any perfectly secure scheme.'
+                'Short keys can always be guessed by trying every possible value quickly.',
+                'It needs $|\\mathcal{K}| \\ge |\\mathcal{M}|$, and here messages far outnumber keys.',
+                'Perfect security is a property of the one-time pad alone, and no other scheme can ever have it.',
+                'Computationally bounded adversaries can break any perfectly secure scheme.'
               ],
               answer: 1,
               why: 'The key-length lower bound from Chapter 2 applies to the total amount of data encrypted under one key. A 128-bit key cannot cover gigabytes of plaintext, so perfect security is impossible and we fall back to computational security.'
@@ -369,10 +369,10 @@
             {
               q: 'In the PRF game, the adversary has advantage close to $1$. What does that mean?',
               opts: [
-                'It has recovered the key $K$.',
-                'It can reliably tell whether its oracle is $F_K$ or a truly random function.',
-                'It can invert $F_K$ on any output.',
-                'It has found two inputs with the same output.'
+                'It has recovered the key $K$, the only way to win the PRF game.',
+                'It can reliably tell whether its oracle is $F_K$ or a random function.',
+                'It can invert $F_K$, finding an input for any output it is given.',
+                'It has found two different inputs on which $F_K$ gives the same output.'
               ],
               answer: 1,
               why: 'Advantage measures distinguishing ability, nothing more. Recovering the key would give high advantage, but so would any other noticeable pattern in the outputs. That is what makes the PRF definition strong: it rules out every distinguishing pattern, not just key recovery.'
@@ -392,10 +392,10 @@
             {
               q: 'Why must a secure multi-message encryption scheme be randomized or stateful?',
               opts: [
-                'Deterministic algorithms are slower.',
-                'Without randomness or state, encrypting the same message twice gives the same ciphertext, revealing that the messages repeated.',
-                'Decryption requires the randomness to be sent alongside the key.',
-                'The block cipher would otherwise leak the key.'
+                'Deterministic algorithms are too slow for encrypting large volumes of data.',
+                'Otherwise equal messages give equal ciphertexts, revealing which ones repeat.',
+                'Decryption needs the encryption randomness, which is sent along with the key.',
+                'A deterministic block cipher would otherwise leak its key after many messages.'
               ],
               answer: 1,
               why: 'Equality of plaintexts is information. A deterministic stateless scheme maps equal plaintexts to equal ciphertexts, so an adversary learns which messages repeat — a violation of any reasonable privacy definition.'
@@ -420,10 +420,10 @@
             {
               q: 'In the left-or-right game, how does the adversary obtain an encryption of a specific message $M$ of its choice?',
               opts: [
-                'It cannot; the oracle only encrypts randomly chosen messages.',
-                'It queries the pair $(M, M)$, so whichever side is chosen, the result encrypts $M$.',
-                'It asks for the key and encrypts $M$ itself.',
-                'It submits $M$ to a separate encryption oracle.'
+                'It cannot; the oracle only encrypts messages that it picks at random itself.',
+                'It queries $(M, M)$: whichever side is chosen, the result encrypts $M$.',
+                'It asks the oracle for the key $K$ and then encrypts $M$ on its own.',
+                'It submits $M$ to a separate encryption oracle that the game also provides.'
               ],
               answer: 1,
               why: 'Querying the same message on both sides turns the left-or-right oracle into an ordinary encryption oracle. This is why IND-CPA automatically covers chosen-plaintext attacks.'
@@ -447,10 +447,10 @@
             {
               q: 'The one-query ECB attack uses $M_0 = 0^n 0^n$ and $M_1 = 0^n 1^n$. What does the adversary check?',
               opts: [
-                'Whether the ciphertext has length $2n$.',
-                'Whether the two ciphertext blocks are equal: they are if and only if the left message was encrypted.',
-                'Whether the first ciphertext block is $0^n$.',
-                'Whether the ciphertext decrypts to $M_0$.'
+                'Whether the ciphertext has length $2n$, which only the left message gives.',
+                'Whether its two ciphertext blocks are equal, which happens only for $M_0$.',
+                'Whether the first ciphertext block is $0^n$, since ECB maps zeros to zeros.',
+                'Whether the ciphertext decrypts to $M_0$ under a key it has guessed.'
               ],
               answer: 1,
               why: 'ECB encrypts equal blocks to equal ciphertext blocks. $M_0$ has two equal blocks and $M_1$ has two different blocks, and since $E_K$ is a permutation, different blocks always give different ciphertexts. So the check succeeds with probability 1.'
@@ -474,10 +474,10 @@
             {
               q: 'In the CTR proof, what is the reduction $B$\'s strategy?',
               opts: [
-                'It searches for the key $K$ and passes it to $A$.',
-                'It picks a random bit $b$, runs $A$, uses its own PRF-game oracle to compute the pads when encrypting $M_b$, and outputs $1$ if $A$ guesses $b$.',
-                'It outputs a random bit.',
-                'It replaces $A$\'s messages with random strings.'
+                'It searches for $K$ by brute force, then passes $K$ to $A$ to finish the attack.',
+                'It picks $b$, runs $A$, builds the pads from its own oracle, and outputs $1$ if $A$ guesses $b$.',
+                'It ignores $A$ and outputs a random bit, which already wins the PRF game.',
+                'It replaces each of $A$\'s messages with a fresh random string of the same length and outputs whatever $A$ outputs.'
               ],
               answer: 1,
               why: 'The reduction simulates the encryption game for $A$ using its oracle in place of $F_K$. It must pick $b$ itself, since it has to know which message to encrypt. If the oracle is $F_K$, $A$ sees the real scheme; if it is random, $A$ sees the idealized scheme. Any difference in how often $A$ guesses $b$ becomes $B$\'s distinguishing advantage.'
@@ -485,10 +485,10 @@
             {
               q: 'Why does the bound include a term like $\\sigma^2 / 2^n$?',
               opts: [
-                'Because AES has a known weakness after $2^{n/2}$ queries.',
-                'Because in the idealized scheme the adversary can win only if two counter values collide, and that probability grows quadratically in the number of blocks.',
-                'Because the key has $n$ bits.',
-                'Because each message must be padded to a multiple of $n$ bits.'
+                'Because AES has a known structural weakness after about $2^{n/2}$ queries.',
+                'In the ideal scheme $A$ wins only if counter values collide, and collisions grow like $\\sigma^2$.',
+                'Because the key has $n$ bits, so a brute-force key search succeeds after about $\\sigma^2$ guesses on average.',
+                'Because every message must be padded to a multiple of $n$ bits before encryption.'
               ],
               answer: 1,
               why: 'With a truly random function, CTR is a one-time pad unless a counter value repeats. Repeats among $\\sigma$ values drawn from a space of size $2^n$ are a birthday event, with probability on the order of $\\sigma^2 / 2^n$.'
@@ -500,10 +500,10 @@
         {
           q: 'Which statement best describes computational security?',
           opts: [
-            'The ciphertext reveals no information to any adversary.',
-            'Every adversary with realistic running time and number of queries has only tiny advantage.',
-            'The key is longer than the message.',
-            'No attack on the scheme has been published.'
+            'The ciphertext reveals no information at all, even to an unbounded adversary.',
+            'Every adversary with realistic time and queries has only tiny advantage.',
+            'The key is longer than all the messages encrypted under it put together.',
+            'No attack on the scheme has been published after years of scrutiny.'
           ],
           answer: 1,
           why: 'Computational security bounds the advantage of resource-limited adversaries. It does not claim information is absent — only that it cannot be used without enormous effort.'
@@ -511,10 +511,10 @@
         {
           q: 'An encryption scheme is deterministic and stateless. What can be said about its IND-CPA security?',
           opts: [
-            'It is secure, as long as its building blocks are secure.',
-            'There is a two-query adversary with advantage $1$, so it is not IND-CPA secure.',
-            'Exactly $1/2$.',
-            'It depends on the key length.'
+            'It is secure, provided its block cipher is a secure PRF.',
+            'A two-query adversary has advantage $1$, so it is not IND-CPA secure.',
+            'Its best adversary has advantage exactly $1/2$, so it is half secure.',
+            'It is secure only if its key is at least 256 bits long.'
           ],
           answer: 1,
           why: 'Query $(M, M)$, then $(M, M\')$. The ciphertexts match exactly when $b = 0$. Determinism alone is enough to break IND-CPA, regardless of how strong the block cipher is.'
@@ -522,10 +522,10 @@
         {
           q: 'Why does the left-or-right game require $|M_0| = |M_1|$?',
           opts: [
-            'Block ciphers only accept fixed-length input.',
-            'Encryption generally reveals message length, so the definition only asks that everything other than length be hidden.',
-            'Otherwise the adversary could query the same message twice.',
-            'To make the advantage formula well-defined.'
+            'Block ciphers accept only fixed-length input, so longer messages cannot be encrypted.',
+            'Encryption usually reveals length, so the definition hides everything but length.',
+            'Otherwise the adversary could put the same message on both sides of a pair.',
+            'To keep the advantage formula well-defined when ciphertext lengths differ.'
           ],
           answer: 1,
           why: 'Ciphertext length tracks plaintext length in practice. Without the restriction, any scheme whose ciphertext length depends on the message length would fail trivially by querying a short and a long message.'
@@ -533,10 +533,10 @@
         {
           q: 'Counter mode uses $F_K$ only in the forward direction. What does that allow?',
           opts: [
-            'Using any PRF, not only an invertible block cipher, and encrypting blocks in parallel.',
-            'Encrypting without a key.',
-            'Skipping the random starting value.',
-            'Avoiding the birthday bound.'
+            'Using any PRF, not just a block cipher, and computing blocks in parallel.',
+            'Encrypting without a key, since the forward direction of $F$ is public.',
+            'Skipping the random starting value, since counters are never reused anyway.',
+            'Avoiding the birthday bound, since $F_K$ never needs to be inverted.'
           ],
           answer: 0,
           why: 'Decryption in CTR recomputes the same pad and XORs again, so $F_K$ never needs to be inverted. Each pad block depends only on its counter value, so blocks can be computed in parallel.'
@@ -544,10 +544,10 @@
         {
           q: 'In the CTR security bound, what would make the right-hand side large even if AES is a perfect PRF?',
           opts: [
-            'Using a 256-bit key instead of a 128-bit key.',
-            'Encrypting close to $2^{64}$ blocks under one key with $n = 128$.',
-            'Encrypting very short messages.',
-            'Choosing the starting value $R$ at random.'
+            'Switching from a 128-bit key to a 256-bit key with the same block size.',
+            'Encrypting close to $2^{64}$ blocks under one key, with $n = 128$.',
+            'Encrypting only a few short messages, each a single block long.',
+            'Choosing the starting value $R$ uniformly at random for each message.'
           ],
           answer: 1,
           why: 'The birthday term $\\sigma^2 / 2^n$ approaches $1$ as $\\sigma$ approaches $2^{n/2} = 2^{64}$. Key length does not appear in that term; block length does.'
@@ -578,10 +578,10 @@
             {
               q: 'Why can an adversary modify a counter-mode ciphertext in a controlled way?',
               opts: [
-                'Because it can recover the key from the ciphertext.',
-                'Because flipping a ciphertext bit flips the same plaintext bit after decryption, since $C = P \\oplus M$.',
-                'Because counter mode is not IND-CPA secure.',
-                'Because the random starting value is sent in the clear.'
+                'Because it can recover the key from the ciphertext and re-encrypt freely.',
+                'Flipping a ciphertext bit flips the same plaintext bit, since $C = P \\oplus M$.',
+                'Because counter mode is not IND-CPA secure, so its ciphertexts leak the plaintext to an observer.',
+                'Because the random starting value is sent in the clear and can be altered.'
               ],
               answer: 1,
               why: 'XOR-based encryption is malleable: $(P \\oplus M) \\oplus \\Delta = P \\oplus (M \\oplus \\Delta)$. The adversary never learns $P$ or $M$, yet controls the change.'
@@ -615,10 +615,10 @@
             {
               q: 'An adversary queries the tagging oracle on $M$, gets $T$, and then submits $(M, T)$ to verification. Does it win the UF-CMA game?',
               opts: [
-                'Yes, because verification accepted.',
-                'No, because $M$ was queried to the tagging oracle, so this is not a forgery.',
-                'Yes, because it used fewer than $2^n$ queries.',
-                'Only if $T$ is longer than the key.'
+                'Yes, because the verification oracle accepted the pair $(M, T)$ it submitted.',
+                'No: $M$ was queried to the tagging oracle, so this is not a forgery.',
+                'Yes, because it made far fewer than $2^n$ queries in total.',
+                'Only if the tag $T$ is longer than the key $K$ it was made with.'
               ],
               answer: 1,
               why: 'A forgery must be on a new message — one the adversary never asked to be tagged. Replaying an honestly obtained tag is always possible and is not counted as breaking the MAC.'
@@ -642,10 +642,10 @@
             {
               q: 'In the idealized world where the MAC is a truly random function, why can\'t the adversary do better than guessing on a new message?',
               opts: [
-                'Because the key is secret.',
-                'Because a random function\'s output on a new input is uniform and independent of every output already seen.',
-                'Because the verification oracle rejects all queries.',
-                'Because the tag is longer than the message.'
+                'Because the key is secret, and the random function uses that same key.',
+                'A random function\'s output on a new input is independent of earlier outputs.',
+                'Because the verification oracle rejects every query in the ideal world, valid or not.',
+                'Because the tag is longer than the message, so it hides the message.'
               ],
               answer: 1,
               why: 'That is the defining property of a random function: outputs on distinct inputs are independent. Knowing $g(M_1), \\ldots, g(M_q)$ tells you nothing about $g(M)$ for a new $M$.'
@@ -668,10 +668,10 @@
             {
               q: 'The variable-length CBC-MAC forgery outputs $M_1 \\,\\|\\, (M_1 \\oplus T)$ with tag $T$. Why does it verify?',
               opts: [
-                'Because $E_K$ is not a permutation.',
-                'Because the second block XORs with the first chaining value $T$, cancelling it and leaving $E_K(M_1) = T$ again.',
-                'Because the adversary already queried the two-block message to the tagging oracle.',
-                'Because $T$ is all zeros.'
+                'Because $E_K$ is not a permutation, so many inputs share the tag $T$.',
+                'The second block XORs away the chaining value $T$, leaving $E_K(M_1) = T$.',
+                'Because the adversary already queried the two-block message to the tagging oracle for its tag.',
+                'Because $T$ is all zeros, so XORing it into a block changes nothing.'
               ],
               answer: 1,
               why: 'The first block produces chaining value $T$. The second block computes $E_K(T \\oplus M_1 \\oplus T) = E_K(M_1) = T$. The two copies of $T$ cancel, and the final value is again $T$.'
@@ -694,10 +694,10 @@
             {
               q: 'Why is Encrypt-and-MAC with a deterministic MAC not IND-CPA secure?',
               opts: [
-                'Because the MAC key is reused for encryption.',
-                'Because the tag is computed on the plaintext and sent in the clear, so equal messages produce equal tags.',
-                'Because encryption must come after the MAC.',
-                'Because the tag reveals the encryption key.'
+                'Because the MAC key is reused as the encryption key, which leaks it.',
+                'The tag is computed on the plaintext and sent in the clear: equal messages, equal tags.',
+                'Because encryption must always come after computing the MAC, never alongside it in parallel.',
+                'Because the tag reveals the encryption key to anyone who sees it.'
               ],
               answer: 1,
               why: 'MACs are not designed to hide anything. A deterministic tag on the plaintext reveals whether two plaintexts are equal — the same leak that breaks deterministic encryption.'
@@ -709,10 +709,10 @@
         {
           q: 'A scheme is IND-CPA secure. What does that guarantee about integrity?',
           opts: [
-            'Nothing — IND-CPA schemes such as counter mode can be modified in controlled ways.',
-            'That any modified ciphertext decrypts to $\\perp$.',
-            'That modifications are detected with probability $1/2$.',
-            'That only the key holder can produce valid ciphertexts.'
+            'Nothing: counter mode, for example, is IND-CPA secure yet malleable.',
+            'That any modified ciphertext decrypts to $\\perp$ instead of a message.',
+            'That modifications are detected with probability at least $1/2$.',
+            'That only someone holding the key can produce a valid ciphertext.'
           ],
           answer: 0,
           why: 'IND-CPA is about what the adversary can learn. Malleable schemes like counter mode are IND-CPA secure and offer no integrity at all.'
@@ -722,7 +722,7 @@
           opts: [
             'A valid tag on a message previously sent to the tagging oracle.',
             'A valid tag on a message never sent to the tagging oracle.',
-            'The MAC key.',
+            'The MAC key $K$, recovered from the tags it has seen.',
             'Any pair $(M, T)$ where $T$ has the right length.'
           ],
           answer: 1,
@@ -731,10 +731,10 @@
         {
           q: 'A PRF-based MAC uses 16-bit tags. Even if the PRF is perfect, what goes wrong?',
           opts: [
-            'Nothing; PRF security covers it.',
-            'An adversary making about $2^{16}$ verification guesses expects to forge, because each guess succeeds with probability $2^{-16}$.',
-            'The tag reveals the key.',
-            'The MAC is no longer deterministic.'
+            'Nothing: a perfect PRF makes forgery hard whatever the tag length, so 16 bits is plenty.',
+            'About $2^{16}$ forgery attempts succeed, since each is right with probability $2^{-16}$.',
+            'The short tag reveals part of the key with every message.',
+            'The MAC stops being deterministic once tags are that short.'
           ],
           answer: 1,
           why: 'The bound has a $q_v / 2^{\\tau}$ term. With $\\tau = 16$, around 65,000 guesses suffice — easily done online.'
@@ -787,10 +787,10 @@
             {
               q: 'Why do collisions necessarily exist for SHA-256?',
               opts: [
-                'Because SHA-256 has known design flaws.',
-                'Because the input space is far larger than the $2^{256}$ possible outputs, so by pigeonhole some inputs must share outputs.',
-                'Because SHA-256 uses a key.',
-                'They don\'t; SHA-256 is injective.'
+                'Because SHA-256 has known design flaws that produce colliding inputs.',
+                'Inputs vastly outnumber the $2^{256}$ outputs, so some must share one.',
+                'Because SHA-256 uses a key, and two keys can give the same output.',
+                'They don\'t: SHA-256 gives every input its own distinct output.'
               ],
               answer: 1,
               why: 'Any function from a larger set to a smaller set has collisions. Security is about the difficulty of finding them, not their absence.'
@@ -811,10 +811,10 @@
             {
               q: 'Why is collision resistance defined for a keyed family rather than a single fixed function?',
               opts: [
-                'To keep the hash secret from the adversary.',
-                'Because for a fixed function, an adversary that simply outputs a known collision exists, making the definition trivially unsatisfiable.',
-                'Because unkeyed functions cannot be computed efficiently.',
-                'Because SHA-256 requires a key.'
+                'To keep the hash function secret from the adversary, just like an encryption key is.',
+                'For a fixed function, an adversary that just prints a known collision exists.',
+                'Because unkeyed hash functions cannot be computed in polynomial time.',
+                'Because SHA-256 and other real hash functions require a secret key.'
               ],
               answer: 1,
               why: 'Existence of an adversary is a mathematical fact, not a matter of knowledge. With a random public key and a well-designed family, a single hardcoded collision only works for a tiny fraction of keys, so the definition becomes meaningful.'
@@ -862,10 +862,10 @@
             {
               q: 'Why does collision resistance imply second-preimage resistance?',
               opts: [
-                'Because both properties use the same key.',
-                'Because a second preimage $x\'$ for $x$ is itself a collision $(x, x\')$, so a second-preimage finder is a collision finder.',
-                'Because second-preimage resistance is defined only for collision-resistant functions.',
-                'It doesn\'t; the implication goes the other way.'
+                'Because both properties are defined using the same public key.',
+                'A second preimage $x\'$ of $x$ is itself a collision $(x, x\')$.',
+                'Because second-preimage resistance is only defined for such functions.',
+                'It doesn\'t: the implication actually goes the other way round.'
               ],
               answer: 1,
               why: 'This is a direct reduction: given a second-preimage finder, pick $x$ yourself, run the finder, and output the pair. If the finder succeeds, you have a collision.'
@@ -889,10 +889,10 @@
             {
               q: 'Why does Merkle–Damgård encode the message length in the final block?',
               opts: [
-                'To make the output longer.',
-                'So that two colliding messages of different lengths force a collision in $h$ on the last block.',
-                'To prevent the birthday attack.',
-                'To make the hash function keyed.'
+                'To make the hash output longer and so harder to attack.',
+                'So colliding messages of different lengths force a collision in $h$.',
+                'To prevent the birthday attack on the final compression step.',
+                'To turn the hash into a keyed family, as the collision-resistance definition requires.'
               ],
               answer: 1,
               why: 'Without length encoding, the proof breaks for messages of different lengths. With it, different lengths mean different last blocks, so equal final outputs mean $h$ itself collided.'
@@ -900,10 +900,10 @@
             {
               q: 'What does length extension let an adversary do?',
               opts: [
-                'Find collisions in $h$.',
-                'Compute $H(M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X)$ from $H(M)$ and $|M|$, without knowing $M$.',
-                'Recover $M$ from $H(M)$.',
-                'Shorten the hash output.'
+                'Find collisions in the compression function $h$ by extending both inputs.',
+                'Compute $H(M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X)$ from $H(M)$ and $|M|$ alone.',
+                'Recover the message $M$ from its hash $H(M)$ and its length.',
+                'Shorten the hash output so that collisions become easy to find.'
               ],
               answer: 1,
               why: 'The hash output is the full internal state. Continuing the chain from it hashes extra blocks, which breaks naive MACs like $H(K \\,\\|\\, M)$.'
@@ -924,10 +924,10 @@
             {
               q: 'What is the main limitation of proofs in the random oracle model?',
               opts: [
-                'They only apply to symmetric encryption.',
-                'Real hash functions are fixed public code, not random functions, and there are schemes secure in the model but insecure for every real hash.',
-                'They require the hash key to stay secret.',
-                'They cannot handle adaptive adversaries.'
+                'They only apply to symmetric encryption, not to signatures or public-key schemes.',
+                'Real hashes are fixed public code, and some schemes are secure only in the model.',
+                'They require the hash function\'s key to stay secret from the adversary.',
+                'They cannot handle adversaries that choose their queries adaptively.'
               ],
               answer: 1,
               why: 'The model idealizes the hash function. Contrived counterexamples show that the idealization can fail, so a random-oracle proof is a heuristic — though a valuable one.'
@@ -939,10 +939,10 @@
         {
           q: 'What does collision resistance require?',
           opts: [
-            'That no two inputs have the same hash.',
-            'That no efficient adversary can find two distinct inputs with the same hash.',
-            'That the hash output is uniformly random.',
-            'That the hash cannot be computed without a secret key.'
+            'That no two distinct inputs have the same hash value at all.',
+            'That no efficient adversary can find two distinct inputs with equal hashes.',
+            'That every hash output looks uniformly random to an observer.',
+            'That the hash value cannot be computed by anyone who does not hold the secret key.'
           ],
           answer: 1,
           why: 'Collisions always exist for compressing functions. The requirement is computational: they must be infeasible to find.'
@@ -972,10 +972,10 @@
         {
           q: 'The Merkle–Damgård theorem says:',
           opts: [
-            'If the compression function $h$ is collision resistant, then the full hash $H$ is collision resistant.',
-            'If $H$ is collision resistant, then $h$ is a PRF.',
-            'Merkle–Damgård hashes are random oracles.',
-            'Merkle–Damgård hashes resist length extension.'
+            'If the compression function $h$ is collision resistant, so is $H$.',
+            'If $H$ is collision resistant, then its compression function $h$ is a PRF.',
+            'Merkle–Damgård hashes are random oracles whenever $h$ is collision resistant.',
+            'Merkle–Damgård hashes resist length-extension attacks.'
           ],
           answer: 0,
           why: 'Any collision in $H$ can be traced back, block by block, to a collision in $h$. Length extension is a separate property, and Merkle–Damgård hashes do not resist it.'
@@ -983,10 +983,10 @@
         {
           q: 'Why is $\\Mac_K(M) = H(K \\,\\|\\, M)$ insecure when $H$ is SHA-256?',
           opts: [
-            'Because SHA-256 is not collision resistant.',
-            'Because length extension lets an adversary compute the tag of $M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X$ from the tag of $M$.',
-            'Because the key is too short.',
-            'Because SHA-256 output is too long to be a tag.'
+            'Because SHA-256 is not collision resistant, so two different messages get the same tag.',
+            'Length extension turns the tag of $M$ into a tag of $M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X$.',
+            'Because the key is too short compared with SHA-256\'s output.',
+            'Because SHA-256\'s 256-bit output is too long to use as a tag.'
           ],
           answer: 1,
           why: 'SHA-256 is a Merkle–Damgård hash, so its output is a full chaining state that can be extended. That gives a forgery without any knowledge of $K$ (beyond its length, which is usually public).'
@@ -1018,10 +1018,10 @@
             {
               q: 'Why does deterministic public-key encryption fail IND-CPA with just one left-or-right query?',
               opts: [
-                'Because public keys are short.',
-                'Because the adversary can encrypt $M_0$ and $M_1$ itself with $pk$ and compare to the challenge ciphertext.',
-                'Because the secret key leaks through the public key.',
-                'Because decryption is slow.'
+                'Because public keys are short enough to be guessed by brute force.',
+                'The adversary can encrypt $M_0$ and $M_1$ with $pk$ and compare.',
+                'Because the secret key can be computed from the public key.',
+                'Because decryption is too slow to run on every candidate message.'
               ],
               answer: 1,
               why: 'Anyone can encrypt in the public-key setting. With a deterministic scheme, re-encrypting the candidates and comparing identifies which one was encrypted.'
@@ -1068,10 +1068,10 @@
             {
               q: 'Why does $(x^e)^d \\equiv x \\pmod N$ hold?',
               opts: [
-                'Because $e = d$.',
-                'Because $ed = 1 + k\\varphi(N)$ for some $k$, and $x^{\\varphi(N)} \\equiv 1$ for $x \\in \\Z_N^*$ by Euler\'s theorem.',
-                'Because $N$ is prime.',
-                'Because exponentiation is commutative.'
+                'Because $e = d$, so raising to $e$ twice cancels out.',
+                '$ed = 1 + k\\varphi(N)$, and Euler gives $x^{\\varphi(N)} \\equiv 1$ for $x \\in \\Z_N^*$.',
+                'Because $N$ is prime, so Fermat\'s little theorem applies directly.',
+                'Because exponentiation mod $N$ is commutative, so the order in which $e$ and $d$ are applied is irrelevant.'
               ],
               answer: 1,
               why: 'The exponent $ed$ is $1$ more than a multiple of $\\varphi(N)$. Every full multiple of $\\varphi(N)$ in the exponent contributes a factor of $1$, leaving $x^1$.'
@@ -1092,7 +1092,7 @@
             {
               q: 'Given a textbook RSA ciphertext $C = M^e \\bmod N$, how can an adversary produce an encryption of $2M$?',
               opts: [
-                'It cannot without $d$.',
+                'It cannot do this without knowing $d$.',
                 'Compute $C \\cdot 2^e \\bmod N$.',
                 'Compute $2C \\bmod N$.',
                 'Compute $C^2 \\bmod N$.'
@@ -1119,10 +1119,10 @@
             {
               q: 'In the ElGamal proof, why can the adversary do no better than guessing when $Z$ is random?',
               opts: [
-                'Because the public key is hidden.',
-                'Because multiplying $M_b$ by a uniform group element gives a uniform result, independent of $b$ — a one-time pad in the group.',
-                'Because the adversary cannot compute discrete logarithms.',
-                'Because $y$ is reused.'
+                'Because the public key $g^x$ is hidden from the adversary.',
+                '$M_b$ times a uniform group element is uniform, whatever $b$ is.',
+                'Because the adversary cannot compute discrete logarithms in $G$.',
+                'Because the same randomness $y$ is reused for both messages.'
               ],
               answer: 1,
               why: 'In a group, multiplication by a uniform random element is a bijection that maps any fixed $M_b$ to a uniform output. So the ciphertext carries no information about $b$.'
@@ -1147,7 +1147,7 @@
                 'The entire message.',
                 'A fresh random symmetric key.',
                 'The hash of the message.',
-                'The receiver\'s secret key.'
+                'The receiver\'s long-term secret key.'
               ],
               answer: 1,
               why: 'The public-key operation is expensive and handles only short inputs, so it is used once to transport a symmetric key. The fast symmetric scheme then handles the bulk data.'
@@ -1159,10 +1159,10 @@
         {
           q: 'Why must every IND-CPA secure public-key encryption scheme be randomized?',
           opts: [
-            'Because public keys change for each message.',
-            'Because the adversary holds $pk$ and can re-encrypt candidate messages; a deterministic scheme lets it compare.',
-            'Because the RSA function is randomized.',
-            'Because decryption needs the randomness.'
+            'Because the public key must change for every message encrypted, so it needs fresh randomness.',
+            'The adversary has $pk$, so it can re-encrypt candidates and compare.',
+            'Because the underlying RSA function is itself randomized.',
+            'Because decryption needs the randomness used in encryption.'
           ],
           answer: 1,
           why: 'In the public-key setting encryption is available to everyone. Determinism means a candidate plaintext can be checked against a ciphertext directly.'
@@ -1184,7 +1184,7 @@
             'The RSA assumption.',
             'Hardness of factoring.',
             'The Decisional Diffie–Hellman (DDH) assumption.',
-            'Collision resistance of a hash function.'
+            'Collision resistance of the hash function used to encode messages.'
           ],
           answer: 2,
           why: 'The proof replaces the mask $g^{xy}$ with a random group element; any adversary that notices the swap solves DDH.'
@@ -1192,10 +1192,10 @@
         {
           q: 'Which is a reason textbook RSA should not be used to encrypt?',
           opts: [
-            'It cannot be decrypted efficiently.',
-            'It is deterministic and malleable, and small or structured messages may be recovered directly.',
-            'It requires a shared secret key.',
-            'It only works for prime moduli.'
+            'It cannot be decrypted efficiently, even by the key holder.',
+            'It is deterministic and malleable, and leaks small or structured messages.',
+            'It needs the sender and receiver to agree on a shared secret key before anything is sent.',
+            'It only works when the modulus $N$ is itself a prime number.'
           ],
           answer: 1,
           why: 'Textbook RSA fails IND-CPA by determinism, allows controlled modification via its multiplicative structure, and gives no protection for non-random messages. Randomized padding such as OAEP fixes these issues.'
@@ -1203,10 +1203,10 @@
         {
           q: 'Why do real systems use hybrid encryption instead of public-key encryption alone?',
           opts: [
-            'Public-key schemes are insecure for long messages.',
-            'Public-key operations are slow and handle only short inputs; a symmetric scheme handles the bulk data far more efficiently.',
-            'Symmetric schemes provide forward secrecy automatically.',
-            'Public-key schemes cannot be randomized.'
+            'Public-key schemes are insecure for messages longer than one block.',
+            'Public-key operations are slow and short-input; symmetric crypto handles bulk data.',
+            'Symmetric schemes automatically provide forward secrecy for every message, which public-key schemes cannot.',
+            'Public-key schemes cannot be randomized, so they leak repeated messages.'
           ],
           answer: 1,
           why: 'Hybrid encryption uses one public-key operation to transport a symmetric key, then fast symmetric encryption for everything else. It is provably secure when both the KEM and the DEM meet the required security notions.'
