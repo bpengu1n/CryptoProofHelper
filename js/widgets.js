@@ -257,7 +257,7 @@
         var bound = Math.max(1, Math.ceil(2 * Math.log(Math.max(2, Math.min(a, b))) / Math.LN2));
         var foot = '<p class="wg-big">' + T('$\\gcd(' + a + ', ' + b + ') = ' + x + '$') + '</p>' +
           '<p>' + T('The chain: $' + chain.join(' = ') + ' = ' + x + '$.') + '</p>' +
-          (b ? '<p class="wg-dim">' + T(k + ' division' + (k > 1 ? 's' : '') + '. The remainder at least halves every two steps, so it can never take more than about $2 \\log_2 ' + Math.min(a, b) + ' \\approx ' + bound + '$.') + '</p>' : '');
+          (b ? '<p class="wg-dim">' + T(k + ' division' + (k > 1 ? 's' : '') + '. The remainder at least halves every two steps, so it never takes much more than $2 \\log_2 ' + Math.min(a, b) + ' \\approx ' + bound + '$ (plus one step when $a < b$, which just swaps them).') + '</p>' : '');
         st.set('<div class="wg-scroll"><table class="wg-t"><thead><tr><th>#</th><th>divide</th><th>same gcd as</th></tr></thead><tbody>', rows, foot, 0);
       }
       q(el, '[data-act=step]').onclick = st.step;
@@ -280,8 +280,8 @@
     init: function (el) {
       var st = stepper(el, '.wg-out');
       function build() {
-        var a = intOf(el, 'a', 1, 1e9), n = intOf(el, 'n', 2, 1e9);
-        if (a === null || n === null) { q(el, '.wg-out').innerHTML = warn('Use $1 \\le a$ and $2 \\le N \\le 10^9$.'); return; }
+        var a = intOf(el, 'a', 1, 9e7), n = intOf(el, 'n', 2, 9e7);
+        if (a === null || n === null) { q(el, '.wg-out').innerHTML = warn('Use $1 \\le a$ and $2 \\le N \\le 9 \\cdot 10^7$.'); return; }
         var ar = mod(a, n), rows = egcdRows(n, ar), html = [];
         rows.forEach(function (r, i) {
           html.push('<tr' + (r.r === 0 ? ' class="dim"' : '') + '><td>' + (r.q === null ? '' : r.q) + '</td><td><b>' + r.r + '</b></td><td>' + r.s + '</td><td>' + r.t +
@@ -513,8 +513,9 @@
             '<p class="wg-ok">' + T('Check: $' + x + ' \\bmod ' + n1 + ' = ' + (x % n1) + '$, $' + x + ' \\bmod ' + n2 + ' = ' + (x % n2) + '$ ✓') + '</p>';
         } else {
           var sols = [];
-          for (var y = 0; y < N && sols.length < 12; y++) if (y % n1 === r1 && y % n2 === r2) sols.push(y);
-          out.innerHTML = '<p>' + T('$\\gcd(' + n1 + ', ' + n2 + ') = ' + d + '$, so the CRT does **not** apply. Counting $0, 1, 2, \\ldots$ only reaches $\\lcm = ' + (N / d) + '$ cells before repeating — some cells get two numbers, others none.') + '</p>' +
+          for (var y = 0; y < N && sols.length < 13; y++) if (y % n1 === r1 && y % n2 === r2) sols.push(y);
+          if (sols.length > 12) { sols.length = 12; sols.push('\\ldots'); }
+          out.innerHTML = '<p>' + T('$\\gcd(' + n1 + ', ' + n2 + ') = ' + d + '$, so the CRT does **not** apply. Counting $0, 1, 2, \\ldots$ only reaches $\\lcm = ' + (N / d) + '$ cells before repeating — each cell it visits gets $' + d + '$ numbers, and the rest get none.') + '</p>' +
             '<p>' + (sols.length ? T('This system happens to be solvable (because $' + r1 + ' \\equiv ' + r2 + ' \\pmod{' + d + '}$): $x \\in \\{' + sols.join(', ') + '\\}$ — more than one answer mod $' + N + '$.')
                                  : T('This system has **no** solution: it needs $' + r1 + ' \\equiv ' + r2 + ' \\pmod{' + d + '}$.')) + '</p>';
         }
@@ -603,7 +604,7 @@
           v = (v * ch.g) % p;
         }
         pl.play(frames, Math.max(30, Math.min(220, 2400 / (ch.x + 1))), function () {
-          o.innerHTML += '<p>' + T('$x = ' + ch.x + '$ after $' + (ch.x + 1) + '$ tries. Brute force needs up to $p - 1$ tries; with a 2048-bit $p$ that is about $2^{2048}$, and even the best known algorithms are hopeless at that size.') + '</p>';
+          o.innerHTML += '<p>' + T('$x = ' + ch.x + '$ after $' + (ch.x + 1) + '$ tries. Brute force needs up to $p - 1$ tries; with a 2048-bit $p$ that is about $2^{2048}$. Smarter algorithms do far better, but for a well-chosen $p$ (with $p - 1$ having a large prime factor) they still need around $2^{112}$ work.') + '</p>';
         });
       };
       function build() {
@@ -701,12 +702,13 @@
           var ms = Date.now() - t0, digits = String(N).length, perSec = tries / Math.max(ms, 1) * 1000;
           fig.innerHTML = '<p class="wg-ok">' + T('$' + N + ' = ' + f + ' \\cdot ' + (N / f) + '$') + ' — ' + tries.toLocaleString() + ' divisions, ' + ms + ' ms.</p>' +
             '<p>' + T('Trial division needs about $\\sqrt{N}/2$ divisions, and $\\sqrt{N}$ has half as many digits as $N$. Each extra digit of $p$ multiplies the work by $10$. Projected at a billion divisions per second:') + '</p>' +
-            '<table class="wg-t"><thead><tr><th>digits of N</th><th>time</th></tr></thead><tbody>' +
+            '<table class="wg-t"><thead><tr><th>digits of N</th><th>trial division only</th></tr></thead><tbody>' +
             [digits, 40, 100, 617].map(function (dg) {
               var secs = Math.pow(10, dg / 2) / 2 / 1e9;
               return '<tr><td>' + dg + (dg === 617 ? ' (2048-bit RSA)' : '') + '</td><td>' + human(secs) + '</td></tr>';
             }).join('') + '</tbody></table>' +
-            '<p class="wg-dim">The best real algorithm (the number field sieve) is vastly faster than trial division, yet still nowhere near practical for 2048-bit moduli. Your browser just managed about ' + Math.round(perSec).toLocaleString() + ' divisions per second.</p>';
+            '<p>Real attackers use the number field sieve, which is vastly faster: 100-digit numbers fall in hours on a laptop, and the record is a 250-digit (829-bit) modulus, factored in 2020 with about 2700 core-years. A 617-digit (2048-bit) modulus is still far out of reach.</p>' +
+            '<p class="wg-dim">Your browser just managed about ' + Math.round(perSec).toLocaleString() + ' divisions per second.</p>';
           q(el, '[data-act=go]').disabled = false;
         }
         if (N % 2 === 0) return done(2);
@@ -749,11 +751,26 @@
       do { a = rnd(2, n - 1); } while (gcd(a, n) !== 1);
       var rows = egcdRows(n, a), st = [], inv = inverse(a, n);
       for (var i = 2; i < rows.length - 1; i++) st.push('$' + rows[i].r + ' = ' + rows[i].s + ' \\cdot ' + n + ' + ' + paren(rows[i].t) + ' \\cdot ' + a + '$');
-      st.push('So $' + a + '^{-1} \\equiv ' + paren(rows[rows.length - 2].t) + ' \\equiv ' + inv + '$. Check: $' + a + ' \\cdot ' + inv + ' = ' + (a * inv) + ' \\equiv 1$.');
+      var tl = rows[rows.length - 2].t;
+      st.push('So $' + a + '^{-1} \\equiv ' + (tl === inv ? inv : paren(tl) + ' \\equiv ' + inv) + '$. Check: $' + a + ' \\cdot ' + inv + ' = ' + (a * inv) + ' \\equiv 1$.');
       return { q: 'Find $' + a + '^{-1} \\bmod ' + n + '$.', a: inv, hint: 'extended Euclid', steps: st };
     },
+    lincong: function () {
+      var d = pick([1, 2, 2, 3, 4]), n2 = pick([5, 7, 9, 11, 13]), N = d * n2, a, x0, c;
+      do { a = d * rnd(2, n2 - 1); } while (gcd(a, N) !== d);
+      do { x0 = rnd(1, N - 1); c = (a * x0) % N; } while (c === 0);
+      var sols = []; for (var x = 0; x < N; x++) if ((a * x) % N === c) sols.push(x);
+      var st = ['$\\gcd(' + a + ', ' + N + ') = ' + d + '$' + (d > 1 ? ', which divides $' + c + '$, so there are $' + d + '$ solutions mod $' + N + '$.' : ', so $' + a + '$ is invertible and there is exactly one solution.')];
+      if (d > 1) st.push('Divide by $' + d + '$: $' + (a / d) + 'x \\equiv ' + (c / d) + ' \\pmod{' + n2 + '}$, so $x \\equiv ' + (a / d) + '^{-1} \\cdot ' + (c / d) + ' \\equiv ' + sols[0] + ' \\pmod{' + n2 + '}$.');
+      else st.push('$x \\equiv ' + a + '^{-1} \\cdot ' + c + ' = ' + inverse(a, N) + ' \\cdot ' + c + ' \\equiv ' + sols[0] + ' \\pmod{' + N + '}$.');
+      st.push('All solutions in $\\Z_{' + N + '}$: $\\{' + sols.join(', ') + '\\}$. The smallest is $' + sols[0] + '$.');
+      return { q: 'Find the smallest $x \\ge 0$ with $' + a + 'x \\equiv ' + c + ' \\pmod{' + N + '}$.', a: sols[0], hint: 'compare $\\gcd(a, N)$ with $c$', steps: st };
+    },
     power: function () {
-      var p = pick(primesIn(11, 61)), g = rnd(2, p - 1), x = rnd(p + 5, 400), e = x % (p - 1), r = powmod(g, x, p);
+      var p = pick(primesIn(11, 61)), g = rnd(2, p - 1), x = rnd(p + 5, 400), e;
+      while (x % (p - 1) === 0) x++;
+      e = x % (p - 1);
+      var r = powmod(g, x, p);
       return { q: 'Compute $' + g + '^{' + x + '} \\bmod ' + p + '$. ($' + p + '$ is prime.)', a: r, hint: 'Fermat, then square-and-multiply',
         steps: ['Fermat: $' + g + '^{' + (p - 1) + '} \\equiv 1$, so reduce the exponent mod $' + (p - 1) + '$: $' + x + ' \\bmod ' + (p - 1) + ' = ' + e + '$.',
                 'Now compute $' + g + '^{' + e + '} \\bmod ' + p + '$ by square-and-multiply ($' + e + ' = ' + binary(e || 0) + '_2$): the result is $' + r + '$.'] };
@@ -768,8 +785,8 @@
       while (!n) n = pick(forms)();
       var f = factorize(n), ph = phi(n);
       return { q: 'Compute $\\varphi(' + n + ')$.', a: ph, hint: 'factor first',
-        steps: ['$' + n + ' = ' + factorTeX(n) + '$.',
-                '$\\varphi(' + n + ') = ' + f.map(function (x) { return x.k > 1 ? x.p + '^{' + (x.k - 1) + '}(' + x.p + '-1)' : '(' + x.p + '-1)'; }).join(' \\cdot ') + ' = ' + ph + '$.'] };
+        steps: [f.length === 1 && f[0].k === 1 ? '$' + n + '$ is prime.' : '$' + n + ' = ' + factorTeX(n) + '$.',
+                '$\\varphi(' + n + ') = ' + f.map(function (x) { return x.k > 2 ? x.p + '^{' + (x.k - 1) + '}(' + x.p + '-1)' : x.k === 2 ? x.p + '(' + x.p + '-1)' : '(' + x.p + '-1)'; }).join(' \\cdot ') + ' = ' + ph + '$.'] };
     },
     order: function () {
       var p = pick([7, 11, 13, 17, 19]), a = rnd(2, p - 1), k = order(a, p), pw = [], v = 1;
@@ -788,11 +805,11 @@
     dlog: function () {
       var p = pick([7, 11, 13, 17, 19, 23]), g = pick(generators(p)), x = rnd(2, p - 2), X = powmod(g, x, p), pw = [], v = 1;
       for (var i = 1; i <= x; i++) { v = (v * g) % p; pw.push('$' + g + '^{' + i + '} \\equiv ' + v + '$'); }
-      return { q: 'Solve $' + g + '^x \\equiv ' + X + ' \\pmod{' + p + '}$ for $0 \\le x < ' + (p - 1) + '$.', a: x, hint: 'list powers — no shortcut',
+      return { q: 'Solve $' + g + '^x \\equiv ' + X + ' \\pmod{' + p + '}$ for $0 \\le x < ' + (p - 1) + '$.', a: x, hint: 'list powers — the simplest method at this size',
         steps: [pw.join(', ') + '.', 'So $x = ' + x + '$. At this size listing works; at 2048 bits it is the discrete log problem.'] };
     }
   };
-  var TOPICS = [['mixed', 'Mixed'], ['reduce', 'Reduce'], ['multiply', 'Multiply'], ['gcd', 'gcd'], ['inverse', 'Inverses'],
+  var TOPICS = [['mixed', 'Mixed'], ['reduce', 'Reduce'], ['multiply', 'Multiply'], ['gcd', 'gcd'], ['inverse', 'Inverses'], ['lincong', 'Linear congruences'],
                 ['power', 'Powers'], ['phi', 'φ(N)'], ['order', 'Order'], ['crt', 'CRT'], ['dlog', 'Discrete log']];
 
   W['nt-practice'] = {
