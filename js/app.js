@@ -974,7 +974,7 @@
       h += '<a class="card chapter-card' + (v ? ' visited' : '') + '" href="#/course/' + ch.id + '">' +
            '<h3><span class="ch-num">Ch ' + ch.num + '</span>' + esc(ch.title) + '</h3>' +
            '<p>' + esc(ch.blurb) + '</p>';
-      if (score !== null) h += '<span class="chip ok">quiz ' + score + '/' + ch.mastery.length + '</span>';
+      if (score !== null) h += '<span class="chip' + (score > 0 ? ' ok' : '') + '">quiz ' + score + '/' + ch.mastery.length + '</span>';
       else if (v) h += '<span class="chip">opened</span>';
       h += '</a>';
     });
@@ -1056,7 +1056,10 @@
           var state = { i: 0, right: 0, missed: [] };
 
           // Keep the quiz in view: it sits at the bottom of a very long chapter.
-          function toQuiz() { quizBox.scrollIntoView({ block: 'start' }); }
+          // Manual offset clears the sticky header (no scroll-margin-top on iOS 12).
+          function toQuiz() {
+            window.scrollTo(0, quizBox.getBoundingClientRect().top + window.pageYOffset - 72);
+          }
 
           function paintQ() {
             if (state.i >= items.length) return finish();

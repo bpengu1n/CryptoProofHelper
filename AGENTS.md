@@ -269,7 +269,7 @@ All keys are plain strings; no namespacing beyond what is listed.
 |-----|------|-------------|
 | `primer:read` | JSON array of lesson IDs | Lessons the user has opened |
 | `course:visited` | JSON array of chapter IDs | Chapters the user has visited |
-| `course:quiz:<chId>` | JSON `{ best, total, ts }` | Mastery quiz best score per chapter |
+| `course:quiz:<chId>` | JSON number | Best mastery quiz score per chapter (0 is saved) |
 | `drill:best:<setId>` | JSON `{ best, total }` | Best drill score per set |
 | `draft:<templateId>` | String | In-progress proof draft text |
 | `checklist` | JSON object `{ [itemId]: bool }` | Proof-writing checklist state |
