@@ -327,9 +327,9 @@
           body: [
             'Chapter 2 ended with bad news: perfect security needs a key as long as everything you will ever encrypt. Real systems encrypt terabytes under a 128-bit key. So real systems cannot be perfectly secure, and we need a weaker — but still meaningful — goal.',
             'The weakening is this: we stop worrying about adversaries with unlimited computing power and only worry about adversaries who run in a realistic amount of time. An adversary who would need $2^{128}$ steps to succeed is, for every practical purpose, an adversary who fails.',
-            'Bellare and Rogaway measure security concretely. An adversary $A$ is an algorithm with a running time $t$ and a number of queries $q$ it makes to whatever oracles the game provides. Its success is measured by its **advantage** — a number between $0$ and $1$ saying how much better than guessing it does. A scheme is secure if every adversary with reasonable $t$ and $q$ has tiny advantage.',
+            'Bellare and Rogaway measure security concretely. An adversary $A$ is an algorithm with a running time $t$ and a number of queries $q$ it makes to whatever oracles the game provides. Its success is measured by its **advantage** — a number that is at most $1$, where a value near $0$ means it does no better than guessing. A scheme is secure if every adversary with reasonable $t$ and $q$ has tiny advantage.',
             'Notice what changes: the definition no longer says "the adversary learns nothing". It says "the adversary learns nothing it can use, unless it spends an enormous amount of work". That is weaker than Shannon\'s guarantee, but it is the guarantee every encryption scheme you use today actually provides.',
-            'Since we can no longer prove these statements outright (doing so would resolve open questions like P vs NP), every theorem in this chapter has the same shape: if the building block is secure, then the scheme built from it is secure. These are **reductions**, and learning to read them is the main skill of the chapter.'
+            'Since we can no longer prove these statements outright (doing so would resolve open questions like P vs NP), most results in this chapter have the same shape: if the building block is secure, then the scheme built from it is secure. These are **reductions**, and learning to read them is the main skill of the chapter.'
           ],
           quiz: [
             {
@@ -351,11 +351,11 @@
           anim: 'prf-game',
           body: [
             'The workhorse of symmetric cryptography is the **block cipher**: a function $E : \\{0,1\\}^k \\times \\{0,1\\}^n \\to \\{0,1\\}^n$ that takes a $k$-bit key and an $n$-bit input block and returns an $n$-bit output block. For each key $K$, the map $E_K(\\cdot)$ is a permutation, so it can be inverted by someone who knows $K$. AES is the standard example, with $n = 128$ and $k \\in \\{128, 192, 256\\}$.',
-            'What property do we want from $E$? The useful answer is: it should look like a random function to anyone who does not know the key. We capture this with a game.',
-            'In the PRF game, a hidden bit decides which world the adversary is in. In the "real" world, a key $K$ is chosen at random and the adversary gets an oracle for $F_K(\\cdot)$. In the "random" world, the adversary gets an oracle for a truly random function $g$ — one where each new input gets a fresh, independent, uniformly random output. The adversary queries the oracle as it likes, then outputs a guess: $1$ for "real", $0$ for "random".',
+            'What property do we want from $E$? The useful answer is: it should look like a random function to anyone who does not know the key. We capture this with a game, stated for any keyed function $F : \\{0,1\\}^k \\times \\{0,1\\}^{\\ell} \\to \\{0,1\\}^L$ (a *function family*). A block cipher $E$ is the special case where every $F_K$ is a permutation.',
+            'In the PRF game, a hidden bit decides which world the adversary is in. In the "real" world, a key $K$ is chosen at random and the adversary gets an **oracle** for $F_K(\\cdot)$ — a black box it can send inputs to and get outputs back from, without seeing inside. In the "random" world, the adversary gets an oracle for a truly random function $g$ — one where each new input gets a fresh, independent, uniformly random output (and a repeated input gets the same answer as before). The adversary queries the oracle as it likes, then outputs a guess: $1$ for "real", $0$ for "random".',
             '$$\\Adv^{\\mathrm{prf}}_F(A) = \\Pr[A^{F_K} \\Rightarrow 1] - \\Pr[A^{g} \\Rightarrow 1]$$',
-            'If no efficient adversary can make this difference noticeably larger than $0$, we say $F$ is a **pseudorandom function** (PRF). The idea is powerful: any argument that would be easy with a truly random function can be carried over to $F_K$, at the cost of the PRF advantage.',
-            'A block cipher is really a pseudorandom *permutation* (PRP): the random world uses a random permutation rather than a random function. The two notions are almost interchangeable. A random function on $n$-bit blocks only looks different from a random permutation once two inputs collide on the same output, and with $q$ queries that happens with probability at most $q^2 / 2^{n+1}$. This is the **PRP/PRF switching lemma**, and it lets us treat AES as a PRF in proofs.'
+            'Here $A^{F_K} \\Rightarrow 1$ means "$A$, given oracle $F_K$, outputs $1$". If no efficient adversary can make this difference noticeably larger than $0$, we say $F$ is a **pseudorandom function** (PRF). The idea is powerful: any argument that would be easy with a truly random function can be carried over to $F_K$, at the cost of the PRF advantage.',
+            'A block cipher is really a pseudorandom *permutation* (PRP): the random world uses a random permutation rather than a random function. The two notions are almost interchangeable. A random function on $n$-bit blocks only looks different from a random permutation once two inputs collide on the same output, and with $q$ queries that happens with probability at most $q^2 / 2^{n+1}$. This is the **PRP/PRF switching lemma**, and it lets us treat AES as a PRF in proofs, at the cost of an extra $q^2 / 2^{n+1}$ term in the bound. (B&R state the slightly tighter $q(q-1) / 2^{n+1}$.)'
           ],
           quiz: [
             {
@@ -377,8 +377,8 @@
           body: [
             'A symmetric encryption scheme $\\mathcal{SE} = (\\mathcal{K}, \\mathcal{E}, \\mathcal{D})$ is a triple of algorithms. Key generation $\\mathcal{K}$ outputs a random key $K$. Encryption $\\mathcal{E}_K(M)$ outputs a ciphertext $C$ and may use fresh randomness each time it runs. Decryption $\\mathcal{D}_K(C)$ outputs the message, or $\\perp$ ("invalid") if $C$ is not a legitimate ciphertext.',
             'Correctness requires $\\mathcal{D}_K(\\mathcal{E}_K(M)) = M$ for every key and every message — whatever random coins encryption happened to use.',
-            'Here is the first surprise of the chapter. If $\\mathcal{E}$ is deterministic — the same key and message always give the same ciphertext — then the scheme cannot be secure once the same key encrypts more than one message. The reason is simple: an adversary who sees two equal ciphertexts learns that the two underlying messages were equal. That is information about the plaintexts.',
-            'This is not a theoretical quibble. A database that encrypts the "diagnosis" column deterministically reveals which patients share a diagnosis. So a secure scheme must be **randomized** (pick fresh random coins for each encryption) or **stateful** (keep a counter that changes after each encryption). Both approaches appear below.'
+            'Here is the first surprise of the chapter. If $\\mathcal{E}$ is deterministic and stateless — the same key and message always give the same ciphertext — then the scheme cannot be secure once the same key encrypts more than one message. The reason is simple: an adversary who sees two equal ciphertexts learns that the two underlying messages were equal. That is information about the plaintexts.',
+            'This is not a theoretical quibble. A database that encrypts the "diagnosis" column deterministically reveals which patients share a diagnosis. So a secure scheme must be **randomized** (pick fresh random coins for each encryption) or **stateful** (keep a counter that changes after each encryption). Both approaches appear in the modes section below.'
           ],
           quiz: [
             {
@@ -399,12 +399,13 @@
           title: 'The IND-CPA game',
           anim: 'lr-oracle',
           body: [
-            'How do we define "the ciphertext reveals nothing" when the adversary has bounded computing power? Bellare and Rogaway use a **left-or-right** game, and it is worth getting to know it well — every privacy definition in the rest of the book is a variation on it.',
+            'How do we define "the ciphertext reveals nothing" when the adversary has bounded computing power? Bellare and Rogaway use a **left-or-right** game for **IND-CPA** (*indistinguishability under chosen-plaintext attack*), and it is worth getting to know it well — most privacy definitions in the rest of the book are variations on it.',
             'A key $K$ is chosen and a hidden bit $b$ is fixed. The adversary may make queries to a left-or-right oracle $\\mathcal{E}_K(\\mathrm{LR}(\\cdot,\\cdot,b))$. Each query is a pair of equal-length messages $(M_0, M_1)$; the oracle encrypts $M_b$ and returns the ciphertext. At the end, the adversary outputs a guess $b\'$ for $b$.',
             '$$\\Adv^{\\mathrm{ind-cpa}}_{\\mathcal{SE}}(A) = \\Pr[b\'=1 \\mid b=1] - \\Pr[b\'=1 \\mid b=0]$$',
             'Notice how much power the adversary has. It chooses the messages. It can ask for an encryption of any message it likes simply by setting $M_0 = M_1$ — that is the "chosen-plaintext attack" (CPA) part. It can adapt each query to the answers it has seen. And yet, if the scheme is secure, it still cannot tell whether it is looking at encryptions of the left messages or the right ones.',
             'Why must the messages have equal length? Because practical encryption leaks length — a 1 MB file produces a ciphertext of roughly 1 MB. Requiring $|M_0| = |M_1|$ is an honest admission that length is not hidden, while everything else is.',
-            'The game also handles the deterministic-encryption problem from the previous section automatically. An adversary that queries $(M, M)$ and then $(M, M\')$ with $M \\ne M\'$ sees whether the two ciphertexts match. For a deterministic scheme they match exactly when $b = 0$, so the advantage is $1$.'
+            'The game also handles the deterministic-encryption problem from the previous section automatically. An adversary that queries $(M, M)$ and then $(M, M\')$, with $M \\ne M\'$ of the same length, outputs $1$ if the two ciphertexts differ and $0$ if they match. For a deterministic stateless scheme they match exactly when $b = 0$, so the advantage is $1$.',
+            '(The primer\'s IND-CPA lesson uses a one-challenge version with a separate encryption oracle. The two definitions are equivalent up to a factor of the number of queries, so either one works.)'
           ],
           quiz: [
             {
@@ -424,11 +425,14 @@
           id: 'ch3-modes',
           title: 'Modes of operation: ECB, CBC, and CTR',
           body: [
-            'A block cipher encrypts exactly $n$ bits. A **mode of operation** turns it into an encryption scheme for longer messages. Split the message into blocks $M = M[1] M[2] \\cdots M[m]$, each $n$ bits.',
+            'A block cipher encrypts exactly $n$ bits. A **mode of operation** turns it into an encryption scheme for longer messages. Split the message into blocks $M = M[1] M[2] \\cdots M[m]$, each $n$ bits. Below, $0^n$ means a string of $n$ zeros and $1^n$ a string of $n$ ones.',
             '**ECB (electronic codebook)** encrypts each block independently: $C[i] = E_K(M[i])$. It is deterministic, so it cannot be IND-CPA secure — but it is worse than that: it leaks equality *within* a single message. Attack: query $(M_0, M_1)$ with $M_0 = 0^n 0^n$ and $M_1 = 0^n 1^n$. If the two ciphertext blocks are equal, answer $0$; otherwise answer $1$. This adversary makes one query and has advantage exactly $1$.',
-            '**CBC with a random IV** picks a random $n$-bit $C[0]$ and sets $C[i] = E_K(C[i-1] \\oplus M[i])$. The random start masks every block that follows, so repeated blocks no longer produce repeated ciphertext.',
-            '**Randomized counter mode (CTR)** picks a random $n$-bit value $R$ and sets $C[i] = F_K(R + i) \\oplus M[i]$, outputting $R$ along with the $C[i]$. In effect, $F_K$ is used to stretch a short key into a long pad, which is then used like a one-time pad. Unlike CBC, CTR only needs $F_K$ in the forward direction, so $F$ can be any PRF, and all blocks can be processed in parallel.',
-            'Both randomized CBC and randomized CTR are IND-CPA secure if the underlying block cipher is a good PRF — as long as the total number of blocks encrypted stays well below $2^{n/2}$. That caveat is the subject of the next section.'
+            '**CBC with a random IV** picks a random $n$-bit *initialization vector* (IV) $C[0]$ and sets $C[i] = E_K(C[i-1] \\oplus M[i])$. The random start masks every block that follows, so repeated plaintext blocks produce repeated ciphertext blocks only with tiny probability (until about $2^{n/2}$ blocks, when birthday collisions start to leak information). The IV must be *unpredictable*, not merely different each time: if the adversary can predict the next IV, it can choose $M[1]$ to cancel it and force a repeated block. CBC with a counter as its IV is insecure for exactly this reason.',
+            '**Randomized counter mode (CTR)** picks a random $n$-bit value $R$ and sets $C[i] = F_K(R + i) \\oplus M[i]$ (with $R + i$ computed mod $2^n$), outputting $R$ along with the $C[i]$. In effect, $F_K$ is used to stretch a short key into a long pad, which is then used like a one-time pad. Unlike CBC, CTR only needs $F_K$ in the forward direction, so $F$ can be any PRF, and all blocks can be processed in parallel.',
+            '**Stateful counter mode** is the stateful alternative: instead of picking $R$ at random, the sender keeps a counter $ctr$, sets $C[i] = F_K(ctr + i) \\oplus M[i]$, outputs $ctr$, and then advances $ctr$ by $m$. Counter values never repeat, so its security bound has no birthday term from counter collisions. The price is that the sender must never lose or reset its state.',
+            '**Never reuse a counter value under the same key.** If the pad block $F_K(v)$ is used twice, then $C[i] \\oplus C\'[j] = M[i] \\oplus M\'[j]$ — exactly the two-time-pad failure from Chapter 2. Randomness, or a counter that never resets, is what prevents this.',
+            'Both randomized CBC and randomized CTR are IND-CPA secure if the underlying block cipher is a good PRP (equivalently, by the switching lemma, a good PRF up to a birthday term) — as long as the total number of blocks encrypted stays well below $2^{n/2}$. That caveat is the subject of the next section.',
+            'One more warning. IND-CPA is only about what an eavesdropper can *learn*; it promises nothing against an attacker who *modifies* ciphertexts. In counter mode, flipping bit $j$ of $C[i]$ flips bit $j$ of the decrypted $M[i]$. Chapter 4 deals with this.'
           ],
           quiz: [
             {
@@ -448,10 +452,10 @@
           id: 'ch3-ctr-proof',
           title: 'Proving CTR mode secure',
           body: [
-            'The theorem for randomized counter mode says, roughly: for any adversary $A$ attacking randomized CTR that encrypts a total of $\\sigma$ blocks, there is a PRF adversary $B$, running in about the same time, such that',
+            'The theorem for randomized counter mode says, roughly: for any adversary $A$ attacking randomized CTR that encrypts a total of $\\sigma$ blocks across all its queries, there is a PRF adversary $B$, running in about the same time, such that',
             '$$\\Adv^{\\mathrm{ind-cpa}}_{\\mathrm{CTR}}(A) \\le 2 \\cdot \\Adv^{\\mathrm{prf}}_F(B) + \\frac{\\sigma^2}{2^n}$$',
-            'Read the right-hand side term by term. The first term says: if $F$ is a good PRF, this part is tiny. The second term is a **birthday bound**: it stays small only while $\\sigma$ is well below $2^{n/2}$. For AES, $n = 128$, so you should rekey long before encrypting $2^{64}$ blocks.',
-            'The proof follows the pattern you will see again and again. Step 1: replace $F_K$ by a truly random function $g$. Any change in $A$\'s behavior when we do this could be turned into a PRF distinguisher $B$ — $B$ simply runs $A$, answers its queries using its own oracle, and outputs whatever $A$ outputs. That accounts for the $\\Adv^{\\mathrm{prf}}$ term (the factor $2$ comes from doing this once in the $b=0$ world and once in the $b=1$ world).',
+            'Read the right-hand side term by term. The first term says: if $F$ is a good PRF, this part is tiny. The second term is a **birthday bound**: it stays small only while $\\sigma$ is well below $2^{n/2}$. For AES, $n = 128$, so you should rekey long before encrypting $2^{64}$ blocks. For example, encrypting $\\sigma = 2^{32}$ blocks (64 GB) under one key gives a birthday term of $2^{64} / 2^{128} = 2^{-64}$ — negligible. At $\\sigma = 2^{60}$ it is $2^{-8}$, already uncomfortable. (B&R prove a slightly tighter bound; this simpler form is still a valid upper bound.)',
+            'The proof follows the pattern you will see again and again. Step 1: replace $F_K$ by a truly random function $g$. Any change in $A$\'s behavior when we do this can be turned into a PRF distinguisher $B$. $B$ picks its own bit $b$ at random, runs $A$, and answers each query $(M_0, M_1)$ by encrypting $M_b$ in counter mode, using its own oracle in place of $F_K$. When $A$ outputs $b\'$, $B$ outputs $1$ if $b\' = b$. That accounts for the $\\Adv^{\\mathrm{prf}}$ term; the factor $2$ appears because $\\Adv^{\\mathrm{ind-cpa}}(A) = 2 \\Pr[A \\text{ guesses } b] - 1$.',
             'Step 2: analyze the idealized scheme with $g$. If no counter value $R + i$ is ever used twice, every pad block is a fresh uniform string, so every ciphertext block is a one-time-pad encryption and reveals nothing — exactly as in Chapter 2. The only way the adversary can win is if two encryptions happen to use overlapping counter ranges. Bounding the probability of that overlap gives the $\\sigma^2 / 2^n$ term.',
             'The shape of this argument — "swap the real primitive for an ideal one, pay its advantage, then analyze the ideal world with probability" — is the template for nearly every proof in the rest of the course. $\\qed$'
           ],
@@ -460,12 +464,12 @@
               q: 'In the CTR proof, what is the reduction $B$\'s strategy?',
               opts: [
                 'It searches for the key $K$ and passes it to $A$.',
-                'It runs $A$, uses its own PRF-game oracle to compute the pads for $A$\'s queries, and outputs what $A$ outputs.',
+                'It picks a random bit $b$, runs $A$, uses its own PRF-game oracle to compute the pads when encrypting $M_b$, and outputs $1$ if $A$ guesses $b$.',
                 'It outputs a random bit.',
                 'It replaces $A$\'s messages with random strings.'
               ],
               answer: 1,
-              why: 'The reduction simulates the encryption game for $A$ using its oracle in place of $F_K$. If the oracle is $F_K$, $A$ sees the real scheme; if it is random, $A$ sees the idealized scheme. Any difference in $A$\'s behavior becomes $B$\'s distinguishing advantage.'
+              why: 'The reduction simulates the encryption game for $A$ using its oracle in place of $F_K$. It must pick $b$ itself, since it has to know which message to encrypt. If the oracle is $F_K$, $A$ sees the real scheme; if it is random, $A$ sees the idealized scheme. Any difference in how often $A$ guesses $b$ becomes $B$\'s distinguishing advantage.'
             },
             {
               q: 'Why does the bound include a term like $\\sigma^2 / 2^n$?',
@@ -494,9 +498,9 @@
           why: 'Computational security bounds the advantage of resource-limited adversaries. It does not claim information is absent — only that it cannot be used without enormous effort.'
         },
         {
-          q: 'An encryption scheme is deterministic and stateless. What is its best possible IND-CPA advantage bound against a two-query adversary?',
+          q: 'An encryption scheme is deterministic and stateless. What can be said about its IND-CPA security?',
           opts: [
-            'Negligible, if the block cipher is a good PRF.',
+            'It is secure, as long as its building blocks are secure.',
             'There is a two-query adversary with advantage $1$, so it is not IND-CPA secure.',
             'Exactly $1/2$.',
             'It depends on the key length.'
@@ -513,7 +517,7 @@
             'To make the advantage formula well-defined.'
           ],
           answer: 1,
-          why: 'Ciphertext length tracks plaintext length in practice. Without the restriction, every scheme would fail trivially by querying a short and a long message.'
+          why: 'Ciphertext length tracks plaintext length in practice. Without the restriction, any scheme whose ciphertext length depends on the message length would fail trivially by querying a short and a long message.'
         },
         {
           q: 'Counter mode uses $F_K$ only in the forward direction. What does that allow?',
@@ -579,7 +583,8 @@
             'A message authentication scheme $\\Pi = (\\mathcal{K}, \\mathcal{T}, \\mathcal{V})$ has three algorithms. Key generation $\\mathcal{K}$ outputs a shared key $K$. The tagging algorithm $\\mathcal{T}_K(M)$ outputs a tag $T$. The verification algorithm $\\mathcal{V}_K(M, T)$ outputs $1$ (accept) or $0$ (reject).',
             'Correctness requires that honestly generated tags always verify: $\\mathcal{V}_K(M, \\mathcal{T}_K(M)) = 1$.',
             'Most practical MACs are deterministic: the tag is a fixed function of key and message, and verification simply recomputes the tag and compares. When this is the case we just call the tagging function a MAC and write $T = \\Mac_K(M)$.',
-            'Unlike encryption, determinism is perfectly fine here. A MAC is not trying to hide the message — it is sent in the clear anyway — so there is nothing to protect by randomizing the tag.'
+            'Unlike encryption, determinism is perfectly fine here. A MAC is not trying to hide the message — it is sent in the clear anyway — so there is nothing to protect by randomizing the tag.',
+            'One practical warning: compare the received tag against the recomputed one in *constant time*. A comparison that stops at the first mismatched byte leaks, through its timing, how many leading bytes of a guess were right.'
           ]
         },
         {
@@ -588,10 +593,11 @@
           anim: 'uf-cma',
           body: [
             'What should it mean for a MAC to be secure? Picture the strongest adversary we can reasonably imagine: it gets to see valid tags on any messages it likes, and it can try out candidate forgeries as often as it likes. It wins if it gets the receiver to accept a message that the legitimate sender never tagged.',
-            'Formally, the **UF-CMA** game picks a key $K$ and gives the adversary two oracles: a tagging oracle $\\mathcal{T}_K(\\cdot)$ and a verification oracle $\\mathcal{V}_K(\\cdot,\\cdot)$. The adversary wins if it ever submits a pair $(M, T)$ to the verification oracle such that $\\mathcal{V}_K(M, T) = 1$ and $M$ was never queried to the tagging oracle.',
+            'Formally, the **UF-CMA** game (*unforgeability under chosen-message attack*) picks a key $K$ and gives the adversary two oracles: a tagging oracle $\\mathcal{T}_K(\\cdot)$ and a verification oracle $\\mathcal{V}_K(\\cdot,\\cdot)$. The adversary wins if it ever submits a pair $(M, T)$ to the verification oracle such that $\\mathcal{V}_K(M, T) = 1$ and $M$ was never queried to the tagging oracle. The verification oracle models the fact that a real receiver\'s accept/reject behavior is observable, so an attacker can try many candidate forgeries online.',
             '$$\\Adv^{\\mathrm{uf-cma}}_{\\Pi}(A) = \\Pr[A \\text{ forges}]$$',
             'Notice two things about this definition. First, the adversary chooses its messages adaptively — "chosen message attack". This models real systems, where an attacker can often get the sender to authenticate messages of the attacker\'s choosing. Second, the definition does not care whether the forged message is meaningful. A forgery on random garbage still counts. We cannot predict what an application will consider meaningful, so the definition demands protection for every message.',
-            'Also note what the definition does *not* rule out: replaying a message that really was tagged. If Alice sent "pay Bob 10" with a valid tag, the adversary can send it again. Preventing replays is a protocol-level job, usually handled with sequence numbers or timestamps inside the authenticated message.'
+            'Also note what the definition does *not* rule out: replaying a message that really was tagged. If Alice sent "pay Bob 10" with a valid tag, the adversary can send it again. Preventing replays is a protocol-level job, usually handled with sequence numbers or timestamps inside the authenticated message.',
+            'A stronger variant, **strong unforgeability** (SUF-CMA), also counts a *new tag on an old message* as a forgery: any accepted pair $(M, T)$ that the tagging oracle never returned. For deterministic MACs whose verification recomputes the tag, the two notions coincide, because each message has only one valid tag.'
           ],
           quiz: [
             {
@@ -615,8 +621,9 @@
             'The theorem: for any UF-CMA adversary $A$ making $q_t$ tagging queries and $q_v$ verification queries, there is a PRF adversary $B$, using about the same resources, with',
             '$$\\Adv^{\\mathrm{uf-cma}}(A) \\le \\Adv^{\\mathrm{prf}}_F(B) + \\frac{q_v}{2^{\\tau}}$$',
             'The proof is the same two-step pattern as for counter mode. Step 1: $B$ runs $A$, answering tagging queries with its own oracle and verification queries by calling its oracle and comparing. If $A$ forges, $B$ outputs $1$ ("real"); otherwise $0$. So the probability that $A$ forges against the real MAC differs from the probability that it forges against a random function by at most $\\Adv^{\\mathrm{prf}}_F(B)$.',
-            'Step 2: suppose the MAC is a truly random function $g$. To forge, $A$ has to guess $g(M)$ on a message $M$ it has never queried. But $g(M)$ is a fresh, uniform $\\tau$-bit string that $A$ has no information about. Each verification attempt succeeds with probability $2^{-\\tau}$, so $q_v$ attempts succeed with probability at most $q_v / 2^{\\tau}$. $\\qed$',
-            'The second term tells you how long tags need to be. With $\\tau = 64$ and an adversary making a million guesses, the chance of a lucky forgery is about $2^{-44}$. With $\\tau = 32$ it is far too high.'
+            'Step 2: suppose the MAC is a truly random function $g$. To forge, $A$ has to guess $g(M)$ on a message $M$ it has never queried. But $g(M)$ is a fresh, uniform $\\tau$-bit string that $A$ has no information about. Each verification attempt succeeds with probability $2^{-\\tau}$, so $q_v$ attempts succeed with probability at most $q_v / 2^{\\tau}$. Tagging queries don\'t appear in this term: seeing $g$ on other messages tells $A$ nothing about $g$ on a new one. $\\qed$',
+            'The second term tells you how long tags need to be. With $\\tau = 64$ and an adversary making a million guesses, the chance of a lucky forgery is about $2^{-44}$. With $\\tau = 32$ it is far too high.',
+            'One problem remains: a block cipher only accepts $n$-bit inputs, and real messages are longer. The next section extends the domain.'
           ],
           quiz: [
             {
@@ -636,11 +643,13 @@
           id: 'ch4-cbcmac',
           title: 'CBC-MAC and the variable-length trap',
           body: [
-            'A block cipher is a PRF on a single $n$-bit block. To MAC longer messages, we need to extend its domain. **CBC-MAC** chains the blocks: $C_0 = 0^n$ and $C_i = E_K(C_{i-1} \\oplus M[i])$, with the tag being the final $C_m$.',
+            'A block cipher is (up to the birthday term from Chapter 3) a PRF on a single $n$-bit block. To MAC longer messages, we need to extend its domain.',
+            'Why not tag each block separately and XOR the results, $T = E_K(M[1]) \\oplus \\cdots \\oplus E_K(M[m])$? Because swapping two blocks leaves $T$ unchanged: one tagging query gives a forgery. The blocks need to be *chained* so that order matters.',
+            '**CBC-MAC** chains the blocks: $C_0 = 0^n$ and $C_i = E_K(C_{i-1} \\oplus M[i])$, with the tag being the final $C_m$. Note that the IV is fixed at $0^n$. Unlike CBC *encryption*, CBC-MAC with a random IV sent alongside the tag is insecure: changing the IV and the first message block by the same XOR leaves the tag unchanged.',
             'CBC-MAC is a secure PRF — and therefore a secure MAC — provided all messages have the same, fixed number of blocks. (Its security bound has a birthday term, like counter mode.)',
             'If messages may have different lengths, it is badly broken. Here is a forgery that uses one tagging query. Ask for the tag of a one-block message $M_1$; call it $T = E_K(M_1)$. Now output the two-block message $M_1 \\,\\|\\, (M_1 \\oplus T)$ with tag $T$.',
             'Check it: the first chaining value is $E_K(M_1) = T$. The second is $E_K(T \\oplus M_1 \\oplus T) = E_K(M_1) = T$. So the tag of the two-block message is $T$, and the adversary never asked for it. Advantage $1$, one query.',
-            'The lesson is general: a construction can be secure under one assumption about its inputs and broken the moment that assumption is dropped. Fixes exist — encrypt the final value under a second key (ECBC-MAC), or prepend the message length, or use CMAC, which is the standardized variant — but each one had to be designed and proved for the variable-length setting.'
+            'The lesson is general: a construction can be secure under one assumption about its inputs and broken the moment that assumption is dropped. The precise requirement is that no allowed message is a prefix of another (fixed-length messages are a special case). Fixes exist — encrypt the final value under a second key (EMAC, also called ECBC-MAC), or *prepend* the message length (appending it is still forgeable), or use CMAC, which is the standardized variant — but each one had to be designed and proved for the variable-length setting.'
           ],
           quiz: [
             {
@@ -648,7 +657,7 @@
               opts: [
                 'Because $E_K$ is not a permutation.',
                 'Because the second block XORs with the first chaining value $T$, cancelling it and leaving $E_K(M_1) = T$ again.',
-                'Because the verification oracle does not check message length.',
+                'Because the adversary already queried the two-block message to the tagging oracle.',
                 'Because $T$ is all zeros.'
               ],
               answer: 1,
@@ -660,11 +669,12 @@
           id: 'ch4-hmac',
           title: 'HMAC and combining MACs with encryption',
           body: [
-            'The other widely used MAC is built from a hash function (the subject of Chapter 5). The obvious idea, $\\Mac_K(M) = H(K \\,\\|\\, M)$, is broken for common hash functions like SHA-256: from the tag of $M$, an adversary can compute the tag of $M$ followed by extra data, without the key. (Chapter 5 explains this "length-extension" property.)',
+            'The other widely used MAC is built from a hash function (the subject of Chapter 5). The obvious idea, $\\Mac_K(M) = H(K \\,\\|\\, M)$, is broken for common hash functions like SHA-256: from the tag of $M$, an adversary can compute the tag of $M$ followed by extra data, without the key. (A hash like SHA-256 processes its input one block at a time with a smaller *compression function*, chaining the results; Chapter 5 shows why this lets an outsider keep extending $H(K \\,\\|\\, M)$. This is called "length extension".)',
             '**HMAC** avoids the problem by hashing twice with two derived keys:',
             '$$\\mathrm{HMAC}_K(M) = H((K \\oplus \\mathrm{opad}) \\,\\|\\, H((K \\oplus \\mathrm{ipad}) \\,\\|\\, M))$$',
-            'where opad and ipad are fixed constants. The outer hash hides the inner value, so length extension no longer helps. HMAC is proved to be a PRF assuming the hash function\'s compression function is itself a PRF.',
-            'Finally: how should you get both privacy and integrity? Three generic ways to combine an IND-CPA encryption scheme with a secure MAC have been studied. **Encrypt-then-MAC** (encrypt, then tag the ciphertext) is always secure. **MAC-then-encrypt** (tag the message, then encrypt message and tag together) and **Encrypt-and-MAC** (encrypt the message and tag the message separately) can each fail for some secure components — Encrypt-and-MAC with a deterministic MAC leaks message equality directly through the tag. Use Encrypt-then-MAC, or a dedicated authenticated-encryption mode such as GCM.'
+            'where opad and ipad are fixed constants, and $K$ is first padded with zeros to the hash\'s block length (or hashed first if it is longer). The outer hash hides the inner value, so length extension no longer helps. HMAC is proved to be a PRF assuming the hash\'s compression function behaves like a PRF (including under the two related keys $K \\oplus \\mathrm{ipad}$ and $K \\oplus \\mathrm{opad}$). Notably, the proof does *not* need collision resistance, which is why HMAC-SHA1 is still considered a sound MAC even though SHA-1 collisions have been found.',
+            'Finally: how should you get both privacy and integrity? The goal has a name: an **authenticated encryption** scheme must provide IND-CPA privacy *and* **ciphertext integrity** — no adversary, even after seeing encryptions of messages it chose, can produce a new ciphertext that decrypts to anything other than $\\perp$.',
+            'Three generic ways to combine an IND-CPA encryption scheme with a MAC have been studied. **Encrypt-then-MAC** — encrypt, then tag the *entire* ciphertext (including the IV or starting value) under a *separate, independent* MAC key — achieves authenticated encryption for any IND-CPA scheme combined with a strongly unforgeable MAC. Every deterministic UF-CMA MAC, such as HMAC or CMAC, qualifies. Any tampering with the ciphertext is rejected before decryption even runs. **MAC-then-encrypt** (tag the message, then encrypt message and tag together) and **Encrypt-and-MAC** (encrypt the message and tag the message separately) can each fail for some secure components — Encrypt-and-MAC with a deterministic MAC leaks message equality directly through the tag. Use Encrypt-then-MAC, or a dedicated authenticated-encryption mode such as GCM.'
           ],
           quiz: [
             {
@@ -720,14 +730,14 @@
           opts: [
             'All bit strings.',
             'Messages of one fixed number of blocks.',
-            'Messages shorter than one block.',
+            'Messages whose final block is chosen at random.',
             'Messages that do not contain the zero block.'
           ],
           answer: 1,
           why: 'With fixed-length messages CBC-MAC is a secure PRF. Allowing different lengths enables the one-query extension forgery.'
         },
         {
-          q: 'Which generic composition of encryption and MAC is secure for every IND-CPA scheme and every secure MAC?',
+          q: 'Which generic composition of encryption and MAC gives authenticated encryption for every IND-CPA scheme and every secure deterministic MAC, using independent keys?',
           opts: [
             'Encrypt-and-MAC.',
             'MAC-then-encrypt.',
@@ -735,7 +745,7 @@
             'None of them.'
           ],
           answer: 2,
-          why: 'Tagging the ciphertext means any modification of the ciphertext is caught before decryption, and the tag reveals nothing about the plaintext beyond what the ciphertext already does.'
+          why: 'With independent keys, tagging the whole ciphertext means any modification of it is caught before decryption, and the tag reveals nothing about the plaintext beyond what the ciphertext already does.'
         }
       ]
     },
@@ -756,7 +766,7 @@
             'A hash function takes an input of (almost) any length and returns a short, fixed-length output: SHA-256 maps arbitrary strings to 256 bits. Hashes are everywhere — in signatures, in HMAC, in password storage, in version control, in blockchains.',
             'The property most uses depend on is that the hash acts as a **fingerprint**: it should be infeasible to find two different inputs with the same output. If that holds, then signing or comparing $H(M)$ is as good as signing or comparing $M$ itself, and it is much shorter.',
             'Notice that collisions always *exist*. There are infinitely many inputs and only $2^{256}$ outputs, so by the pigeonhole principle, enormous numbers of inputs share each output. Collision resistance cannot mean "there are no collisions". It has to mean "nobody can *find* one".',
-            'This makes hash functions unusual among the primitives in this course: there is no secret key whose secrecy explains why the function is hard to attack. Collision resistance is a property of the function\'s design alone.'
+            'This makes hash functions unusual among the primitives in this course: there is no secret key whose secrecy explains why the function is hard to attack. Collision resistance is a property of the function\'s design alone. (In the next section, theorists add a *public* key anyway, for a technical reason.)'
           ],
           quiz: [
             {
@@ -777,9 +787,9 @@
           title: 'Defining collision resistance',
           body: [
             'Bellare and Rogaway treat a hash function as a family $H : \\mathcal{K} \\times D \\to \\{0,1\\}^n$ indexed by a key $K$. Unlike the keys of earlier chapters, this key is **public**: it is handed to the adversary at the start.',
-            'The collision-resistance game: pick $K$ at random, give it to $A$, and let $A$ output two inputs $x_1, x_2$. The adversary wins if $x_1 \\ne x_2$ and $H_K(x_1) = H_K(x_2)$.',
+            'The collision-resistance game: pick $K$ at random, give it to $A$, and let $A$ output two inputs $x_1, x_2$. The adversary wins if $x_1 \\ne x_2$ and $H_K(x_1) = H_K(x_2)$. As in earlier chapters, $H$ is collision resistant if every adversary with reasonable running time has small advantage.',
             '$$\\Adv^{\\mathrm{cr}}_H(A) = \\Pr[x_1 \\ne x_2 \\text{ and } H_K(x_1) = H_K(x_2)]$$',
-            'Why bother with a key nobody keeps secret? Because of a subtle problem with unkeyed functions. For a fixed function like SHA-256, a collision exists, so an adversary that simply prints out that collision exists too. It runs in constant time and has advantage $1$. We just don\'t know which program it is. A definition that cannot distinguish "an adversary exists" from "we know an adversary" says nothing useful. The random public key fixes this, because no single hardcoded pair works for most keys.',
+            'Why bother with a key nobody keeps secret? Because of a subtle problem with unkeyed functions. For a fixed function like SHA-256, a collision exists, so an adversary that simply prints out that collision exists too. It runs in constant time and has advantage $1$. We just don\'t know which program it is. A definition that cannot distinguish "an adversary exists" from "we know an adversary" says nothing useful. The random public key fixes this: for a well-designed family, no single hardcoded pair works for more than a tiny fraction of keys. (B&R also discuss weaker variants, for example where the adversary must commit to $x_1$ before seeing the key; this chapter uses the strongest common one.)',
             'In practice, SHA-256 has no key, and people reason about it informally: "nobody knows how to find collisions". The keyed definition is the cleanest way to make that statement precise enough to use in proofs.'
           ],
           quiz: [
@@ -792,7 +802,7 @@
                 'Because SHA-256 requires a key.'
               ],
               answer: 1,
-              why: 'Existence of an adversary is a mathematical fact, not a matter of knowledge. With a random public key, a single hardcoded collision only works for a tiny fraction of keys, so the definition becomes meaningful.'
+              why: 'Existence of an adversary is a mathematical fact, not a matter of knowledge. With a random public key and a well-designed family, a single hardcoded collision only works for a tiny fraction of keys, so the definition becomes meaningful.'
             }
           ]
         },
@@ -802,10 +812,10 @@
           anim: 'birthday',
           body: [
             'How hard is it to find a collision in a generic $n$-bit hash? Your first guess might be about $2^n$ evaluations. The real answer is about $2^{n/2}$ — and the reason is the **birthday paradox**.',
-            'In a room of just 23 people, the chance that two share a birthday is over 50%. That seems too small a room until you count pairs: 23 people form $\\binom{23}{2} = 253$ pairs, and each pair matches with probability $1/365$.',
-            'The same logic applies to hashing. Evaluate $H$ on $q$ distinct random inputs. There are about $q^2/2$ pairs, and each pair collides with probability $2^{-n}$. So the chance of some collision is roughly $q^2 / 2^{n+1}$, which becomes substantial once $q \\approx 2^{n/2}$. More precisely, for $q \\le 2^{(n+1)/2}$,',
-            '$$\\Pr[\\text{collision}] \\ge 0.3 \\cdot \\frac{q(q-1)}{2^n}$$',
-            'This attack works against every hash function regardless of its design, which is why output lengths are double what you might expect. A 128-bit hash gives only about 64 bits of collision resistance — within reach of a determined attacker. SHA-256 gives about 128 bits.',
+            'In a room of just 23 people, the chance that two share a birthday is over 50%. That seems too small a room until you count pairs: 23 people form $\\binom{23}{2} = 253$ pairs, and each pair matches with probability $1/365$. (The pairs overlap, so you can\'t simply multiply $253 \\times 1/365$; the true figure is 50.7%.)',
+            'The same logic applies to hashing. Evaluate $H$ on $q$ distinct inputs. There are about $q^2/2$ pairs, and if the outputs behave like independent uniform $n$-bit values, each pair collides with probability $2^{-n}$. (A hash whose outputs are uneven only collides more easily.) So the chance of some collision is roughly $q^2 / 2^{n+1}$, which becomes substantial once $q \\approx 2^{n/2}$. More precisely, B&R show that for $2 \\le q \\le 2^{(n+1)/2}$,',
+            '$$0.3 \\cdot \\frac{q(q-1)}{2^n} \\le \\Pr[\\text{collision}] \\le 0.5 \\cdot \\frac{q(q-1)}{2^n}$$',
+            'This attack works against every hash function regardless of its design, which is why output lengths are double what you might expect. A 128-bit hash gives only about 64 bits of collision resistance — within reach of a determined attacker. SHA-256 gives about 128 bits. Structural attacks can do even better than the birthday attack against weak designs: MD5 collisions are found in seconds, and a practical SHA-1 collision was published in 2017. SHA-2 and SHA-3 are the current standards.',
             'The attack needs memory to store all the hashes and look for repeats, but clever cycle-finding techniques reduce this to almost nothing. Memory is not a real defense.'
           ],
           quiz: [
@@ -827,10 +837,10 @@
           title: 'One-wayness and second preimages',
           body: [
             'Collision resistance is not the only property people ask of hash functions. Two others come up often.',
-            '**One-wayness** (preimage resistance): given $y = H(x)$ for a random $x$, it should be hard to find any $x\'$ with $H(x\') = y$. Password storage relies on this.',
-            '**Second-preimage resistance**: given a specific $x$, it should be hard to find a different $x\'$ with $H(x\') = H(x)$. This is what you need if someone has already published a hash of a document and you want to make sure nobody can substitute another document with the same hash.',
+            '**One-wayness** (preimage resistance): given $y = H(x)$ for a random $x$, it should be hard to find any $x\'$ with $H(x\') = y$. Note the word *random*: passwords are not random, so an attacker can simply hash likely guesses. That is why password storage uses salts and deliberately slow hashes, not one-wayness alone.',
+            '**Second-preimage resistance**: given a random $x$, it should be hard to find a different $x\'$ with $H(x\') = H(x)$. This is what you need if someone has already published a hash of a document and you want to make sure nobody can substitute another document with the same hash.',
             'The generic attacks for both of these cost about $2^n$, not $2^{n/2}$, because the adversary must hit one specific target rather than any pair. That is why collision resistance is the hardest of the three to achieve.',
-            'For compressing functions, collision resistance implies second-preimage resistance: if you could find a second preimage for a random $x$, then $(x, x\')$ would be a collision. It also implies one-wayness under mild conditions. So a function that is collision resistant gives you all three — which is why collision resistance is the property proofs usually assume.'
+            'Collision resistance implies second-preimage resistance for any function: if you could find a second preimage $x\'$ for a random $x$, then $(x, x\')$ would be a collision. It also implies one-wayness, but only if $H$ is *compressing* — its inputs are substantially longer than its outputs. (The identity function never collides, yet is trivially invertible.) So a collision-resistant hash that compresses a lot is also second-preimage resistant and one-way, which is why collision resistance is the property proofs usually assume. The guarantee you get this way is only as strong as the collision resistance, about $2^{n/2}$, not the $2^n$ of the generic attacks.'
           ],
           quiz: [
             {
@@ -851,11 +861,12 @@
           title: 'Merkle–Damgård: from short inputs to long ones',
           anim: 'merkle-damgard',
           body: [
-            'Designing a collision-resistant function for arbitrary-length inputs from scratch is hard. The **Merkle–Damgård** transform lets you design something much smaller — a compression function $h : \\{0,1\\}^{n+b} \\to \\{0,1\\}^n$ that maps a chaining value and one $b$-bit block to a new chaining value — and extend it.',
-            'To hash $M$: pad it to a whole number of blocks, with the final block encoding the original length of $M$. Start with a fixed value $V_0$. For each block, compute $V_i = h(V_{i-1} \\,\\|\\, M[i])$. The hash is the final $V_m$. SHA-1 and SHA-256 follow this structure.',
+            'Designing a collision-resistant function for arbitrary-length inputs from scratch is hard. The **Merkle–Damgård** transform lets you design something much smaller — a compression function $h : \\{0,1\\}^{n+b} \\to \\{0,1\\}^n$ that maps a chaining value and one $b$-bit block to a new chaining value — and extend it. (As before, $h$ may carry a public key, used for every block; the theorem below holds key by key.)',
+            'To hash $M$: pad it to a whole number of blocks, with the final block encoding the original length of $M$. Start with a fixed value $V_0$. For each block, compute $V_i = h(V_{i-1} \\,\\|\\, M[i])$. The hash is the final $V_m$. SHA-1 and SHA-256 follow this structure. (The padding must be injective, and the length field is bounded: SHA-256 messages must be shorter than $2^{64}$ bits.)',
             '**Theorem.** If $h$ is collision resistant, then so is the Merkle–Damgård hash $H$.',
             'Proof idea: suppose $M \\ne M\'$ collide under $H$. If they have different lengths, their final blocks differ (they encode different lengths), yet the final $h$ outputs are equal — that is a collision in $h$. If they have the same length, walk backward from the end. At each step either the inputs to $h$ differ, giving a collision in $h$, or they are equal, meaning the previous chaining values and blocks agree, and you step back once more. Since $M \\ne M\'$, some block differs, so the walk must stop at a collision in $h$. $\\qed$',
-            'The structure has a well-known side effect: **length extension**. From $H(M)$ alone, anyone can compute $H(M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X)$ for any $X$, by continuing the chain from $V_m$. That does not break collision resistance, but it is exactly why $H(K \\,\\|\\, M)$ is not a secure MAC — and why HMAC hashes twice. SHA-3 uses a different structure (a sponge) that avoids this.'
+            'For example, with two blocks: equal hashes mean $h(V_1 \\,\\|\\, M[2]) = h(V_1\' \\,\\|\\, M\'[2])$. If the inputs differ, that is a collision in $h$. If they are equal, then $M[2] = M\'[2]$ and $V_1 = V_1\'$, i.e. $h(V_0 \\,\\|\\, M[1]) = h(V_0 \\,\\|\\, M\'[1])$ — and since the messages differ, $M[1] \\ne M\'[1]$, so this is a collision in $h$.',
+            'The structure has a well-known side effect: **length extension**. From $H(M)$ and the length of $M$ (but not $M$ itself), anyone can compute $H(M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X)$ for any $X$, by continuing the chain from $V_m$. That does not break collision resistance, but it is exactly why $H(K \\,\\|\\, M)$ is not a secure MAC — and why HMAC hashes twice. SHA-3 uses a different structure (a sponge) that avoids this, as do truncated variants such as SHA-512/256.'
           ],
           quiz: [
             {
@@ -873,7 +884,7 @@
               q: 'What does length extension let an adversary do?',
               opts: [
                 'Find collisions in $h$.',
-                'Compute $H(M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X)$ from $H(M)$ without knowing $M$.',
+                'Compute $H(M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X)$ from $H(M)$ and $|M|$, without knowing $M$.',
                 'Recover $M$ from $H(M)$.',
                 'Shorten the hash output.'
               ],
@@ -887,9 +898,9 @@
           title: 'The random oracle model',
           body: [
             'Some schemes need more from a hash function than collision resistance — they want its outputs to look completely random and unrelated to its inputs. The **random oracle model** captures this by pretending that $H$ is a truly random function that every party, including the adversary, can only access by querying an oracle.',
-            'In a proof in this model, the reduction gets to see every hash query the adversary makes, and it can choose the answers itself as long as they look random. That extra power makes many proofs possible, including the security of RSA-OAEP encryption and of full-domain-hash RSA signatures.',
+            'In a proof in this model, the reduction gets to see every hash query the adversary makes, and it can choose the answers itself as long as they look random. That extra power makes many proofs possible, including security proofs for RSA-OAEP encryption (Chapter 6) and for full-domain-hash RSA signatures.',
             'The catch: a real hash function is not a random oracle. It is a fixed, public piece of code. Canetti, Goldreich, and Halevi constructed (contrived) schemes that are secure in the random oracle model but insecure with *any* real hash function plugged in. So a random-oracle proof is a strong heuristic, not a guarantee.',
-            'The practical attitude in Bellare and Rogaway is that a random-oracle proof rules out a huge class of generic attacks — any attack must exploit some specific weakness of the concrete hash function. That is far better than no proof at all, and schemes proven this way have held up well in practice.'
+            'The practical attitude in Bellare and Rogaway is that a random-oracle proof rules out a huge class of generic attacks — any attack must exploit something about the concrete hash function beyond its behavior as a random function. That is far better than no proof at all, and schemes proven this way have held up well in practice.'
           ],
           quiz: [
             {
@@ -955,12 +966,12 @@
           q: 'Why is $\\Mac_K(M) = H(K \\,\\|\\, M)$ insecure when $H$ is SHA-256?',
           opts: [
             'Because SHA-256 is not collision resistant.',
-            'Because length extension lets an adversary compute the tag of $M$ followed by extra blocks from the tag of $M$.',
+            'Because length extension lets an adversary compute the tag of $M \\,\\|\\, \\mathrm{pad} \\,\\|\\, X$ from the tag of $M$.',
             'Because the key is too short.',
             'Because SHA-256 output is too long to be a tag.'
           ],
           answer: 1,
-          why: 'SHA-256 is a Merkle–Damgård hash, so its output is a full chaining state that can be extended. That gives a forgery without any knowledge of $K$.'
+          why: 'SHA-256 is a Merkle–Damgård hash, so its output is a full chaining state that can be extended. That gives a forgery without any knowledge of $K$ (beyond its length, which is usually public).'
         }
       ]
     },
@@ -979,9 +990,9 @@
           title: 'Encryption without a shared secret',
           body: [
             'Everything so far assumed Alice and Bob already share a secret key. On the internet, they usually have never met. Public-key encryption removes the assumption: Bob publishes a **public key** $pk$ that anyone may use to encrypt, and keeps a matching **secret key** $sk$ that only he can use to decrypt.',
-            'A public-key encryption scheme $\\mathcal{AE} = (\\mathcal{K}, \\mathcal{E}, \\mathcal{D})$ has key generation $\\mathcal{K}$ outputting a pair $(pk, sk)$, encryption $\\mathcal{E}_{pk}(M)$, and decryption $\\mathcal{D}_{sk}(C)$. Correctness is the same as before: $\\mathcal{D}_{sk}(\\mathcal{E}_{pk}(M)) = M$.',
-            'The IND-CPA game carries over almost unchanged, with one simplification: the adversary is given $pk$, so it can encrypt anything it likes on its own — the "chosen-plaintext" part comes for free. It is enough to give it a single left-or-right query; a hybrid argument shows that $q$ queries increase the advantage by at most a factor of $q$.',
-            'The deterministic-encryption problem is now even more severe. If $\\mathcal{E}_{pk}$ is deterministic, the adversary does not even need two ciphertexts. Given a ciphertext $C$ and two candidate messages, it encrypts both candidates with $pk$ and sees which matches. So **every secure public-key encryption scheme must be randomized**.'
+            'A public-key encryption scheme $\\mathcal{AE} = (\\mathcal{K}, \\mathcal{E}, \\mathcal{D})$ ($\\mathcal{AE}$ for *asymmetric* encryption, as in B&R) has key generation $\\mathcal{K}$ outputting a pair $(pk, sk)$, encryption $\\mathcal{E}_{pk}(M)$, and decryption $\\mathcal{D}_{sk}(C)$. Correctness is the same as before: $\\mathcal{D}_{sk}(\\mathcal{E}_{pk}(M)) = M$ for every key pair output by $\\mathcal{K}$, every message, and whatever coins encryption uses.',
+            'The IND-CPA game carries over almost unchanged, with one simplification: the adversary is given $pk$, so it can encrypt anything it likes on its own — the "chosen-plaintext" part comes for free. It is enough to give it a single left-or-right query. Picture switching $q$ answers from left to right one at a time. Each switch is a one-query game, because the adversary can produce the other ciphertexts itself using $pk$. So $q$ queries multiply the advantage by at most $q$. (This one-at-a-time technique is called a *hybrid argument*; it has nothing to do with "hybrid encryption" later in the chapter.)',
+            'The deterministic-encryption problem is now even more severe. If $\\mathcal{E}_{pk}$ is deterministic, the adversary does not even need two ciphertexts. Given a ciphertext $C$ and two candidate messages, it encrypts both candidates with $pk$ and sees which matches. So **every secure public-key encryption scheme must be randomized**. Keeping a counter no longer helps either: encryptors are many independent strangers who share no state, and the adversary can always run $\\mathcal{E}_{pk}$ itself.'
           ],
           quiz: [
             {
@@ -1001,11 +1012,11 @@
           id: 'ch6-numbers',
           title: 'Number theory you need',
           body: [
-            'Public-key cryptography is built on arithmetic modulo a number. For a positive integer $N$, $\\Z_N = \\{0, 1, \\ldots, N-1\\}$ with addition and multiplication mod $N$. The elements that have a multiplicative inverse are those coprime to $N$; they form the group $\\Z_N^*$, whose size is written $\\varphi(N)$.',
+            'Public-key cryptography is built on arithmetic modulo a number. For a positive integer $N$, $\\Z_N = \\{0, 1, \\ldots, N-1\\}$ with addition and multiplication mod $N$. The elements that have a multiplicative inverse are those **coprime** to $N$ — sharing no factor with $N$ except $1$, i.e. $\\gcd(a, N) = 1$. They form the group $\\Z_N^*$, whose size is written $\\varphi(N)$. For example, $\\Z_{10}^* = \\{1, 3, 7, 9\\}$, so $\\varphi(10) = 4$.',
             'For a prime $p$, every nonzero element is invertible, so $\\varphi(p) = p - 1$. For $N = pq$ with $p, q$ distinct primes, $\\varphi(N) = (p-1)(q-1)$.',
             '**Euler\'s theorem**: for any $a \\in \\Z_N^*$, $a^{\\varphi(N)} \\equiv 1 \\pmod N$. Consequently, exponents can be reduced modulo $\\varphi(N)$: $a^x \\equiv a^{x \\bmod \\varphi(N)} \\pmod N$.',
             'Two computations are easy even for numbers thousands of bits long. **Modular exponentiation** $a^x \\bmod N$ takes about $\\log_2 x$ squarings and multiplications (square-and-multiply). **Modular inverses** are found with the extended Euclidean algorithm.',
-            'Two computations are believed hard. **Factoring**: given $N = pq$ for large random primes, find $p$ and $q$. **Discrete logarithm**: given a generator $g$ of a large group and $X = g^x$, find $x$. Every scheme in this chapter rests on one of these.'
+            'Two computations are believed hard. **Factoring**: given $N = pq$ for large random primes, find $p$ and $q$. **Discrete logarithm**: given a generator $g$ of a suitable large group and $X = g^x$, find $x$. Every scheme in this chapter rests on one of these.'
           ],
           quiz: [
             {
@@ -1026,18 +1037,18 @@
           title: 'RSA: a trapdoor permutation',
           anim: 'rsa-trapdoor',
           body: [
-            'RSA key generation picks two large random primes $p, q$, sets $N = pq$, and chooses an exponent $e$ coprime to $\\varphi(N)$. It then computes $d$ with $ed \\equiv 1 \\pmod{\\varphi(N)}$. The public key is $(N, e)$; the secret key is $(N, d)$.',
-            'The RSA function is $f(x) = x^e \\bmod N$ and its inverse is $f^{-1}(y) = y^d \\bmod N$. They really are inverses: $(x^e)^d = x^{ed} = x^{1 + k\\varphi(N)} = x \\cdot (x^{\\varphi(N)})^k \\equiv x \\pmod N$ by Euler\'s theorem.',
-            'A tiny example: $p = 5$, $q = 11$, so $N = 55$ and $\\varphi(N) = 40$. Take $e = 3$; then $d = 27$, since $3 \\cdot 27 = 81 = 2 \\cdot 40 + 1$. Applying $f$ to $x = 2$ gives $2^3 = 8$. Applying $f^{-1}$ gives $8^{27} \\bmod 55 = 2$.',
-            'Anyone can compute $f$. Computing $f^{-1}$ appears to require $d$, and finding $d$ from $(N, e)$ is as hard as factoring $N$. So $f$ is a **trapdoor permutation**: a permutation that is easy in one direction for everyone, and easy in the other direction only for whoever holds the trapdoor $d$.',
-            'The **RSA assumption** is that, for a random $y \\in \\Z_N^*$, no efficient adversary given $(N, e, y)$ can find $x$ with $x^e \\equiv y \\pmod N$. Real moduli are 2048 bits or more.'
+            'RSA key generation picks two large random primes $p, q$, sets $N = pq$, and chooses an exponent $e$ coprime to $\\varphi(N)$. It then computes $d$ with $ed \\equiv 1 \\pmod{\\varphi(N)}$, using the extended Euclidean algorithm. The public key is $(N, e)$; the secret key is $(N, d)$.',
+            'The RSA function on $\\Z_N^*$ is $f(x) = x^e \\bmod N$ and its inverse is $f^{-1}(y) = y^d \\bmod N$. They really are inverses: $(x^e)^d = x^{ed} = x^{1 + k\\varphi(N)} = x \\cdot (x^{\\varphi(N)})^k \\equiv x \\pmod N$ by Euler\'s theorem. (Euler\'s theorem covers $x \\in \\Z_N^*$. Using the Chinese Remainder Theorem one can show $x^{ed} \\equiv x$ for every $x \\in \\Z_N$, but we will not need that.)',
+            'A tiny example: $p = 5$, $q = 11$, so $N = 55$ and $\\varphi(N) = 40$. Take $e = 3$; then $d = 27$, since $3 \\cdot 27 = 81 = 2 \\cdot 40 + 1$ (at this size you can just try multiples of $3$). Applying $f$ to $x = 7$ gives $7^3 = 343 \\equiv 13 \\pmod{55}$. Applying $f^{-1}$ gives $13^{27} \\bmod 55 = 7$.',
+            'Anyone can compute $f$. Knowing $d$ (or the factors $p, q$) lets you invert $f$, and recovering $d$ from $(N, e)$ is provably as hard as factoring $N$. But nobody has proved that inverting $f$ *without* finding $d$ requires factoring — that is why we state the RSA assumption separately below. So $f$ is a **trapdoor permutation**: a permutation that is easy in one direction for everyone, and easy in the other direction only for whoever holds the trapdoor $d$.',
+            'The **RSA assumption** is that, for a random $y \\in \\Z_N^*$, no efficient adversary given $(N, e, y)$ can find $x$ with $x^e \\equiv y \\pmod N$. Real moduli are 2048 bits or more; $2^{2048}$ is a 617-digit number.'
           ],
           quiz: [
             {
               q: 'Why does $(x^e)^d \\equiv x \\pmod N$ hold?',
               opts: [
                 'Because $e = d$.',
-                'Because $ed = 1 + k\\varphi(N)$ for some $k$, and $x^{\\varphi(N)} \\equiv 1$ by Euler\'s theorem.',
+                'Because $ed = 1 + k\\varphi(N)$ for some $k$, and $x^{\\varphi(N)} \\equiv 1$ for $x \\in \\Z_N^*$ by Euler\'s theorem.',
                 'Because $N$ is prime.',
                 'Because exponentiation is commutative.'
               ],
@@ -1052,9 +1063,9 @@
           body: [
             'The tempting scheme is to encrypt by $C = M^e \\bmod N$ and decrypt by $M = C^d \\bmod N$. This is called **textbook RSA**, and it is not a secure encryption scheme.',
             'It is deterministic, so by the argument at the start of this chapter it is not IND-CPA secure: given $C$, encrypt both candidate messages and compare.',
-            'It is also **malleable**. Given $C = M^e$, anyone can compute $C \\cdot 2^e = (2M)^e$, a valid encryption of $2M$, without knowing $M$. In a protocol where the adversary can see decryptions of modified ciphertexts, this leaks the plaintext.',
+            'It is also **malleable**. Given $C = M^e \\bmod N$, anyone can compute $C \\cdot 2^e \\bmod N = (2M)^e \\bmod N$, a valid encryption of $2M$, without knowing $M$. In a protocol where the adversary can see decryptions of modified ciphertexts, this leaks the plaintext.',
             'And the RSA assumption only says it is hard to invert $f$ on a *random* input. Real messages are not random: they are short, structured, or guessable. If $M$ is a small number and $e = 3$, then $M^3$ may be less than $N$, and the "encryption" can be undone with an ordinary cube root.',
-            'Secure RSA encryption first transforms the message with randomized padding. **RSA-OAEP**, the standardized method, applies two hash-based mixing rounds with fresh randomness before applying $f$. It is proved IND-CCA secure (secure even when the adversary can see decryptions of other ciphertexts) under the RSA assumption, in the random oracle model.'
+            'Secure RSA encryption first transforms the message with randomized padding. **RSA-OAEP**, the standardized method, applies two hash-based mixing rounds with fresh randomness before applying $f$. It is proved IND-CCA secure (secure even when the adversary can see decryptions of other ciphertexts; defined at the end of this chapter) under the RSA assumption, in the random oracle model. The original 1994 proof had a gap, found by Shoup in 2001 and repaired for RSA soon after — a good lesson in why proofs get checked.'
           ],
           quiz: [
             {
@@ -1074,11 +1085,13 @@
           id: 'ch6-elgamal',
           title: 'Diffie–Hellman and ElGamal',
           body: [
-            'Let $G$ be a cyclic group of prime order $q$ with generator $g$ — for example, a prime-order subgroup of $\\Z_p^*$ or an elliptic-curve group. Three problems in $G$ form a hierarchy. **DL**: given $g^x$, find $x$. **CDH**: given $g^x$ and $g^y$, compute $g^{xy}$. **DDH**: given $g^x$, $g^y$, and $Z$, decide whether $Z = g^{xy}$ or $Z$ is a random group element.',
-            'Solving DL lets you solve CDH, and solving CDH lets you solve DDH, so DDH is the strongest assumption of the three. In some groups DDH is easy even though DL is hard: in the full group $\\Z_p^*$, quadratic residuosity leaks a bit of $xy$. That is why schemes use prime-order subgroups.',
-            '**ElGamal encryption.** The secret key is a random $x \\in \\Z_q$, and the public key is $X = g^x$. To encrypt a group element $M$, pick a random $y \\in \\Z_q$ and output $(Y, W) = (g^y, \\; X^y \\cdot M)$. To decrypt, compute $W \\cdot (Y^x)^{-1}$. Since $Y^x = g^{xy} = X^y$, the mask cancels.',
-            '**Theorem.** If DDH is hard in $G$, then ElGamal is IND-CPA secure.',
-            'Proof idea: the reduction gets a DDH challenge $(g^x, g^y, Z)$. It sets $pk = g^x$, and answers the left-or-right query with $(g^y, Z \\cdot M_b)$ for a random bit $b$ of its own. If $Z = g^{xy}$, this is a real encryption and the adversary guesses $b$ with its usual advantage. If $Z$ is a random group element, then $Z \\cdot M_b$ is uniform no matter what $M_b$ is — a one-time pad in the group — and the adversary can only guess. Any gap between these cases is a DDH advantage. $\\qed$'
+            'Let $G$ be a cyclic group of prime order $q$ with generator $g$ — for example, a prime-order subgroup of $\\Z_p^*$ or an elliptic-curve group.',
+            'The **Diffie–Hellman key exchange** (1976) is where these problems come from. Alice picks a secret $x$ and sends $g^x$; Bob picks a secret $y$ and sends $g^y$. Both can now compute $g^{xy}$: Alice as $(g^y)^x$, Bob as $(g^x)^y$. An eavesdropper sees only $g^x$ and $g^y$. Is that enough to find $g^{xy}$?',
+            'Three problems in $G$ form a hierarchy. **DL**: given $g^x$, find $x$. **CDH**: given $g^x$ and $g^y$, compute $g^{xy}$. **DDH**: given $g^x$, $g^y$, and $Z$, decide whether $Z = g^{xy}$ or $Z$ is a random group element.',
+            'Solving DL lets you solve CDH, and solving CDH lets you solve DDH, so DDH is the strongest assumption of the three. In some groups DDH is easy even though DL is hard. In the full group $\\Z_p^*$ one can efficiently test whether an element is a square, and $g^{xy}$ is a square exactly when $xy$ is even — which is computable from $g^x$ and $g^y$. A random $Z$ passes this test only half the time, so DDH is easy there. That is why schemes use prime-order subgroups.',
+            '**ElGamal encryption.** The secret key is a random $x \\in \\Z_q$, and the public key is $X = g^x$. To encrypt a group element $M$, pick a random $y \\in \\Z_q$ and output $(Y, W) = (g^y, \\; X^y \\cdot M)$. To decrypt, compute $W \\cdot (Y^x)^{-1}$. Since $Y^x = g^{xy} = X^y$, the mask cancels. (Encoding a message as a group element is awkward; in practice $X^y$ is instead hashed into a symmetric key — "hashed ElGamal" — which leads to the hybrid encryption section below.)',
+            '**Theorem.** For any IND-CPA adversary $A$ against ElGamal there is a DDH adversary $B$, about as efficient, with $\\Adv^{\\mathrm{ind-cpa}}(A) \\le 2 \\, \\Adv^{\\mathrm{ddh}}(B)$.',
+            'Proof idea: we only handle one left-or-right query, which is enough by the remark at the start of the chapter. $B$ gets a DDH challenge $(g^x, g^y, Z)$. It sets $pk = g^x$, picks a random bit $b$ of its own, answers the left-or-right query with $(g^y, Z \\cdot M_b)$, and outputs $1$ if $A$ guesses $b$. If $Z = g^{xy}$, this is a real encryption and $A$ is correct with probability $\\tfrac12 + \\tfrac12 \\Adv(A)$. If $Z$ is a random group element, then $Z \\cdot M_b$ is uniform no matter what $M_b$ is — a one-time pad in the group — and $A$ is correct with probability exactly $\\tfrac12$. The gap between these cases, $\\tfrac12 \\Adv(A)$, is $B$\'s DDH advantage. $\\qed$'
           ],
           quiz: [
             {
@@ -1099,10 +1112,10 @@
           title: 'Putting it together: hybrid encryption',
           body: [
             'Public-key operations are slow — thousands of times slower than a block cipher — and schemes like ElGamal only encrypt a single group element. Nobody encrypts a video file with RSA.',
-            'Instead, systems use **hybrid encryption**. To send $M$ to Bob: pick a fresh random symmetric key $K$; encrypt $K$ under Bob\'s public key; encrypt $M$ under $K$ with an authenticated symmetric scheme (Chapter 4\'s Encrypt-then-MAC, or GCM). Bob decrypts $K$ with $sk$, then decrypts $M$ with $K$.',
-            'Formally the public-key part is a **key encapsulation mechanism** (KEM) and the symmetric part a **data encapsulation mechanism** (DEM). The KEM/DEM theorem says the combination is secure if each part is secure, with the advantages adding up — another reduction in the now-familiar pattern.',
-            'This is how TLS, Signal, PGP, and essentially every real system works, and it uses every chapter of this course: a hash function to derive keys (Chapter 5), a MAC for integrity (Chapter 4), a PRF-based symmetric scheme for bulk data (Chapter 3), and a public-key primitive to establish the key in the first place.',
-            'Finally, a word on stronger attacks. Real adversaries can often send modified ciphertexts and observe how the receiver reacts — an error message, a timing difference. Bleichenbacher\'s 1998 attack recovered TLS session keys this way from an RSA padding scheme that was only IND-CPA secure. The modern target is **IND-CCA** security, where the adversary may also ask for decryptions of any ciphertext other than its challenge. RSA-OAEP and hybrid schemes with authenticated DEMs achieve it.'
+            'Instead, systems use **hybrid encryption**. To send $M$ to Bob: pick a fresh random symmetric key $K$; encrypt $K$ under Bob\'s public key (or, equivalently, derive $K$ together with an encapsulation of it, as below); encrypt $M$ under $K$ with an authenticated symmetric scheme (Chapter 4\'s Encrypt-then-MAC, or GCM). Bob decrypts $K$ with $sk$, then decrypts $M$ with $K$.',
+            'Formally, a **key encapsulation mechanism** (KEM) outputs a fresh key $K$ and an encapsulation $C_1$ that only $sk$ can open — for example $C_1 = g^y$ and $K = H(X^y)$, which is hashed ElGamal. A **data encapsulation mechanism** (DEM) encrypts $M$ under $K$. Since each $K$ is used only once, the DEM only needs one-time security. The KEM/DEM theorem bounds the combined scheme\'s advantage by a small multiple of the KEM\'s advantage plus the DEM\'s — another reduction in the now-familiar pattern.',
+            'PGP, HPKE (RFC 9180) and age use hybrid encryption directly. TLS 1.3 and Signal use the closely related Diffie–Hellman key exchange to agree on $K$, then the same symmetric machinery. Either way, it uses every chapter of this course: a hash function to derive keys (Chapter 5), a MAC for integrity (Chapter 4), a PRF-based symmetric scheme for bulk data (Chapter 3), and a public-key primitive to establish the key in the first place.',
+            'Finally, a word on stronger attacks. Real adversaries can often send modified ciphertexts and observe how the receiver reacts — an error message, a timing difference. Bleichenbacher\'s 1998 "million-message" attack decrypted SSL key-exchange ciphertexts by sending about a million modified ciphertexts and watching whether the server reported a padding error. The padding scheme (PKCS #1 v1.5) had no security proof, and certainly none against such attacks. The modern target is **IND-CCA** security, where the adversary may also ask for decryptions of any ciphertext other than its challenge. RSA-OAEP achieves it (in the random oracle model), and so does hybrid encryption when *both* the KEM is CCA-secure and the DEM is authenticated.'
           ],
           quiz: [
             {
@@ -1173,7 +1186,7 @@
             'Public-key schemes cannot be randomized.'
           ],
           answer: 1,
-          why: 'Hybrid encryption uses one public-key operation to transport a symmetric key, then fast symmetric encryption for everything else, and is provably secure when both parts are.'
+          why: 'Hybrid encryption uses one public-key operation to transport a symmetric key, then fast symmetric encryption for everything else. It is provably secure when both the KEM and the DEM meet the required security notions.'
         }
       ]
     }
