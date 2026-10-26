@@ -29,8 +29,10 @@
     s = String(s);
     if (s.length <= n) return t(s);
     var c = s.slice(0, n).replace(/\s+\S*$/, '');
-    if ((c.match(/\$/g) || []).length % 2) c = c.slice(0, c.lastIndexOf('$')).replace(/\s+\S*$/, '');
-    return t(c) + '&hellip;';
+    // Back out of an unclosed $$display$$ first, then an unclosed $inline$.
+    if ((c.match(/\$\$/g) || []).length % 2) c = c.slice(0, c.lastIndexOf('$$'));
+    if ((c.replace(/\$\$/g, '').match(/\$/g) || []).length % 2) c = c.slice(0, c.lastIndexOf('$'));
+    return t(c.replace(/\s+\S*$/, '')) + '&hellip;';
   }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                                    .replace(/"/g,'&quot;'); }
@@ -96,10 +98,11 @@
       ? '<p class="kbd">Installed and fully offline.</p>'
       : '<a class="card" href="#/install" style="margin-top:12px"><h3>Add to your ' +
         'home screen</h3><p>Two taps, and it works with no connection.</p></a>';
-    h += '<div class="eyebrow">Text size</div><div class="row seg" id="textsize">';
+    h += '<div class="eyebrow" id="textsize-label">Text size</div>' +
+         '<div class="row seg" id="textsize" role="group" aria-labelledby="textsize-label">';
     TEXT_SIZES.forEach(function (z) {
       h += '<button class="btn ghost' + (z.id === textSize() ? ' on' : '') + '" data-ts="' + z.id + '"' +
-           ' aria-label="' + z.name + ' text" aria-pressed="' + (z.id === textSize()) + '" style="font-size:' + z.demo + '">' + z.label + '</button>';
+           ' aria-label="A, ' + z.name.toLowerCase() + ' text" aria-pressed="' + (z.id === textSize()) + '" style="font-size:' + z.demo + '">' + z.label + '</button>';
     });
     h += '</div>';
     return { title: 'Proof Helper', html: h, tab: 'home', after: function () {
@@ -967,6 +970,16 @@
     return '';
   }
 
+  /* A figure, with its SVG hidden from screen readers (the figure's label and
+     caption describe it) and plain-text operators given the .mop font stack. */
+  function figureHTML(key) {
+    var parts = animHTML(key).split('<figcaption>');
+    parts[0] = parts[0].replace('<svg ', '<svg aria-hidden="true" focusable="false" ')
+                       .replace(/\u2295/g, '<tspan class="mop">\u2295</tspan>');
+    if (parts[1]) parts[1] = parts[1].replace(/\u2295/g, '<span class="mop">\u2295</span>');
+    return parts.join('<figcaption>');
+  }
+
   /* Inline multiple-choice quiz for a section. */
   function sectionQuizHTML(items, quizId) {
     if (!items || !items.length) return '';
@@ -1053,7 +1066,7 @@
       sec.body.forEach(function (para) { h += '<p>' + t(para) + '</p>'; });
       h += '</div>';
       // The figure's aria-label and caption describe it; hide the SVG's loose text nodes.
-      if (sec.anim) h += animHTML(sec.anim).replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
+      if (sec.anim) h += figureHTML(sec.anim);
       if (sec.quiz && sec.quiz.length) h += sectionQuizHTML(sec.quiz, sec.id);
     });
 
@@ -1104,8 +1117,11 @@
 
           // Keep the quiz in view: it sits at the bottom of a very long chapter.
           // Manual offset clears the sticky header (no scroll-margin-top on iOS 12).
+          // scrollIntoView lets the engine handle the text-size zoom on main
+          // (WebKit's getBoundingClientRect does not); then clear the sticky header.
           function toQuiz() {
-            window.scrollTo(0, quizBox.getBoundingClientRect().top + window.pageYOffset - 72);
+            quizBox.scrollIntoView(true);
+            window.scrollBy(0, -72);
           }
 
           function paintQ() {
