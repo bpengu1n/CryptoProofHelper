@@ -33,6 +33,7 @@ css/
 js/
   store.js                 Instantiates this app's CPStore from vendor/puzzlepieces
   install.js               This app's install-banner UI, wrapping vendor/puzzlepieces
+  update.js                Service-worker registration and the "Update available" bar
   app.js                   Router, views, all UI logic
 js/data/
   course.js                window.CP_COURSE — B&R course chapters 1–6
@@ -133,14 +134,16 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v7'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v8'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v7'` → `'cph-v8'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v8'` → `'cph-v9'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
+
+**How updates reach users.** A new `sw.js` installs in the background and then *waits*; it does not take over on its own. `js/update.js` notices the waiting worker and shows an "Update available" bar. Tapping **Update** posts `'skipWaiting'` to the worker, and the page reloads once the new worker controls it. The bar never appears on a first install or when nothing new is waiting. An open app re-checks for updates when it comes back into view (at most every 30 minutes). `FIRST_WITH_UPDATE_UI` in `sw.js` keeps one exception: replacing a worker from before `cph-v8`, whose page has no Update button, still activates immediately. Leave it as is.
 
 ---
 
