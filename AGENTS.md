@@ -35,7 +35,7 @@ js/
   install.js               This app's install-banner UI, wrapping vendor/puzzlepieces
   app.js                   Router, views, all UI logic
 js/data/
-  course.js                window.CP_COURSE — B&R course chapters
+  course.js                window.CP_COURSE — B&R course chapters 1–6
   primer.js                window.CP_PRIMER — standalone primer lessons
   concepts.js              window.CP_CONCEPTS — definition cards
   techniques.js            window.CP_TECHNIQUES — proof-technique library
@@ -133,12 +133,12 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v5'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v6'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v5'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v6'` → `'cph-v7'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
 
@@ -298,15 +298,13 @@ Completed on this branch:
 - B&R Chapter 1 (Introduction) — 5 sections, inline quizzes, mastery quiz, 2 SVG animations
 - B&R Chapter 2 (Classical Encryption) — 6 sections, inline quizzes, mastery quiz, 3 SVG animations
 - Math rendering fixes: `\square`, `\mathit`, display-math paragraph rendering
+- B&R Chapter 3 (Symmetric Encryption) — PRFs, IND-CPA (left-or-right), ECB/CBC/CTR, CTR proof; 2 SVG animations (`prf-game`, `lr-oracle`)
+- B&R Chapter 4 (Message Authentication) — UF-CMA, PRF-as-MAC proof, CBC-MAC extension forgery, HMAC, Encrypt-then-MAC; 1 SVG animation (`uf-cma`)
+- B&R Chapter 5 (Hash Functions) — collision resistance, birthday attack, preimage notions, Merkle–Damgård, random oracle model; 2 SVG animations (`birthday`, `merkle-damgard`)
+- B&R Chapter 6 (Public-Key Encryption) — number theory, RSA, textbook-RSA pitfalls, DDH/ElGamal proof, hybrid encryption; 1 SVG animation (`rsa-trapdoor`)
+- `tools/lint-content.js` now also lints `CP_COURSE`
 
-**Pending (Ch 3–6):**
-Chapters 3–6 exist in `course.js` as locked placeholder cards. To unlock a chapter, replace `locked: true` with full `sections` and `mastery` content per the schema above.
-
-Suggested chapter priorities per B&R:
-- Ch 3: Symmetric Encryption (IND-CPA, PRF-based constructions)
-- Ch 4: Message Authentication Codes (UFCMA, HMAC)
-- Ch 5: Authenticated Encryption (AE, nonce-based)
-- Ch 6: Hash Functions (collision resistance, SHA)
+**Pending:** none of the course chapters are locked any more. Possible next steps: digital signatures and key exchange as Ch 7+, or drill sets keyed to Ch 3–6.
 
 ---
 

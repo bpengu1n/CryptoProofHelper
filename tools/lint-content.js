@@ -3,7 +3,7 @@
  */
 global.window = {};
 require(require('path').join(__dirname, '..', 'vendor', 'puzzlepieces', 'js', 'math-renderer', 'math-renderer.js'));
-['primer','concepts','techniques','examples','drills','templates'].forEach(f =>
+['course','primer','concepts','techniques','examples','drills','templates'].forEach(f =>
   require(require('path').join(__dirname, '..', 'js', 'data', f + '.js')));
 const M = window.MathRenderer;
 
@@ -39,7 +39,7 @@ function walk(v, path) {
   else if (v && typeof v === 'object')
     Object.keys(v).forEach(k => { if (typeof v[k] !== 'function') walk(v[k], path + '.' + k); });
 }
-['CP_PRIMER','CP_TRACKS','CP_GLOSSARY','CP_PATH','CP_CONCEPTS','CP_TECHNIQUES',
+['CP_COURSE','CP_PRIMER','CP_TRACKS','CP_GLOSSARY','CP_PATH','CP_CONCEPTS','CP_TECHNIQUES',
  'CP_EXAMPLES','CP_DRILLS','CP_TRIAGE','CP_CHECKLIST']
   .forEach(k => walk(window[k], k));
 
