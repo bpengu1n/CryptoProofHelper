@@ -2,7 +2,7 @@
  * Bump CACHE on every content change to roll users onto the new bundle.
  * A new version installs and then waits; js/update.js shows an Update
  * button and sends 'skipWaiting' when the learner taps it. */
-var CACHE = 'cph-v10';
+var CACHE = 'cph-v11';
 // cph-v8 is the first version whose page code has the Update button. Older
 // pages can't ask a waiting worker to take over, so replacing one of those
 // still activates immediately, as before.
