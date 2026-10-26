@@ -791,8 +791,8 @@ window.CP_GLOSSARY = [
     { s: '$\\G$', n: 'a group', p: 'a set with one well-behaved operation; in crypto, usually of prime order' },
     { s: '$g$', n: 'a generator', p: 'an element whose powers sweep out the whole group' },
     { s: '$g^{x}$', n: 'g to the x', p: 'g combined with itself x times. Easy forwards, hard to reverse' },
-    { s: '$\\Z_N^*$', n: 'units mod N', p: 'the numbers from 1 to $N-1$ that share no factor with $N$; they form a group under multiplication mod $N$' },
-    { s: '$\\varphi(N)$', n: 'phi of N', p: 'how many elements $\\Z_N^*$ has. For $N = pq$ with $p, q$ prime it is $(p-1)(q-1)$' }
+    { s: '$\\Z_N^*$', n: 'units mod N', p: 'the numbers from 1 to $N-1$ that share no factor with $N$ other than 1; they form a group under multiplication mod $N$' },
+    { s: '$\\varphi(N)$', n: 'phi of N', p: 'how many elements $\\Z_N^*$ has. For $N = pq$ with $p, q$ distinct primes it is $(p-1)(q-1)$' }
   ]},
   { g: 'Probability', items: [
     { s: '$\\Pr[E]$', n: 'probability of E', p: 'a number between 0 and 1' },
@@ -831,7 +831,7 @@ window.CP_GLOSSARY = [
     { s: '$\\Mac, \\Vrfy$', n: 'tag and verify', p: 'the two algorithms of a message authentication code' },
     { s: '$F_k$', n: 'the PRF keyed by k', p: 'a function that should look random to anyone without k' },
     { s: '$H$', n: 'a hash function', p: 'in the ROM, treated as a perfectly random function' },
-    { s: '$\\tau$', n: 'tau: tag length', p: 'the number of bits in a MAC tag. A guessed tag is right with probability $2^{-\\tau}$' },
+    { s: '$\\tau$', n: 'tau: tag length', p: 'the number of bits in a MAC tag. For a good MAC, a guessed tag is right with probability about $2^{-\\tau}$' },
     { s: 'IV', n: 'initialization vector', p: 'a fresh starting value for a mode of operation such as CBC or counter mode. CBC needs it unpredictable, counter mode needs it never to repeat' },
     { s: 'LR', n: 'left-or-right oracle', p: 'in the IND-CPA game: given a pair $(M_0, M_1)$, it encrypts $M_b$ for the hidden bit $b$' }
   ]},
@@ -854,8 +854,6 @@ window.CP_GLOSSARY = [
 
 /* The suggested route through the whole app, for someone starting cold. */
 window.CP_PATH = [
-  { href: '#/course/ch1', label: 'Or follow the course: six chapters of Bellare & Rogaway',
-    note: 'Prefer one guided route? The course walks through the material chapter by chapter, linking back to these lessons when you need them.' },
   { href: '#/primer/sets', label: 'Ground floor: seven short maths lessons',
     note: 'Sets and strings, probability, counting, modular arithmetic, groups, growth rates, logic.' },
   { href: '#/primer/what-is-proof', label: 'Writing proofs: the five shapes',

@@ -118,7 +118,7 @@ After editing any `js/data/*.js` file:
 node tools/lint-content.js
 ```
 
-No npm install needed. Reports missing required fields, malformed quiz items, and broken references.
+No npm install needed. Reports missing required fields, malformed quiz items, and broken references, including course `prereq`/`see` links that do not resolve.
 
 ### Run tests
 
