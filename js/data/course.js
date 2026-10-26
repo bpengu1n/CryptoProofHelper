@@ -11,6 +11,7 @@
       id: 'ch1',
       num: 1,
       title: 'Introduction',
+      br: 'Ch 1',
       blurb: 'What cryptography actually solves, the players involved, and the modern way of proving a scheme is secure.',
       sections: [
         {
@@ -144,6 +145,7 @@
       id: 'ch2',
       num: 2,
       title: 'Classical Encryption',
+      br: 'Ch 2',
       blurb: 'Substitution ciphers and why they fail, the one-time pad, and Shannon\'s notion of perfect security.',
       sections: [
         {
@@ -320,6 +322,7 @@
       id: 'ch3',
       num: 3,
       title: 'Symmetric Encryption',
+      br: 'Ch 3–5 (block ciphers, PRFs, symmetric encryption)',
       blurb: 'Pseudorandom functions, the IND-CPA game, and why counter mode is secure while ECB is not.',
       sections: [
         {
@@ -553,6 +556,7 @@
       id: 'ch4',
       num: 4,
       title: 'Message Authentication',
+      br: 'Ch 7, plus Encrypt-then-MAC from Ch 8',
       blurb: 'MACs, pseudorandom functions, and integrity without secrecy.',
       sections: [
         {
@@ -759,6 +763,7 @@
       id: 'ch5',
       num: 5,
       title: 'Hash Functions',
+      br: 'Ch 6',
       blurb: 'Collision resistance, the birthday attack, Merkle–Damgård, and the random oracle model.',
       sections: [
         {
@@ -985,6 +990,7 @@
       id: 'ch6',
       num: 6,
       title: 'Number Theory',
+      br: 'Ch 9–10 (computational number theory, number-theoretic primitives)',
       blurb: 'Modular arithmetic, Euclid, inverses, Euler, the CRT, cyclic groups — the maths public-key cryptography runs on, with a hands-on widget in every section.',
       sections: [
         {
@@ -1033,10 +1039,10 @@
             {
               q: 'In $\\Z_{12}$, why can\'t you conclude $x \\equiv y$ from $4x \\equiv 4y$?',
               opts: [
-                'Because $12$ is even.',
-                'Because $4$ shares a factor with $12$, so multiplying by $4$ is not one-to-one; for example $4 \\cdot 0 \\equiv 4 \\cdot 3$.',
-                'You can; cancellation always works mod $N$.',
-                'Because $4$ is not prime.'
+                'Because $12$ is even, and cancellation mod an even modulus only works for odd factors such as $3$ or $5$.',
+                'Because $4$ shares a factor with $12$, so multiplying by $4$ is not one-to-one: $4 \\cdot 0 \\equiv 4 \\cdot 3$.',
+                'You can: multiply both sides by $4^{-1} = 3$, since $4 \\cdot 3 \\equiv 0$ means multiplying by $3$ undoes the $4$ on both sides.',
+                'Because $4$ is not prime, and only prime factors can be cancelled from both sides of a congruence.'
               ],
               answer: 1,
               why: '$4 \\cdot 3 = 12 \\equiv 0 = 4 \\cdot 0$, yet $3$ and $0$ are not congruent. Cancellation works only for numbers coprime to $N$, as the next sections show.'
@@ -1125,10 +1131,10 @@
             {
               q: 'For an RSA modulus $N = pq$, someone learns $\\varphi(N)$. What can they compute?',
               opts: [
-                'Nothing useful.',
+                'Nothing useful: $\\varphi(N)$ is just a count of units and says nothing about which primes divide $N$.',
                 '$p + q = N - \\varphi(N) + 1$, and then $p$ and $q$ themselves from a quadratic equation.',
-                'Only $p \\cdot q$, which was public anyway.',
-                'The message, but not the factors.'
+                'Only $p \\cdot q$ again, since $\\varphi(N) = (p-1)(q-1)$ expands to an expression in $N$ alone.',
+                'Whether $N$ is prime, but finding the actual factors would still require running a factoring algorithm.'
               ],
               answer: 1,
               why: 'With the sum and the product of $p$ and $q$ known, they are the two roots of $x^2 - (p+q)x + N$. So computing $\\varphi(N)$ is as hard as factoring $N$.'
@@ -1212,10 +1218,10 @@
             {
               q: 'Why does the system $x \\equiv 0 \\pmod 2$, $x \\equiv 1 \\pmod 4$ have no solution?',
               opts: [
-                'It does: $x = 5$.',
-                'The moduli are not coprime, and the conditions disagree mod $\\gcd(2, 4) = 2$: the second makes $x$ odd, the first makes it even.',
-                'Because $4$ is not prime.',
-                'Because $0$ is not a valid remainder.'
+                'It does have one: $x = 5$ satisfies both, because $5 \\equiv 1 \\pmod 4$ and $5 = 2 \\cdot 2 + 1$.',
+                'The moduli share the factor $2$, and the conditions clash mod $2$: one makes $x$ odd, the other even.',
+                'Because $4$ is not prime, and the CRT construction needs a prime modulus to compute the inverses $e_1, e_2$.',
+                'Because $0$ is not a valid remainder, so the condition $x \\equiv 0 \\pmod 2$ must be rewritten first.'
               ],
               answer: 1,
               why: '$x \\equiv 1 \\pmod 4$ implies $x$ is odd, contradicting $x \\equiv 0 \\pmod 2$. With non-coprime moduli the CRT does not apply. A solution exists only if the remainders agree mod the gcd.'
@@ -1245,10 +1251,10 @@
             {
               q: 'Why are discrete-log schemes run in a subgroup of large **prime** order $q$?',
               opts: [
-                'Because prime numbers are faster to multiply.',
-                'Pohlig–Hellman reduces a discrete log to logs in subgroups of each prime-factor order, so the group order must have a large prime factor. Prime order also makes every non-identity element a generator.',
-                'Because $\\Z_p^*$ is not a group.',
-                'Because discrete logs do not exist in groups of composite order.'
+                'Exponentiation is several times faster in a prime-order group, because square-and-multiply can skip the extra reductions modulo the many small prime factors of the group order, which saves real time.',
+                'Pohlig–Hellman splits a discrete log into logs in subgroups of each prime-factor order, so the order needs a large prime factor; prime order also makes every element but $1$ a generator.',
+                'Because $\\Z_p^*$ is not a group unless you remove the even elements, and what remains is exactly the subgroup of prime order.',
+                'Because in a group of composite order some elements have no discrete logarithm at all, so the scheme could fail to decrypt.'
               ],
               answer: 1,
               why: 'The difficulty of a discrete log is governed by the largest prime factor of the group order. Prime order $q$ puts all of the difficulty in one place. As the next section shows, it also avoids a bit leak that breaks DDH.'
@@ -1279,10 +1285,10 @@
             {
               q: 'Given only $g$ and $h = g^x$ in $\\Z_p^*$ ($g$ a generator), what can anyone compute efficiently about $x$?',
               opts: [
-                'Nothing at all.',
+                'Nothing at all, since that would contradict the discrete log assumption.',
                 'Whether $x$ is even, by checking whether $h^{(p-1)/2} \\equiv 1$.',
-                'All of $x$, by Euler\'s criterion.',
-                'Whether $x$ is prime.'
+                'All of $x$, by applying Euler\'s criterion bit by bit.',
+                'Whether $x$ is prime, by checking whether $h^{x} \\equiv h$.'
               ],
               answer: 1,
               why: 'Euler\'s criterion detects squares, and $g^x$ is a square exactly when $x$ is even. This leaked bit is why DDH fails in $\\Z_p^*$ and why schemes use a prime-order subgroup.'
@@ -1315,10 +1321,10 @@
             {
               q: 'If someone had a fast factoring algorithm, what would happen to RSA?',
               opts: [
-                'Nothing, because RSA relies on discrete logs.',
+                'Nothing directly, because RSA security rests on the RSA problem ($e$-th roots), not on factoring itself.',
                 'It would be broken: factor $N$, compute $\\varphi(N) = (p-1)(q-1)$, then $d = e^{-1} \\bmod \\varphi(N)$.',
-                'Only signatures would be affected.',
-                'It would become more secure.'
+                'Only RSA signatures would be affected, since encryption also depends on the padding scheme being secure.',
+                'Keys would need to double in length, since factoring speed-ups only shave a constant off the exponent.'
               ],
               answer: 1,
               why: 'Factoring gives $\\varphi(N)$, and extended Euclid then gives the secret exponent. So RSA is at most as hard as factoring. Whether it is exactly as hard is open.'
@@ -1374,10 +1380,10 @@
         {
           q: 'RSA key generation computes $d = e^{-1} \\bmod \\varphi(N)$ easily, yet recovering $d$ from the public $(N, e)$ is believed hard. Why the difference?',
           opts: [
-            'Key generation uses a faster computer.',
-            'Key generation knows $p$ and $q$, so it knows $\\varphi(N) = (p-1)(q-1)$. Without the factors, computing $\\varphi(N)$ is as hard as factoring $N$.',
-            'Extended Euclid only works on secret inputs.',
-            'Because $e$ is prime.'
+            'Key generation runs extended Euclid on $e$ and $N$, which is fast; an attacker would instead have to search through all possible $d$.',
+            'Key generation knows $p, q$ and hence $\\varphi(N) = (p-1)(q-1)$; computing $\\varphi(N)$ without them is as hard as factoring.',
+            'Inverses mod $\\varphi(N)$ are only unique when $e$ is prime, so an attacker cannot tell which of the many candidate values of $d$ is correct.',
+            'Key generation picks $d$ first and derives $e$ from it, so $d$ never has to be computed from $e$ at all.'
           ],
           answer: 1,
           why: 'The inverse is easy once you know the modulus $\\varphi(N)$. But $\\varphi(N)$ together with $N$ reveals $p + q$ and hence $p$ and $q$. So computing it is exactly as hard as factoring.'
@@ -1392,6 +1398,7 @@
       id: 'ch7',
       num: 7,
       title: 'Public-Key Encryption',
+      br: 'Ch 11, with DDH from Ch 10',
       blurb: 'RSA, ElGamal, and provable security in the public-key setting.',
       sections: [
         {

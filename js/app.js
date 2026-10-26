@@ -987,7 +987,8 @@
       var score = S.get(courseQuizKey(ch.id), null);
       h += '<a class="card chapter-card' + (v ? ' visited' : '') + '" href="#/course/' + ch.id + '">' +
            '<h3><span class="ch-num">Ch ' + ch.num + '</span>' + esc(ch.title) + '</h3>' +
-           '<p>' + esc(ch.blurb) + '</p>';
+           '<p>' + esc(ch.blurb) + '</p>' +
+           (ch.br ? '<p class="ch-br">B&amp;R ' + esc(ch.br) + '</p>' : '');
       if (score !== null) h += '<span class="chip' + (score > 0 ? ' ok' : '') + '">quiz ' + score + '/' + ch.mastery.length + '</span>';
       else if (v) h += '<span class="chip">opened</span>';
       h += '</a>';
@@ -1013,7 +1014,8 @@
     if (!ch || ch.locked) return notFound();
     markChapterVisited(id);
 
-    var h = '<p class="lead">' + esc(ch.blurb) + '</p>';
+    var h = '<p class="lead">' + esc(ch.blurb) + '</p>' +
+            (ch.br ? '<p class="ch-br">Covers Bellare &amp; Rogaway ' + esc(ch.br) + '.</p>' : '');
 
     /* Sections */
     ch.sections.forEach(function (sec) {

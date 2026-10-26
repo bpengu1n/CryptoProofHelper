@@ -201,6 +201,7 @@ In `app.js`, `M` aliases `window.MathRenderer` and `t(s)` is shorthand for `M.te
      num: 3,
      title: 'Symmetric Encryption',
      blurb: 'One short sentence shown on the course map.',
+     br: 'Ch 3–5',                 // optional; which Bellare & Rogaway chapters this covers
      sections: [
        {
          id: 'ch3-intro',          // must be globally unique

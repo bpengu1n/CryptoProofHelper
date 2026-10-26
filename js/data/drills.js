@@ -440,10 +440,10 @@ window.CP_DRILLS = [
     id: 'n4', kind: 'numtheory',
     q: 'A student writes: "$a^{x} \\equiv a^{x \\bmod N} \\pmod N$ for every $a$." What is wrong?',
     options: [
-      'Exponents reduce mod $\\varphi(N)$ (or mod the order of $a$), not mod $N$, and only for $a \\in \\Z_N^*$',
-      'Nothing — exponents always reduce mod the modulus',
-      'Exponents can never be reduced',
-      'It should be $x \\bmod (N + 1)$'
+      'Exponents reduce mod $\\varphi(N)$ (or the order of $a$), not mod $N$, and only for units $a$',
+      'Nothing, provided $N$ is prime; for composite $N$ exponents reduce mod the largest prime factor',
+      'Exponents can never be reduced mod anything, because $a^{x}$ grows without bound as $x$ grows',
+      'It should be $x \\bmod (N + 1)$, because the powers $a^0, \\ldots, a^N$ form a cycle of length $N + 1$'
     ],
     answer: 0,
     why: 'Euler\'s theorem says $a^{\\varphi(N)} \\equiv 1$, so the powers of $a$ repeat with a period dividing $\\varphi(N)$. Example: $2^{7} = 128 \\equiv 2 \\pmod 7$ but $2^{7 \\bmod 7} = 2^0 = 1$.'
@@ -467,9 +467,9 @@ window.CP_DRILLS = [
     q: 'Is $3$ a generator of $\\Z_{17}^*$? ($16 = 2^4$.)',
     options: [
       'Yes: the only prime factor of $16$ is $2$, and $3^{8} \\equiv -1 \\neq 1$',
-      'No: $3^{16} \\equiv 1$',
-      'No: $3$ is odd',
-      'Cannot tell without listing all $16$ powers'
+      'No: $3^{16} \\equiv 1 \\pmod{17}$, so the powers of $3$ return to $1$ before covering the group',
+      'No: a generator of $\\Z_{17}^*$ must be even, because $p - 1 = 16$ is a power of $2$',
+      'Cannot tell without listing all $16$ powers $3^1, \\ldots, 3^{16}$ and checking each one'
     ],
     answer: 0,
     why: '$g$ generates iff $g^{(p-1)/q} \\neq 1$ for each prime $q \\mid p - 1$. Here only $q = 2$: $3^8 = 6561 = 386 \\cdot 17 - 1 \\equiv -1$. Note $3^{16} \\equiv 1$ holds for *every* element (Fermat), so it proves nothing.'
@@ -485,10 +485,10 @@ window.CP_DRILLS = [
     id: 'n9', kind: 'numtheory',
     q: 'Why is it safe to publish $N = pq$ but not $\\varphi(N)$?',
     options: [
-      'From $N$ and $\\varphi(N)$ you get $p + q = N - \\varphi(N) + 1$, then $p, q$ as roots of a quadratic',
-      'Because $\\varphi(N)$ is larger than $N$',
-      'Because $\\varphi(N)$ reveals the message',
-      'It is safe to publish both'
+      '$N$ and $\\varphi(N)$ give $p + q = N - \\varphi(N) + 1$, then $p, q$ from a quadratic',
+      'Because $\\varphi(N)$ reveals $d$ directly: $d = \\varphi(N) - e$ for every RSA key pair',
+      'Because $\\varphi(N)$ lets anyone decrypt by computing $C^{\\varphi(N)} \\bmod N$, which equals $M$',
+      'It is safe to publish both; only $d$ must be kept secret, and $\\varphi(N)$ does not determine it'
     ],
     answer: 0,
     why: 'Knowing $\\varphi(N)$ is equivalent to knowing the factorisation, so it must stay secret along with $d$.'
