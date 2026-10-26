@@ -188,7 +188,7 @@
             {
               q: 'Why is $\\Pr[\\mathcal{E}_\\pi(\\text{FAR}) = \\text{XYY}] = 0$?',
               opts: [
-                'FAR has three distinct letters, so it cannot encrypt to a ciphertext with a repeated letter.',
+                'FAR has three distinct letters, so its ciphertext must use three letters that do not appear in FAR.',
                 'A permutation cannot send two different letters (A and R) to the same letter (Y).',
                 'The letter F cannot map to X under any permutation of the 26-letter alphabet.',
                 'XYY is not a valid ciphertext, because the cipher never outputs repeated letters.'
@@ -297,10 +297,10 @@
         {
           q: 'To disprove that a cipher is perfectly secure, what exactly do you need to show?',
           opts: [
-            'An efficient algorithm that, given any ciphertext $C$ produced by the cipher, outputs the key $K$ that was used.',
+            'That the key space is small, say $2^{20}$ keys, so every key could be tried in under a second.',
             'A pair of plaintexts $M_0, M_1$ and a ciphertext $C$ where $\\Pr[\\mathcal{E}_K(M_0)=C] \\neq \\Pr[\\mathcal{E}_K(M_1)=C]$.',
             'A published attack that recovers plaintexts faster than brute force does.',
-            'That $|\\mathcal{K}| \\ge |\\mathcal{M}|$ fails for the cipher, i.e. that it has more keys than possible messages.'
+            'That the cipher is deterministic, so the same key and message always give the same ciphertext.'
           ],
           answer: 1,
           why: 'Perfect security requires equal ciphertext distributions for every message pair. One counterexample — one pair M0, M1 and one C with unequal probabilities — suffices to disprove it entirely. The substitution cipher proof found exactly such a triple: FEE, FAR, XYY.'
@@ -736,7 +736,7 @@
           q: 'A PRF-based MAC uses 16-bit tags. Even if the PRF is perfect, what goes wrong?',
           opts: [
             'Nothing: a perfect PRF makes forgery hard whatever the tag length, so 16 bits is plenty.',
-            'About $2^{16}$ forgery attempts succeed, since each is right with probability $2^{-16}$.',
+            'About $2^{16}$ forgery attempts suffice, since each is right with probability $2^{-16}$.',
             'The short tag reveals part of the key with every message.',
             'The MAC stops being deterministic once tags are that short.'
           ],
@@ -787,7 +787,7 @@
       num: 5,
       title: 'Hash Functions',
       blurb: 'Collision resistance, the birthday attack, Merkle–Damgård, and the random oracle model.',
-      book: 'Bellare & Rogaway, Chapter 6 (Hash Functions). The book covers hashing before MACs; this course swaps them.',
+      book: 'Bellare & Rogaway, Chapter 6 (Hash Functions); the random oracle model and hash-then-sign draw on Chapters 11–12. The book covers hashing before MACs; this course swaps them.',
       prereq: ['#/primer/counting', '#/basics/birthday'],
       sections: [
         {
@@ -822,7 +822,7 @@
             '$$\\Adv^{\\mathrm{cr}}_H(A) = \\Pr[x_1 \\ne x_2 \\text{ and } H_K(x_1) = H_K(x_2)]$$',
             'Why bother with a key nobody keeps secret? Because of a subtle problem with unkeyed functions. For a fixed function like SHA-256, a collision exists, so an adversary that simply prints out that collision exists too. It runs in constant time and has advantage $1$. We just don\'t know which program it is. A definition that cannot distinguish "an adversary exists" from "we know an adversary" says nothing useful. The random public key fixes this: for a well-designed family, no single hardcoded pair works for more than a tiny fraction of keys. (B&R also discuss weaker variants, for example where the adversary must commit to $x_1$ before seeing the key; this chapter uses the strongest common one.)',
             'In practice, SHA-256 has no key, and people reason about it informally: "nobody knows how to find collisions". The keyed definition is the cleanest way to make that statement precise enough to use in proofs.',
-            'Here is the "fingerprint" idea from the previous section made precise. Suppose a signature scheme signs $H(M)$ instead of $M$ (hash-then-sign). A forger who produces a valid signature on a new message $M\'$ has done one of two things. Either $H(M\')$ equals $H(M)$ for some message $M$ that was legitimately signed, which is a collision in $H$, or $H(M\')$ is a hash value that was never signed, which is a forgery against the underlying scheme. A reduction can turn the forger into one or the other, so hash-then-sign is secure if $H$ is collision resistant and the scheme is secure on short inputs.'
+            'Here is the "fingerprint" idea from the previous section made precise. Suppose a signature scheme signs $H(M)$ instead of $M$ (hash-then-sign). A forger who produces a valid signature on a new message $M\'$ has done one of two things. Either $H(M\')$ equals $H(M)$ for some message $M$ that was legitimately signed, which is a collision in $H$, or $H(M\')$ is a hash value that was never signed, which is a forgery against the underlying scheme. A reduction can turn the forger into one or the other, so hash-then-sign is secure if $H$ is collision resistant (with its key chosen at key generation and published in the public key) and the scheme is secure on fixed-length inputs. The book proves this in its chapter on digital signatures.'
           ],
           quiz: [
             {
@@ -1012,7 +1012,7 @@
           q: 'In hash-then-sign, a forger outputs a valid signature on a new message $M\'$ with $H(M\') = H(M)$ for a message $M$ that was signed. What has it found?',
           opts: [
             'A collision in $H$.',
-            'A preimage of a random value under $H$.',
+            'A preimage of a hash value it had never seen before.',
             'A forgery against the underlying signature scheme on a new input.',
             'Nothing useful, because forgeries on equal hashes are always allowed.'
           ],
@@ -1126,7 +1126,7 @@
             'It is deterministic, so by the argument at the start of this chapter it is not IND-CPA secure: given $C$, encrypt both candidate messages and compare.',
             'It is also **malleable**. Given $C = M^e \\bmod N$, anyone can compute $C \\cdot 2^e \\bmod N = (2M)^e \\bmod N$, a valid encryption of $2M$, without knowing $M$. In a protocol where the adversary can see decryptions of modified ciphertexts, this leaks the plaintext.',
             'And the RSA assumption only says it is hard to invert $f$ on a *random* input. Real messages are not random: they are short, structured, or guessable. If $M$ is a small number and $e = 3$, then $M^3$ may be less than $N$, and the "encryption" can be undone with an ordinary cube root.',
-            'A simple scheme shows how randomness plus a random oracle $H$ (Chapter 5) fixes these problems. To encrypt $M$, pick a random $r \\in \\Z_N^*$ and output $(r^e \\bmod N,\; H(r) \\oplus M)$. Unless the adversary can invert RSA on the random value $r^e$, it never learns $r$, so it never asks $H$ about $r$, and $H(r)$ stays a uniformly random pad: the message is one-time padded. The proof turns this into a reduction: if the adversary ever does query $H$ at $r$, the reduction sees that query and has inverted RSA. This scheme is IND-CPA secure in the random oracle model, but not IND-CCA secure.',
+            'A simple scheme shows how randomness plus a random oracle $H$ (Chapter 5) fixes two of these problems, determinism and structured messages. To encrypt $M$, pick a random $r \\in \\Z_N^*$ and output $(r^e \\bmod N,\\; H(r) \\oplus M)$. As long as the adversary never queries $H$ at $r$, $H(r)$ is a uniformly random pad and the message is one-time padded. The proof shows it cannot query $r$ either: the reduction is given a random $y$ to invert, uses $y$ as the challenge\'s first component, and checks each hash query $x$ for $x^e \\equiv y \\pmod N$; a query at $r$ hands it the RSA inverse of $y$. This scheme is IND-CPA secure in the random oracle model. It is still malleable, though: flipping bits of the second component flips the same bits of $M$, so it is not IND-CCA secure.',
             'Secure RSA encryption first transforms the message with randomized padding. **RSA-OAEP**, the standardized method, applies two hash-based mixing rounds with fresh randomness before applying $f$. It is proved IND-CCA secure (secure even when the adversary can see decryptions of other ciphertexts; defined at the end of this chapter) under the RSA assumption, in the random oracle model. The original 1994 proof had a gap, found by Shoup in 2001 and repaired for RSA soon after — a good lesson in why proofs get checked.'
           ],
           quiz: [
@@ -1180,7 +1180,7 @@
             'Formally, a **key encapsulation mechanism** (KEM) outputs a fresh key $K$ and an encapsulation $C_1$ that only $sk$ can open — for example $C_1 = g^y$ and $K = H(X^y)$, which is hashed ElGamal. A **data encapsulation mechanism** (DEM) encrypts $M$ under $K$. Since each $K$ is used only once, the DEM only needs one-time security. The KEM/DEM theorem bounds the combined scheme\'s advantage by a small multiple of the KEM\'s advantage plus the DEM\'s — another reduction in the now-familiar pattern.',
             'PGP, HPKE (RFC 9180) and age use hybrid encryption directly. TLS 1.3 and Signal use the closely related Diffie–Hellman key exchange to agree on $K$, then the same symmetric machinery. Either way, it uses every chapter of this course: a hash function to derive keys (Chapter 5), a MAC for integrity (Chapter 4), a PRF-based symmetric scheme for bulk data (Chapter 3), and a public-key primitive to establish the key in the first place.',
             'Finally, a word on stronger attacks. Real adversaries can often send modified ciphertexts and observe how the receiver reacts — an error message, a timing difference. Bleichenbacher\'s 1998 "million-message" attack decrypted SSL key-exchange ciphertexts by sending about a million modified ciphertexts and watching whether the server reported a padding error. The padding scheme (PKCS #1 v1.5) had no security proof, and certainly none against such attacks. The modern target is **IND-CCA** security, where the adversary may also ask for decryptions of any ciphertext other than its challenge. RSA-OAEP achieves it (in the random oracle model), and so does hybrid encryption when *both* the KEM is CCA-secure and the DEM is authenticated.',
-            'Formally, the **IND-CCA** game is the IND-CPA game plus a decryption oracle $\\mathcal{D}_{sk}(\\cdot)$. The adversary may ask it to decrypt any ciphertext except the challenge it got back from the left-or-right oracle, since decrypting that would trivially reveal $b$. Textbook RSA fails at once: given the challenge $C$, ask for the decryption of $C \\cdot 2^e \\bmod N$, which is a different ciphertext, and halve the answer.'
+            'Formally, the **IND-CCA** game is the IND-CPA game plus a decryption oracle $\\mathcal{D}_{sk}(\\cdot)$. The adversary may ask it to decrypt any ciphertext except one the left-or-right oracle returned, since decrypting those would trivially reveal $b$. Textbook RSA fails at once: given a challenge $C$, ask for the decryption of $C \\cdot 2^e \\bmod N$, which is a different ciphertext, and multiply the answer by $2^{-1} \\bmod N$.'
           ],
           quiz: [
             {
@@ -1197,13 +1197,13 @@
             {
               q: 'In the IND-CCA game, which decryption query is the adversary not allowed to make?',
               opts: [
-                'Decrypting the challenge ciphertext it received from the left-or-right oracle.',
+                'Decrypting a ciphertext it received from the left-or-right oracle.',
                 'Decrypting any ciphertext that was produced under the public key $pk$.',
                 'Decrypting more than one ciphertext over the whole course of the game.',
                 'Decrypting anything before the challenge ciphertext has been issued.'
               ],
               answer: 0,
-              why: 'Decrypting the challenge would reveal $b$ immediately, so it is the one forbidden query. Every other ciphertext, before or after the challenge, is allowed, which is what makes IND-CCA much stronger than IND-CPA.'
+              why: 'Decrypting a challenge ciphertext would reveal $b$ immediately, so those are the only forbidden queries. Every other ciphertext, before or after a challenge, is allowed, which is what makes IND-CCA much stronger than IND-CPA.'
             }
           ]
         }

@@ -871,8 +871,8 @@
       /* Arrows */ '<line x1="110" y1="70" x2="250" y2="40" stroke="currentColor" stroke-opacity=".35" marker-end="url(#ufar)"/>' +
       '<line x1="110" y1="110" x2="250" y2="140" stroke="currentColor" stroke-opacity=".35" marker-end="url(#ufar)"/>' +
       /* Answers come back: tags, and accept/reject */
-      '<line x1="250" y1="56" x2="112" y2="84" stroke="#7aa2f7" stroke-opacity=".7" stroke-dasharray="4,3" marker-end="url(#ufar)"/>' +
-      '<text x="196" y="60" text-anchor="middle" class="af" style="font-size:10px;fill:#7aa2f7">Tᵢ</text>' +
+      '<line x1="250" y1="54" x2="112" y2="84" stroke="#7aa2f7" stroke-opacity=".7" stroke-dasharray="4,3" marker-end="url(#ufar)"/>' +
+      '<text x="176" y="66" text-anchor="middle" class="af" style="font-size:10px;fill:#7aa2f7">Tᵢ</text>' +
       '<line x1="250" y1="154" x2="112" y2="118" stroke="#9d7cd8" stroke-opacity=".7" stroke-dasharray="4,3" marker-end="url(#ufar)"/>' +
       '<text x="190" y="152" text-anchor="middle" class="af" style="font-size:10px;fill:#9d7cd8">1 / 0</text>' +
       '<g class="uf-win"><rect x="128" y="80" width="110" height="22" rx="5" fill="#e57a7a" fill-opacity=".2" stroke="#e57a7a" stroke-opacity=".8"/>' +
