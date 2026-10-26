@@ -201,7 +201,7 @@
     if (done) h += '<button class="btn wide ghost" id="resetread" style="margin-top:14px">' +
                    'Reset reading progress</button>';
 
-    return { title: 'Start here', html: h, tab: 'primer', back: '#/', after: function () {
+    return { title: 'Primer', html: h, tab: 'primer', back: '#/', after: function () {
       var b = document.getElementById('resetread');
       if (b) b.onclick = function () {
         if (!confirm('Clear which lessons are marked as read?')) return;
@@ -1034,28 +1034,84 @@
       h += '</div>';
     }
 
-    h += '<div class="note"><b>&#8594;</b> Start with the <a href="#/basics">Basics primer</a> if any of the maths feels unfamiliar — ' +
+    h += '<div class="note"><b>&#8594;</b> Start with the <a href="#/primer">Primer</a> if any of the maths feels unfamiliar — ' +
          'it covers sets, functions, probability, and proof technique in plain English before you need them here.</div>';
     return { title: 'Course', html: h, tab: 'course' };
   }
 
-  function vChapter(id) {
+  /** Title and kind for an in-app link such as '#/proofs/otp', for "see also" lists. */
+  function linkInfo(href) {
+    var m = /^#\/(\w+)\/(.+)$/.exec(href) || [], id = m[2], x;
+    if (m[1] === 'primer' && (x = byId(PRIMER, id)))    return { kind: 'Primer', title: x.title };
+    if (m[1] === 'basics' && (x = byId(CONCEPTS, id)))  return { kind: 'Foundations', title: x.title };
+    if (m[1] === 'learn' && (x = byId(TECHS, id)))      return { kind: 'Technique', title: x.title };
+    if (m[1] === 'proofs' && (x = byId(EXAMPLES, id)))  return { kind: 'Worked proof', title: x.title };
+    if (m[1] === 'course' && (x = byId(COURSE, id)))    return { kind: 'Course', title: 'Ch ' + x.num + ': ' + x.title };
+    return null;
+  }
+  function linkList(hrefs) {
+    var h = '<ul class="see">';
+    hrefs.forEach(function (href) {
+      var li = linkInfo(href);
+      if (li) h += '<li><a href="' + href + '"><span class="see-k">' + li.kind + '</span>' + t(li.title) + '</a></li>';
+    });
+    return h + '</ul>';
+  }
+
+  function coursePosKey(chId) { return 'course:pos:' + chId; }
+
+  function vChapter(id, secId) {
     var ch = byId(COURSE, id);
     if (!ch || ch.locked) return notFound();
     markChapterVisited(id);
+    var n = ch.sections.length;
 
     var h = '<p class="lead">' + esc(ch.blurb) + '</p>';
 
-    /* Sections */
+    if (ch.prereq && ch.prereq.length) {
+      h += '<div class="eyebrow">Before this chapter</div>' + linkList(ch.prereq);
+    }
+
+    /* Where the learner left off, unless they came here for a specific section. */
+    var pos = secId ? null : byId(ch.sections, S.get(coursePosKey(id), ''));
+    if (pos && pos !== ch.sections[0]) {
+      h += '<a class="card resume" href="#/course/' + id + '/' + pos.id + '"><h3>Continue where you left off</h3>' +
+           '<p>' + esc(pos.title) + '</p></a>';
+    }
+
+    /* Section index */
+    h += '<details class="toc"' + (secId ? '' : ' open') + '><summary>In this chapter (' + n + ' sections)</summary><ol>';
     ch.sections.forEach(function (sec) {
-      h += '<h2 class="sec-heading">' + esc(sec.title) + '</h2>';
+      h += '<li><a href="#/course/' + id + '/' + sec.id + '">' + esc(sec.title) + '</a></li>';
+    });
+    h += '</ol></details>';
+
+    /* Sections */
+    ch.sections.forEach(function (sec, i) {
+      h += '<section class="ch-sec" id="sec-' + sec.id + '" data-sec="' + sec.id + '">' +
+           '<div class="sec-of">Section ' + (i + 1) + ' of ' + n + '</div>' +
+           '<h2 class="sec-heading">' + esc(sec.title) + '</h2>';
       h += '<div class="prose">';
       sec.body.forEach(function (para) { h += '<p>' + t(para) + '</p>'; });
       h += '</div>';
       // The figure's aria-label and caption describe it; hide the SVG's loose text nodes.
       if (sec.anim) h += animHTML(sec.anim).replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
+      if (sec.see && sec.see.length) h += '<div class="eyebrow">Go deeper</div>' + linkList(sec.see);
       if (sec.quiz && sec.quiz.length) h += sectionQuizHTML(sec.quiz, sec.id);
+      h += '</section>';
     });
+
+    /* Next steps: the worked proofs this chapter points to, then practice. */
+    var proofs = [];
+    ch.sections.forEach(function (sec) {
+      (sec.see || []).forEach(function (href) {
+        if (href.indexOf('#/proofs/') === 0 && proofs.indexOf(href) < 0) proofs.push(href);
+      });
+    });
+    h += '<div class="ch-divider"></div><div class="eyebrow">Next steps</div>' +
+         linkList(proofs).replace('</ul>', '') +
+         '<li><a href="#/drill"><span class="see-k">Practice</span>Drills</a></li>' +
+         '<li><a href="#/build"><span class="see-k">Practice</span>Draft a proof in the builder</a></li></ul>';
 
     /* Mastery quiz */
     h += '<div class="ch-divider"></div>';
@@ -1072,7 +1128,18 @@
          '</div>';
 
     return { title: 'Ch ' + ch.num + ': ' + ch.title, html: h, tab: 'course', back: '#/course',
+      anchor: secId ? 'sec-' + secId : null,
       after: function () {
+        /* Remember the section the learner is reading (the last one whose top has scrolled past the header). */
+        var secs = main.querySelectorAll('.ch-sec'), saved = null;
+        onScroll = function () {
+          var cur = null;
+          for (var i = 0; i < secs.length; i++) {
+            if (secs[i].getBoundingClientRect().top < 140) cur = secs[i].getAttribute('data-sec'); else break;
+          }
+          if (cur && cur !== saved) { saved = cur; S.set(coursePosKey(id), cur); }
+        };
+
         /* Inline section quiz interactivity */
         Array.prototype.forEach.call(main.querySelectorAll('.cq-block'), function (block) {
           var correct = parseInt(block.dataset.answer, 10);
@@ -1310,9 +1377,18 @@
     COURSE.forEach(function (ch) {
       if (ch.locked) return;
       INDEX.push({ href: '#/course/' + ch.id, title: 'Ch ' + ch.num + ': ' + ch.title,
-        kind: 'Course', text: ch.blurb + ' ' + (ch.sections || []).map(function (s) {
-          return s.title + ' ' + s.body.join(' ');
-        }).join(' ') });
+        kind: 'Course', text: ch.blurb });
+      // One result per section, so a hit opens at the section instead of the chapter top.
+      ch.sections.forEach(function (sec) {
+        INDEX.push({ href: '#/course/' + ch.id + '/' + sec.id, title: sec.title,
+          kind: 'Course &middot; Ch ' + ch.num, text: sec.body.join(' ') + ' ' +
+            (sec.quiz || []).map(function (q) { return q.q + ' ' + q.why; }).join(' ') });
+      });
+    });
+    // The title is matched as rendered text too, so symbols such as "σ" are searchable.
+    INDEX.forEach(function (e) {
+      var shown = t(e.title).replace(/<[^>]+>/g, '');
+      e.hay = (stripMath(e.title) + ' ' + shown + ' \n ' + stripMath(e.text)).toLowerCase();
     });
     return INDEX;
   }
@@ -1321,15 +1397,24 @@
     var h = '<label class="f"><input type="text" id="sq" placeholder="Search definitions, ' +
             'techniques, proofs…" value="' + esc(q || '') + '" autocomplete="off"></label>' +
             '<div id="res"></div>';
-    return { title: 'Search', html: h, tab: 'home', back: '#/', after: function () {
+    return { title: 'Search', html: h, tab: 'search', back: '#/', after: function () {
       var input = document.getElementById('sq'), res = document.getElementById('res');
       function run() {
         var term = input.value.trim().toLowerCase();
-        if (term.length < 2) { res.innerHTML = '<p class="empty">Type at least two characters.</p>'; return; }
+        // One character is enough for a symbol such as σ or ⊕.
+        if (!term || (term.length < 2 && /^\w$/.test(term))) {
+          res.innerHTML = '<p class="empty">Type a word or a symbol.</p>'; return;
+        }
+        var words = searchWords(term);
         var hits = buildIndex().map(function (e) {
-          var hay = (e.title + ' ' + e.text).toLowerCase(), n = 0, at = -1;
-          while ((at = hay.indexOf(term, at + 1)) >= 0) n++;
-          if (e.title.toLowerCase().indexOf(term) >= 0) n += 8;
+          var n = 0, titleEnd = e.hay.indexOf(' \n ');
+          for (var i = 0; i < words.length; i++) {
+            var re = words[i], c = 0, m;
+            re.lastIndex = 0;
+            while ((m = re.exec(e.hay))) { c++; if (m.index < titleEnd) n += 8; }
+            if (!c) return { e: e, n: 0 };     // every word must appear somewhere
+            n += c;
+          }
           return { e: e, n: n };
         }).filter(function (x) { return x.n > 0; })
           .sort(function (a, b) { return b.n - a.n; }).slice(0, 25);
@@ -1337,7 +1422,7 @@
           esc(term) + '&rdquo;.</p>'; return; }
         res.innerHTML = hits.map(function (x) {
           return '<a class="card" href="' + x.e.href + '"><h3>' + t(x.e.title) + '</h3>' +
-                 '<p>' + snippet(x.e.text, term) + '</p>' +
+                 '<p>' + snippet(x.e.text, words) + '</p>' +
                  '<span class="chip">' + x.e.kind + '</span></a>';
         }).join('');
       }
@@ -1350,11 +1435,33 @@
     }};
   }
 
-  function snippet(text, term) {
-    var i = text.toLowerCase().indexOf(term);
-    if (i < 0) return t(text.slice(0, 110)) + '&hellip;';
-    var s = Math.max(0, i - 55);
-    return (s ? '&hellip;' : '') + t(text.slice(s, s + 150).replace(/\$[^$]*$/, '')) + '&hellip;';
+  /* Query words as regexes. Short words (like "IV") must match a whole word;
+     longer ones match the start of a word, so "authent" finds "authentication". */
+  function searchWords(term) {
+    return term.split(/\s+/).filter(Boolean).map(function (w) {
+      var q = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp((/^\w/.test(w) ? '\\b' : '') + q + (w.length <= 3 && /\w$/.test(w) ? '\\b' : ''), 'g');
+    });
+  }
+
+  /* About 150 characters of `text` around the first matching word, rendered,
+     never cutting a $math$ span in half. */
+  function snippet(text, words) {
+    var lower = text.toLowerCase(), i = -1;
+    words.forEach(function (re) {
+      re.lastIndex = 0;
+      var m = re.exec(lower);
+      if (m && (i < 0 || m.index < i)) i = m.index;
+    });
+    var s = Math.max(0, i - 55), e = Math.min(text.length, s + 150);
+    function dollarsBefore(k) { return (text.slice(0, k).match(/\$/g) || []).length; }
+    if (dollarsBefore(s) % 2) s = text.lastIndexOf('$', s - 1);
+    if (text[s] === '$' && text[s - 1] === '$') s--;
+    if (dollarsBefore(e) % 2) {
+      var close = text.indexOf('$', e);
+      e = close < 0 ? text.length : close + (text[close + 1] === '$' ? 2 : 1);
+    }
+    return (s > 0 ? '&hellip;' : '') + t(text.slice(s, e)) + (e < text.length ? '&hellip;' : '');
   }
 
   function notFound() {
@@ -1384,7 +1491,7 @@
     [/^\/install$/,          function () { return vInstall(); }],
     [/^\/search\/?(.*)$/,    function (m) { return vSearch(decodeURIComponent(m[1] || '')); }],
     [/^\/course$/,           function () { return vCourse(); }],
-    [/^\/course\/(.+)$/,     function (m) { return vChapter(m[1]); }]
+    [/^\/course\/([^\/]+)(?:\/(.+))?$/, function (m) { return vChapter(m[1], m[2]); }]
   ];
 
   function route() {
@@ -1397,6 +1504,7 @@
     }
     if (!view) view = notFound();
 
+    onScroll = null;
     title.innerHTML = t(view.title);
     document.title = stripMath(view.title) + ' · Proof Helper';
     main.innerHTML = view.html;
@@ -1421,8 +1529,17 @@
     });
 
     if (view.after) view.after();
-    window.scrollTo(0, 0);
+    var anchor = view.anchor && document.getElementById(view.anchor);
+    // Land the anchor just below the sticky header.
+    window.scrollTo(0, anchor ? anchor.getBoundingClientRect().top + window.pageYOffset - 68 : 0);
   }
+
+  /* One scroll listener; a view's after() may set onScroll, and route() clears it. */
+  var onScroll = null, scrollTimer = null;
+  window.addEventListener('scroll', function () {
+    if (!onScroll || scrollTimer) return;
+    scrollTimer = setTimeout(function () { scrollTimer = null; if (onScroll) onScroll(); }, 400);
+  });
 
   function stripMath(s) {
     return String(s).replace(/\$([^$]*)\$/g, function (_, x) {

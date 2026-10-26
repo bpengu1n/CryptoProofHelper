@@ -26,12 +26,14 @@ header{
   backdrop-filter:saturate(160%) blur(12px); border-bottom:1px solid var(--line);
   padding:calc(var(--safe-t) + 10px) 14px 10px; display:flex; align-items:center; gap:10px;
 }
-header h1{font-size:17px;margin:0;font-weight:650;letter-spacing:-.01em;flex:1;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header h1 .math{white-space:nowrap}   /* titles truncate, never wrap */
+/* Long titles get two lines before truncating. */
+header h1{font-size:17px;line-height:1.25;margin:0;font-weight:650;letter-spacing:-.01em;flex:1;min-width:0;
+  overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+header h1 .math{white-space:nowrap}
 .back{background:none;border:0;color:var(--accent);font-size:16px;padding:6px 2px;cursor:pointer}
 .iconbtn{background:var(--bg3);border:1px solid var(--line);color:var(--fg2);border-radius:10px;
-  padding:7px 10px;font-size:14px;cursor:pointer}
+  padding:7px 10px;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  min-width:38px;min-height:36px;text-decoration:none;flex:none}
 main{padding:16px 14px calc(var(--tab) + var(--safe-b) + 28px);max-width:820px;margin:0 auto}
 /* Keep the last card clear of the floating install banner. */
 body.has-installbar main{padding-bottom:calc(var(--tab) + var(--safe-b) + 118px)}
@@ -245,3 +247,18 @@ body.ts-lg main{zoom:1.12}
 body.ts-xl main{zoom:1.25}
 .row.seg .btn{margin-bottom:0;padding:8px 0;line-height:1.2}
 .row.seg .btn.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg2))}
+/* Chapter navigation: section index, "section x of y", see-also lists, resume card. */
+.toc{margin:4px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg2);padding:10px 14px}
+.toc summary{cursor:pointer;font-weight:620;font-size:15px}
+.toc ol{margin:8px 0 2px;padding-left:22px;font-size:15px}
+.toc li{margin:4px 0}
+.toc a{color:var(--accent);text-decoration:none}
+.ch-sec{border-top:1px solid var(--line);margin-top:28px}
+.sec-of{margin-top:22px;font-size:12px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;color:var(--fg3)}
+.ch-sec h2.sec-heading{margin-top:2px;border-top:0;padding-top:0}
+ul.see{list-style:none;margin:6px 0 16px;padding:0}
+ul.see li{margin:0 0 6px}
+ul.see a{display:block;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);
+  color:var(--fg);text-decoration:none;font-size:15px}
+.see-k{display:block;font-size:11.5px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--accent2)}
+.card.resume{border-color:var(--accent)}
