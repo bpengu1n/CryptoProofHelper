@@ -135,12 +135,12 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v9'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v10'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v9'` → `'cph-v10'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v10'` → `'cph-v11'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
 
@@ -201,7 +201,7 @@ In `app.js`, `M` aliases `window.MathRenderer` and `t(s)` is shorthand for `M.te
      num: 3,
      title: 'Symmetric Encryption',
      blurb: 'One short sentence shown on the course map.',
-     br: 'Ch 3–5',                 // optional; which Bellare & Rogaway chapters this covers
+     book: 'Bellare & Rogaway, Chapters 3–5 (…)',  // optional; shown under the blurb
      sections: [
        {
          id: 'ch3-intro',          // must be globally unique
@@ -291,6 +291,7 @@ All keys are plain strings; no namespacing beyond what is listed.
 | `checklist` | JSON object `{ [itemId]: bool }` | Proof-writing checklist state |
 | `course:ids` | JSON number | Course-ID schema version; `2` once old `ch6` (Public-Key) progress has been moved to `ch7` |
 | `nt:practice:best` | JSON number | Best streak in the Ch 6 practice widget |
+| `textsize` | String `md` \| `lg` \| `xl` | Text size chosen on the Start page |
 
 ---
 

@@ -11,7 +11,7 @@
       id: 'ch1',
       num: 1,
       title: 'Introduction',
-      br: 'Ch 1',
+      book: 'Bellare & Rogaway, Chapter 1 (Introduction).',
       blurb: 'What cryptography actually solves, the players involved, and the modern way of proving a scheme is secure.',
       sections: [
         {
@@ -145,7 +145,7 @@
       id: 'ch2',
       num: 2,
       title: 'Classical Encryption',
-      br: 'Ch 2',
+      book: 'Bellare & Rogaway, Chapter 2 (Classical Encryption).',
       blurb: 'Substitution ciphers and why they fail, the one-time pad, and Shannon\'s notion of perfect security.',
       sections: [
         {
@@ -322,7 +322,7 @@
       id: 'ch3',
       num: 3,
       title: 'Symmetric Encryption',
-      br: 'Ch 3–5 (block ciphers, PRFs, symmetric encryption)',
+      book: 'Bellare & Rogaway, Chapters 3–5 (Blockciphers, Pseudorandom Functions, Symmetric Encryption), condensed.',
       blurb: 'Pseudorandom functions, the IND-CPA game, and why counter mode is secure while ECB is not.',
       sections: [
         {
@@ -556,7 +556,7 @@
       id: 'ch4',
       num: 4,
       title: 'Message Authentication',
-      br: 'Ch 7, plus Encrypt-then-MAC from Ch 8',
+      book: 'Bellare & Rogaway, Chapter 7 (Message Authentication), with a first look at Chapter 8 (Authenticated Encryption).',
       blurb: 'MACs, pseudorandom functions, and integrity without secrecy.',
       sections: [
         {
@@ -763,7 +763,7 @@
       id: 'ch5',
       num: 5,
       title: 'Hash Functions',
-      br: 'Ch 6',
+      book: 'Bellare & Rogaway, Chapter 6 (Hash Functions). The book covers hashing before MACs; this course swaps them.',
       blurb: 'Collision resistance, the birthday attack, Merkle–Damgård, and the random oracle model.',
       sections: [
         {
@@ -990,7 +990,7 @@
       id: 'ch6',
       num: 6,
       title: 'Number Theory',
-      br: 'Ch 9–10 (computational number theory, number-theoretic primitives)',
+      book: 'Bellare & Rogaway, Chapters 9–10 (Computational Number Theory, Number-Theoretic Primitives).',
       blurb: 'Modular arithmetic, Euclid, inverses, Euler, the CRT, cyclic groups — the maths public-key cryptography runs on, with a hands-on widget in every section.',
       sections: [
         {
@@ -1398,7 +1398,7 @@
       id: 'ch7',
       num: 7,
       title: 'Public-Key Encryption',
-      br: 'Ch 11, with DDH from Ch 10',
+      book: 'Bellare & Rogaway, Chapter 11 (Asymmetric Encryption), using the Diffie–Hellman assumptions from Chapter 10.',
       blurb: 'RSA, ElGamal, and provable security in the public-key setting.',
       sections: [
         {

@@ -113,7 +113,8 @@
   /* A ring of labelled nodes; `cls` maps index -> class name. */
   function ringSVG(n, label, cls, arcs) {
     var R = 92, C = 120, rr = n > 20 ? 9 : n > 12 ? 11 : 13, fs = n > 20 ? 8 : n > 12 ? 10 : 11;
-    var s = '<svg class="wg-ring" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">' +
+    var s = '<svg class="wg-ring" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' +
+            esc('Ring of ' + n + ' values: ' + Array.apply(null, Array(n)).map(function (_, i) { return label(i) + (cls[i] ? ' (' + ({ a: 'start', r: 'result', cur: 'current' }[cls[i]] || 'marked') + ')' : ''); }).join(', ')) + '">' +
             '<circle cx="120" cy="120" r="' + R + '" class="track"/>';
     function pos(i) {
       var ang = -Math.PI / 2 + 2 * Math.PI * i / n;
@@ -176,8 +177,8 @@
     html: function () {
       return '<div class="wg-in">' + field('a', '$a$', 9) + field('b', '$b$', 5) + field('n', '$N$', 12) + '</div>' +
         '<div class="wg-seg" role="group" aria-label="Operation">' +
-        '<button data-op="+" class="on">a + b</button><button data-op="-">a − b</button><button data-op="*">a × b</button></div>' +
-        '<div class="wg-fig"></div><div class="wg-out"></div>' +
+        '<button data-op="+" class="on" aria-pressed="true">a + b</button><button data-op="-" aria-pressed="false">a − b</button><button data-op="*" aria-pressed="false">a × b</button></div>' +
+        '<div class="wg-fig"></div><div class="wg-out" aria-live="polite"></div>' +
         '<p class="wg-dim">' + T('Addition walks $b$ steps clockwise from $a$. Multiplication starts at $0$ and takes $b$ jumps of size $a$. Try negative numbers, and numbers much bigger than $N$.') + '</p>';
     },
     init: function (el) {
@@ -224,7 +225,7 @@
       qa(el, '[data-op]').forEach(function (b) {
         b.onclick = function () {
           op = b.getAttribute('data-op');
-          qa(el, '[data-op]').forEach(function (x) { x.className = x === b ? 'on' : ''; });
+          qa(el, '[data-op]').forEach(function (x) { x.className = x === b ? 'on' : ''; x.setAttribute('aria-pressed', String(x === b)); });
           run(true);
         };
       });
@@ -240,7 +241,7 @@
     html: function () {
       return '<div class="wg-in">' + field('a', '$a$', 252, '7em') + field('b', '$b$', 105, '7em') + '</div>' +
         '<div class="wg-btns"><button class="btn sm" data-act="step">Next step</button>' +
-        '<button class="btn sm ghost" data-act="all">Show all</button></div><div class="wg-out"></div>';
+        '<button class="btn sm ghost" data-act="all">Show all</button></div><div class="wg-out" aria-live="polite"></div>';
     },
     init: function (el) {
       var st = stepper(el, '.wg-out');
@@ -274,7 +275,7 @@
     html: function () {
       return '<div class="wg-in">' + field('a', 'invert $a =$', 17, '6em') + field('n', 'modulo $N =$', 43, '7em') + '</div>' +
         '<div class="wg-btns"><button class="btn sm" data-act="step">Next row</button>' +
-        '<button class="btn sm ghost" data-act="all">Show all</button></div><div class="wg-out"></div>' +
+        '<button class="btn sm ghost" data-act="all">Show all</button></div><div class="wg-out" aria-live="polite"></div>' +
         '<p class="wg-dim">' + T('Every row keeps the invariant $r = s \\cdot N + t \\cdot a$. Each new row is the row two above, minus $q$ times the row above — exactly the division step of Euclid, done to all three columns at once.') + '</p>';
     },
     init: function (el) {
@@ -371,7 +372,7 @@
     title: 'Powers go round in cycles',
     html: function () {
       return '<div class="wg-in">' + field('a', '$a =$', 3) + field('n', '$N =$', 7) + field('x', 'exponent $x =$', 1000, '8em') + '</div>' +
-        '<div class="wg-fig"></div><div class="wg-out"></div>';
+        '<div class="wg-fig"></div><div class="wg-out" aria-live="polite"></div>';
     },
     init: function (el) {
       function build() {
@@ -427,7 +428,7 @@
     html: function () {
       return '<div class="wg-in">' + field('g', 'base', 5, '6em') + field('x', 'exponent', 117, '8em') + field('n', 'modulus', 19, '7em') + '</div>' +
         '<div class="wg-btns"><button class="btn sm" data-act="step">Next bit</button>' +
-        '<button class="btn sm ghost" data-act="all">Show all</button></div><div class="wg-out"></div>';
+        '<button class="btn sm ghost" data-act="all">Show all</button></div><div class="wg-out" aria-live="polite"></div>';
     },
     init: function (el) {
       var st = stepper(el, '.wg-out');
@@ -468,7 +469,7 @@
         '<div class="wg-in">' + field('r1', '$x \\equiv$', 2) + '<span class="wg-lbl">' + T('$\\pmod{N_1}$') + '</span>' +
         field('r2', '$x \\equiv$', 3) + '<span class="wg-lbl">' + T('$\\pmod{N_2}$') + '</span></div>' +
         '<div class="wg-btns"><button class="btn sm ghost" data-act="walk">Count x = 0, 1, 2, … into the grid</button></div>' +
-        '<div class="wg-fig"></div><div class="wg-out"></div>';
+        '<div class="wg-fig"></div><div class="wg-out" aria-live="polite"></div>';
     },
     init: function (el) {
       var pl = player(el), cur = null;
@@ -578,7 +579,7 @@
         var g = pick(gens), x = rnd(1, p - 2);
         ch = { g: g, x: x, X: powmod(g, x, p), tries: 0 };
         q(el, '.wg-dl').innerHTML = '<p>' + T('Find $x$ with $' + g + '^x \\equiv ' + ch.X + ' \\pmod{' + p + '}$, where $0 \\le x < ' + (p - 1) + '$.') + '</p>' +
-          '<div class="wg-in">' + field('guess', '$x =$', '', '6em') + '<button class="btn sm" data-act="guess">Check</button></div><div class="wg-dlout"></div>';
+          '<div class="wg-in">' + field('guess', '$x =$', '', '6em') + '<button class="btn sm" data-act="guess">Check</button></div><div class="wg-dlout" aria-live="polite"></div>';
         var inp = q(el, '[data-f=guess]');
         function check() {
           var v = intOf(el, 'guess', 0, p - 2), o = q(el, '.wg-dlout');
@@ -632,7 +633,7 @@
   W['qr'] = {
     title: 'Squares modulo a prime',
     html: function () {
-      return '<div class="wg-in">' + field('p', 'prime $p =$', 13) + '</div><div class="wg-out"></div>';
+      return '<div class="wg-in">' + field('p', 'prime $p =$', 13) + '</div><div class="wg-out" aria-live="polite"></div>';
     },
     init: function (el) {
       function build() {
@@ -668,7 +669,7 @@
       return '<div class="wg-in"><label class="wg-f"><span>digits in each prime</span><select data-f="d">' +
         '<option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option></select></label>' +
         '<button class="btn sm" data-act="new">New p, q</button></div>' +
-        '<div class="wg-out"></div><div class="wg-btns"><button class="btn sm" data-act="go">Factor N by trial division</button></div>' +
+        '<div class="wg-out" aria-live="polite"></div><div class="wg-btns"><button class="btn sm" data-act="go">Factor N by trial division</button></div>' +
         '<div class="wg-fig"></div>';
     },
     init: function (el) {
@@ -830,7 +831,7 @@
         cur = GEN[topic](); answered = false;
         q(el, '.wg-prob').innerHTML = '<p class="wg-big">' + T(cur.q) + '</p><p class="wg-dim">' + T('Hint: ' + cur.hint) + '</p>' +
           '<div class="wg-in">' + field('ans', 'answer', '', '7em') + '<button class="btn sm" data-act="check">Check</button>' +
-          '<button class="btn sm ghost" data-act="show">Show solution</button></div><div class="wg-res"></div>';
+          '<button class="btn sm ghost" data-act="show">Show solution</button></div><div class="wg-res" aria-live="polite"></div>';
         var inp = q(el, '[data-f=ans]');
         inp.addEventListener('keydown', function (e) { if (e.keyCode === 13) check(); });
         q(el, '[data-act=check]').onclick = check;

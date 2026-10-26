@@ -211,7 +211,7 @@ window.CP_EXAMPLES = [
   },
   {
     id: 'merkle',
-    title: 'Merkle-Damg&#229;rd preserves collision resistance',
+    title: 'Merkle–Damgård preserves collision resistance',
     plain: 'Merkle-Damgard builds a hash for long messages by chaining a small compression function block by ' +
       'block. The proof shows that any collision in the long hash forces a collision somewhere in the ' +
       'chain: walk the two colliding messages backwards from the end, and the first place their ' +
