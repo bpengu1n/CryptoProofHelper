@@ -69,7 +69,7 @@
     var h = '<p class="lead">Two ways in. Learn the groundwork from scratch, or jump straight to the ' +
             'technique that matches the problem in front of you.</p>';
     h += '<a class="card hero" href="#/course"><h3>&#128218; Bellare &amp; Rogaway Course</h3>' +
-         '<p>Six chapters in a friendly format: from substitution ciphers and the one-time pad through PRFs, MACs, hash functions, and RSA and ElGamal — with inline quizzes and a scored mastery test per chapter.</p>' +
+         '<p>' + COURSE.length + ' chapters in a friendly format: from substitution ciphers and the one-time pad through PRFs, MACs, hash functions, an interactive number-theory chapter, and RSA and ElGamal — with inline quizzes and a scored mastery test per chapter.</p>' +
          '<span class="chip ok">' + (doneCount ? doneCount + ' of ' + PRIMER.length + ' primer lessons read' : 'interactive &middot; offline') + '</span></a>';
     h += '<a class="card" href="#/primer"><h3>&#9650; New to the maths? Start with the Primer</h3>' +
          '<p>' + PRIMER.length + ' short lessons assuming nothing past high-school algebra: the ' +
@@ -578,7 +578,8 @@
         state.cur = { d: d, perm: perm, answer: perm.indexOf(d.answer) };
 
         var kind = d.kind === 'flaw' ? 'Spot the flaw'
-                 : d.kind === 'basics' ? 'Warm-up' : 'Which technique?';
+                 : d.kind === 'basics' ? 'Warm-up'
+                 : d.kind === 'numtheory' ? 'Number theory' : 'Which technique?';
         var html = '<div class="eyebrow">' + kind + '</div>' +
                    '<div class="card"><div class="prose"><p>' + t(d.q) + '</p></div></div>';
         perm.forEach(function (orig, i) {
@@ -1076,9 +1077,22 @@
 
     /* Sections */
     ch.sections.forEach(function (sec) {
-      h += '<h2 class="sec-heading">' + esc(sec.title) + '</h2>';
+      h += '<h2 class="sec-heading">' + t(sec.title) + '</h2>';
       h += '<div class="prose">';
-      sec.body.forEach(function (para) { h += '<p>' + t(para) + '</p>'; });
+      /* Paragraphs starting '::deep ' are optional depth: consecutive ones
+         collapse into one "Going deeper" block so the core path stays short. */
+      var deep = [];
+      function flushDeep() {
+        if (!deep.length) return;
+        h += '<details class="deeper"><summary>Going deeper (optional)</summary>' + deep.join('') + '</details>';
+        deep = [];
+      }
+      sec.body.forEach(function (para) {
+        if (para.indexOf('::deep ') === 0) { deep.push('<p>' + t(para.slice(7)) + '</p>'); return; }
+        flushDeep();
+        h += '<p>' + t(para) + '</p>';
+      });
+      flushDeep();
       h += '</div>';
       // The figure's aria-label and caption describe it; hide the SVG's loose text nodes.
       if (sec.anim) h += figureHTML(sec.anim);
@@ -1186,7 +1200,7 @@
             if (prev === null || state.right > prev) S.set(courseQuizKey(id), state.right);
             quizBox.innerHTML = '<div class="card"><h3>' + state.right + ' / ' + total + '</h3>' +
               '<p>' + (state.right === total
-                ? 'Perfect. On to the next chapter.'
+                ? (at < chList.length - 1 ? 'Perfect. On to the next chapter.' : 'Perfect — and that was the last chapter.')
                 : 'The questions you missed are below, with explanations. Then try again.') + '</p></div>' +
               missedReviewHTML(state.missed) +
               '<button class="btn wide" id="mq-again">Try again (reshuffled)</button>' +
@@ -1345,7 +1359,7 @@
       if (ch.locked) return;
       INDEX.push({ href: '#/course/' + ch.id, title: 'Ch ' + ch.num + ': ' + ch.title,
         kind: 'Course', text: ch.blurb + ' ' + (ch.sections || []).map(function (s) {
-          return s.title + ' ' + s.body.join(' ');
+          return s.title + ' ' + s.body.join(' ').replace(/::deep /g, '');
         }).join(' ') });
     });
     return INDEX;

@@ -207,7 +207,9 @@ In `app.js`, `M` aliases `window.MathRenderer` and `t(s)` is shorthand for `M.te
          id: 'ch3-intro',          // must be globally unique
          title: 'Section heading',
          anim: 'key-name',         // optional; add handler in animHTML() in app.js
-         body: [                   // array of paragraph strings; t() renders each
+         body: [                   // array of paragraph strings; t() renders each.
+                                   // Prefix '::deep ' to mark optional depth: consecutive ones
+                                   // collapse into one "Going deeper (optional)" block.
            'Plain prose with $inline math$ and $$display math$$.',
            'Another paragraph.'
          ],

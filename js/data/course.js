@@ -1118,7 +1118,7 @@
             'The order of $\\Z_N^*$ is **Euler\'s totient** $\\varphi(N)$. Three rules compute it:',
             '(1) $\\varphi(p) = p - 1$ for prime $p$, since every nonzero element is coprime to $p$. (2) $\\varphi(p^k) = p^k - p^{k-1}$, because the non-units are exactly the $p^{k-1}$ multiples of $p$. (3) $\\varphi(mn) = \\varphi(m)\\varphi(n)$ when $\\gcd(m, n) = 1$ (proved with the CRT below). Together: $$\\varphi(N) = N \\prod_{p \\mid N} \\left(1 - \\frac{1}{p}\\right).$$ For an RSA modulus $N = pq$ this gives $\\varphi(N) = (p - 1)(q - 1)$.',
             '**Knowing $\\varphi(N)$ is as good as knowing the factors.** If $N = pq$, then $\\varphi(N) = N - (p + q) + 1$, so $p + q = N - \\varphi(N) + 1$. With both the sum and the product of $p$ and $q$, they are the roots of $x^2 - (p+q)x + N = 0$, which the quadratic formula solves. This is why RSA keeps $\\varphi(N)$ secret.',
-            '*A note on standards.* B&R and this course use $\\varphi(N)$. RSA standards such as PKCS #1 often use the Carmichael function $\\lambda(N) = \\lcm(p-1, q-1)$ instead, which divides $\\varphi(N)$. Everything in Chapter 7 works with either one; $\\lambda$ just gives a slightly smaller $d$.',
+            '::deep *A note on standards.* B&R and this course use $\\varphi(N)$. RSA standards such as PKCS #1 often use the Carmichael function $\\lambda(N) = \\lcm(p-1, q-1)$ instead, which divides $\\varphi(N)$. Everything in Chapter 7 works with either one; $\\lambda$ just gives a slightly smaller $d$.',
             'In the widget, tap a highlighted unit to see its inverse. Tap a non-unit to see why it has none. Then tap a unit and look at the "shuffle" line — it is the key step in the next section\'s proof.'
           ],
           quiz: [
@@ -1152,7 +1152,7 @@
             '**Fermat\'s little theorem.** If $p$ is prime and $p$ does not divide $a$, then $a^{p-1} \\equiv 1 \\pmod p$. **Euler\'s theorem.** If $\\gcd(a, N) = 1$, then $a^{\\varphi(N)} \\equiv 1 \\pmod N$.',
             'Here is a self-contained proof of Euler\'s theorem — one worth being able to reproduce. List the units $u_1, \\ldots, u_m$, where $m = \\varphi(N)$. Multiply each by $a$. Since $a$ is invertible, $au_i = au_j$ forces $u_i = u_j$, so $au_1, \\ldots, au_m$ are the same $m$ units in a different order (the "shuffle" in the previous widget). The two lists have the same product: $$\\prod_i (a u_i) = a^m \\prod_i u_i \\equiv \\prod_i u_i.$$ The product of units is a unit, so cancel it: $a^m \\equiv 1$. $\\qed$',
             'Three consequences you will use constantly. **Reduce exponents mod $\\varphi(N)$**: $a^x \\equiv a^{x \\bmod \\varphi(N)}$ for $a \\in \\Z_N^*$. **Inverses by exponentiation**: $a^{-1} \\equiv a^{\\varphi(N) - 1}$, which is $a^{p-2}$ mod a prime. **A primality test**: if $a^{N-1} \\bmod N \\neq 1$, then $N$ is certainly composite, and we learned that without finding a factor. Some composites fool this test; $561 = 3 \\cdot 11 \\cdot 17$ fools it for every coprime $a$. Real systems use the strengthened **Miller–Rabin** test, which no composite fools for more than a quarter of the bases.',
-            '*Miller–Rabin in one paragraph.* Write $N - 1 = 2^s u$ with $u$ odd. Pick a random base $a$ and compute $a^u, a^{2u}, a^{4u}, \\ldots, a^{2^s u} \\bmod N$ by repeated squaring. If $N$ is prime, the sequence either starts at $1$ or hits $-1$ before it reaches $1$, because the only square roots of $1$ mod a prime are $\\pm 1$. If the sequence reaches $1$ without passing through $-1$, or never reaches $1$ at all, $N$ is certainly composite. For composite $N$ at least $3/4$ of the bases expose it, so $k$ independent rounds leave an error probability of at most $4^{-k}$.',
+            '::deep *Miller–Rabin in one paragraph.* Write $N - 1 = 2^s u$ with $u$ odd. Pick a random base $a$ and compute $a^u, a^{2u}, a^{4u}, \\ldots, a^{2^s u} \\bmod N$ by repeated squaring. If $N$ is prime, the sequence either starts at $1$ or hits $-1$ before it reaches $1$, because the only square roots of $1$ mod a prime are $\\pm 1$. If the sequence reaches $1$ without passing through $-1$, or never reaches $1$ at all, $N$ is certainly composite. For composite $N$ at least $3/4$ of the bases expose it, so $k$ independent rounds leave an error probability of at most $4^{-k}$.',
             'In the widget, watch the powers of $a$ cycle, and check that the cycle length always divides $\\varphi(N)$. Then type an enormous exponent and see it collapse.'
           ],
           quiz: [
@@ -1204,8 +1204,8 @@
             '**Theorem (CRT).** Let $N_1, N_2$ be coprime and $N = N_1 N_2$. For any $r_1, r_2$ there is exactly one $x \\in \\Z_N$ with $$x \\equiv r_1 \\pmod{N_1}, \\qquad x \\equiv r_2 \\pmod{N_2}.$$ Equivalently, the map $x \\mapsto (x \\bmod N_1, \\; x \\bmod N_2)$ is a bijection from $\\Z_N$ to $\\Z_{N_1} \\times \\Z_{N_2}$. It also respects addition and multiplication, so arithmetic mod $N$ is the same as doing arithmetic mod $N_1$ and mod $N_2$ side by side.',
             '*Proof of existence.* Let $e_1 = N_2 \\cdot (N_2^{-1} \\bmod N_1)$ and $e_2 = N_1 \\cdot (N_1^{-1} \\bmod N_2)$. These inverses exist because the moduli are coprime. Then $e_1 \\equiv 1 \\pmod{N_1}$ and $e_1 \\equiv 0 \\pmod{N_2}$, and the other way round for $e_2$. So $x = r_1 e_1 + r_2 e_2$ works.',
             '*Proof of uniqueness.* If $x$ and $x\'$ both work, then $N_1$ and $N_2$ both divide $x - x\'$. Since they are coprime, $N_1 N_2$ divides $x - x\'$. (Write $x - x\' = kN_1$; then $N_2 \\mid kN_1$ with $\\gcd(N_1, N_2) = 1$, so $N_2 \\mid k$.) So $x \\equiv x\' \\pmod N$. $\\qed$',
-            'The same works for any number of pairwise coprime moduli $N_1, \\ldots, N_k$ with $N = N_1 \\cdots N_k$: set $e_i = (N/N_i) \\cdot ((N/N_i)^{-1} \\bmod N_i)$ and $x = \\sum_i r_i e_i$. This version appears in multi-prime RSA and in Håstad\'s attack on textbook RSA with a small exponent sent to several recipients.',
-            'In the widget, press **Count** and watch $x = 0, 1, 2, \\ldots$ travel diagonally through the grid, wrapping at the edges. With coprime moduli it fills every cell exactly once — that is the bijection. Then try $N_1 = 4$, $N_2 = 6$: the walk repeats after $\\lcm(4, 6) = 12$ steps, leaving cells empty and filling others twice.',
+            '::deep The same works for any number of pairwise coprime moduli $N_1, \\ldots, N_k$ with $N = N_1 \\cdots N_k$: set $e_i = (N/N_i) \\cdot ((N/N_i)^{-1} \\bmod N_i)$ and $x = \\sum_i r_i e_i$. This version appears in multi-prime RSA and in Håstad\'s attack on textbook RSA with a small exponent sent to several recipients.',
+            'In the widget, press **Count** and watch $x = 0, 1, 2, \\ldots$ travel diagonally through the grid, wrapping at the edges. With coprime moduli it fills every cell exactly once — that is the bijection. Then try $N_1 = 4$, $N_2 = 6$: the walk repeats after $\\lcm(4, 6) = 12$ steps (the *least common multiple*: the smallest number both moduli divide), leaving cells empty and filling others twice.',
             '**Consequences.** $x$ is a unit mod $N$ exactly when it is a unit mod both $N_1$ and $N_2$, which gives $\\varphi(N_1 N_2) = \\varphi(N_1)\\varphi(N_2)$. In Chapter 7 the CRT does three more jobs. It **speeds up RSA**: the key holder computes $y^d$ separately mod $p$ and mod $q$, with half-size numbers and exponents reduced mod $p-1$ and $q-1$, then combines — about $4\\times$ faster. It **endangers RSA**: if a hardware fault corrupts just one of the two halves, the faulty result is still correct mod the other prime, and a single $\\gcd$ reveals that prime: $\\gcd(s - \\hat s, N)$ for a correct result $s$ and a faulty one $\\hat s$ (Boneh, DeMillo and Lipton, 1997), or even $\\gcd(\\hat s^e - m, N)$ from the faulty result alone (Lenstra). And it **completes the RSA correctness proof** for messages that are not units.'
           ],
           quiz: [
@@ -1236,9 +1236,9 @@
             'A group $G$ is **cyclic** if some $g \\in G$ has $\\langle g \\rangle = G$. Such a $g$ is a **generator**. Then every $h \\in G$ equals $g^x$ for exactly one $x \\in \\Z_{|G|}$, called the **discrete logarithm** $\\log_g h$. The map $x \\mapsto g^x$ turns addition of exponents into multiplication of elements, since $g^{x+y} = g^x g^y$. Diffie–Hellman and ElGamal are built on exactly this.',
             '**Fact.** For a prime $p$, the group $\\Z_p^*$ is cyclic, of order $p - 1$. (We state this without proof.) It has $\\varphi(p - 1)$ generators.',
             '**Testing a generator.** Given the prime factors of $p - 1$, $g$ is a generator if and only if $g^{(p-1)/q} \\neq 1$ for every prime $q \\mid p - 1$. *Proof.* If $\\ord(g) = m < p - 1$, then $m$ is a proper divisor of $p - 1$. Then $(p-1)/m > 1$, so it has some prime factor $q$. Since $q \\mid (p-1)/m$, we get $m \\mid (p-1)/q$, and so $g^{(p-1)/q} = 1$. Conversely, a generator has order $p - 1$, which divides none of these exponents. $\\qed$',
-            '**Prime-order groups are the gold standard.** If $|G| = q$ is prime, Lagrange says every element has order $1$ or $q$. So *every* element except $1$ is a generator. Cryptography therefore works in a subgroup of large prime order $q$, not in all of $\\Z_p^*$. One common choice is a *safe prime* $p = 2q + 1$ with the subgroup of squares, which has order $q$. Elliptic-curve groups of prime order are the other.',
-            'Why insist on prime order? The **Pohlig–Hellman** algorithm computes a discrete log in a group of order $m$ by solving one small log in a subgroup for each prime factor of $m$, then combining the answers with the CRT. If $p - 1$ has only small factors, discrete logs mod $p$ are easy, whatever the size of $p$. The difficulty is set by the *largest prime factor* of the group order.',
-            'The **discrete log problem**: given $g$ and $h = g^x$, find $x$. Generic algorithms (baby-step giant-step, Pollard\'s rho) take about $\\sqrt{q}$ steps, so a 256-bit $q$ gives roughly 128-bit security. In $\\Z_p^*$ the special-purpose *index calculus* method is faster, which is why $p$ itself must be 2048 bits or more. On well-chosen elliptic curves no such shortcut is known, so 256-bit curves suffice. (Weak curve families, such as those with small embedding degree, do have shortcuts.)',
+            '**Prime-order groups are the gold standard.** If $|G| = q$ is prime, Lagrange says every element has order $1$ or $q$. So *every* element except $1$ is a generator. Cryptography therefore works in a subgroup of large prime order $q$, not in all of $\\Z_p^*$. One common choice is a *safe prime* $p = 2q + 1$ (a prime whose $q$ is also prime) with the subgroup of squares, which has order $q$. Elliptic-curve groups of prime order are the other.',
+            '::deep Why insist on prime order? The **Pohlig–Hellman** algorithm computes a discrete log in a group of order $m$ by solving one small log in a subgroup for each prime factor of $m$, then combining the answers with the CRT. If $p - 1$ has only small factors, discrete logs mod $p$ are easy, whatever the size of $p$. The difficulty is set by the *largest prime factor* of the group order.',
+            '::deep The **discrete log problem**: given $g$ and $h = g^x$, find $x$. Generic algorithms (baby-step giant-step, Pollard\'s rho) take about $\\sqrt{q}$ steps, so a 256-bit $q$ gives roughly 128-bit security. In $\\Z_p^*$ the special-purpose *index calculus* method is faster, which is why $p$ itself must be 2048 bits or more. On well-chosen elliptic curves no such shortcut is known, so 256-bit curves suffice. (Weak curve families, such as those with small embedding degree, do have shortcuts.)',
             'In the widget, tap elements to see the subgroup each one generates. Every subgroup size divides $p - 1$. Then take the discrete-log challenge, and press **Brute-force it** to watch the simplest method that works at this size.'
           ],
           quiz: [
@@ -1270,10 +1270,10 @@
             'With a generator $g$: $g^x$ is a square **if and only if $x$ is even**. Even powers $g^{2k} = (g^k)^2$ are obviously squares. There are $(p-1)/2$ even exponents, which already accounts for all the squares.',
             '**Euler\'s criterion.** $a^{(p-1)/2} \\equiv 1$ if $a$ is a square, and $\\equiv -1$ otherwise. *Proof.* Write $a = g^x$. Then $a^{(p-1)/2} = g^{x(p-1)/2}$, which is $1$ exactly when $p - 1 \\mid x(p-1)/2$, that is, when $x$ is even. Its square is $a^{p-1} = 1$, and the only square roots of $1$ mod a prime are $\\pm 1$. $\\qed$',
             'Look at what that means. One fast exponentiation tells anyone whether $\\log_g h$ is even or odd. **The lowest bit of every discrete log in $\\Z_p^*$ leaks.**',
-            'This is the flaw that makes **DDH easy in the full group $\\Z_p^*$**, as Chapter 7 mentions. From $g^x$ and $g^y$, an attacker learns the parities of $x$ and $y$, hence the parity of $xy$, hence whether $g^{xy}$ is a square. A random $Z$ passes that check only half the time, so the attacker tells "real" from "random" with advantage $\\tfrac12$. The fix is to work in the subgroup of squares of a safe prime $p = 2q + 1$. That subgroup has prime order $q$, every element in it is a square, and the test reveals nothing.',
-            '**Notation.** The *Legendre symbol* $\\left(\\frac{a}{p}\\right)$ is $+1$ if $a$ is a square mod $p$ and $-1$ if not (and $0$ if $p \\mid a$). Euler\'s criterion says $\\left(\\frac{a}{p}\\right) \\equiv a^{(p-1)/2} \\pmod p$. For $N = pq$ the *Jacobi symbol* is the product $\\left(\\frac{a}{N}\\right) = \\left(\\frac{a}{p}\\right)\\left(\\frac{a}{q}\\right)$. Surprisingly, it can be computed quickly *without* knowing $p$ and $q$, by a Euclid-like algorithm based on quadratic reciprocity.',
-            '**Taking square roots.** Modulo a prime $p \\equiv 3 \\pmod 4$ it is one exponentiation: if $a$ is a square, $x = a^{(p+1)/4}$ works, since $x^2 = a^{(p+1)/2} = a \\cdot a^{(p-1)/2} \\equiv a$ by Euler\'s criterion. (Other primes need the Tonelli–Shanks algorithm.) Modulo $N = pq$ a square has **four** square roots: combine $\\pm x_p$ (the roots mod $p$) with $\\pm x_q$ (the roots mod $q$) using the CRT. Two roots $x, y$ with $x \\neq \\pm y$ factor $N$: $N$ divides $x^2 - y^2 = (x - y)(x + y)$ but neither factor, so $\\gcd(x - y, N)$ is $p$ or $q$. That is why computing square roots mod $N$ is exactly as hard as factoring (Rabin, 1979).',
-            'Modulo a composite $N = pq$ the situation flips. Deciding whether a number is a square mod $N$ (when its Jacobi symbol is $+1$) is believed to be hard unless you know $p$ and $q$. That is the *quadratic residuosity assumption*. It underlies Goldwasser–Micali (1982), the first encryption scheme with a proof of semantic security.'
+            'This is the flaw that makes **DDH easy in the full group $\\Z_p^*$**. DDH, the *Decisional Diffie–Hellman* problem, asks: given $g^x$, $g^y$ and some $Z$, decide whether $Z = g^{xy}$ or $Z$ is a random element. Chapter 7 bases ElGamal\'s security on DDH being hard. From $g^x$ and $g^y$, an attacker learns the parities of $x$ and $y$, hence the parity of $xy$, hence whether $g^{xy}$ is a square. A random $Z$ passes that check only half the time, so the attacker tells "real" from "random" with advantage $\\tfrac12$. The fix is to work in the subgroup of squares of a safe prime $p = 2q + 1$. That subgroup has prime order $q$, every element in it is a square, and the test reveals nothing.',
+            '::deep **Notation.** The *Legendre symbol* $\\left(\\frac{a}{p}\\right)$ is $+1$ if $a$ is a square mod $p$ and $-1$ if not (and $0$ if $p \\mid a$). Euler\'s criterion says $\\left(\\frac{a}{p}\\right) \\equiv a^{(p-1)/2} \\pmod p$. For $N = pq$ the *Jacobi symbol* is the product $\\left(\\frac{a}{N}\\right) = \\left(\\frac{a}{p}\\right)\\left(\\frac{a}{q}\\right)$. Surprisingly, it can be computed quickly *without* knowing $p$ and $q$, by a Euclid-like algorithm based on quadratic reciprocity.',
+            '::deep **Taking square roots.** Modulo a prime $p \\equiv 3 \\pmod 4$ it is one exponentiation: if $a$ is a square, $x = a^{(p+1)/4}$ works, since $x^2 = a^{(p+1)/2} = a \\cdot a^{(p-1)/2} \\equiv a$ by Euler\'s criterion. (Other primes need the Tonelli–Shanks algorithm.) Modulo $N = pq$ a square has **four** square roots: combine $\\pm x_p$ (the roots mod $p$) with $\\pm x_q$ (the roots mod $q$) using the CRT. Two roots $x, y$ with $x \\neq \\pm y$ factor $N$: $N$ divides $x^2 - y^2 = (x - y)(x + y)$ but neither factor, so $\\gcd(x - y, N)$ is $p$ or $q$. That is why computing square roots mod $N$ is exactly as hard as factoring (Rabin, 1979).',
+            '::deep Modulo a composite $N = pq$ the situation flips. Deciding whether a number is a square mod $N$ (when its Jacobi symbol is $+1$) is believed to be hard unless you know $p$ and $q$. That is the *quadratic residuosity assumption*. It underlies Goldwasser–Micali (1982), the first encryption scheme with a proof of semantic security.'
           ],
           quiz: [
             {
@@ -1300,10 +1300,10 @@
           title: 'Easy and hard: the gap public-key cryptography lives in',
           widget: 'factor',
           body: [
-            '**Easy** — polynomial time in the bit length $k$. Addition (about $k$ bit operations), multiplication and reduction (about $k^2$). $\\gcd$, Bézout and inverses (Euclid, about $k^2$). Modular exponentiation (square-and-multiply, about $k^3$). The CRT. **Primality testing**: Miller–Rabin is fast and its error probability falls below $4^{-t}$ after $t$ rounds; AKS (2002) is even deterministic. **Generating random primes**: test random candidates; by the prime number theorem you need only a few hundred tries. **Square roots modulo a prime**: the Tonelli–Shanks algorithm.',
-            '**Believed hard** — no polynomial-time algorithm known, for well-chosen parameters. **Factoring** $N = pq$. **Computing $\\varphi(N)$** — equivalent to factoring, as shown in the section on groups. **Square roots mod $N = pq$** — also equivalent to factoring (Rabin). The **RSA problem**: given $N, e, y$, find $x$ with $x^e \\equiv y$. **Discrete log** in a prime-order subgroup, together with its relatives **CDH** and **DDH**. **Quadratic residuosity** mod $N$.',
+            '**Easy** — polynomial time in the bit length $k$, meaning the work grows like a fixed power of the number of digits, not like the size of the number. Addition (about $k$ bit operations), multiplication and reduction (about $k^2$). $\\gcd$, Bézout and inverses (Euclid, about $k^2$). Modular exponentiation (square-and-multiply, about $k^3$). The CRT. **Primality testing**: Miller–Rabin is fast and its error probability falls below $4^{-t}$ after $t$ rounds; AKS (2002) is even deterministic. **Generating random primes**: test random candidates; by the prime number theorem you need only a few hundred tries. **Square roots modulo a prime**: the Tonelli–Shanks algorithm.',
+            '**Believed hard** — no polynomial-time algorithm known, for well-chosen parameters. **Factoring** $N = pq$. **Computing $\\varphi(N)$**, or the RSA secret exponent $d$ — each equivalent to factoring (the section on groups shows it for $\\varphi(N)$). **Square roots mod $N = pq$** — also equivalent to factoring (Rabin). The **RSA problem**: given $N, e, y$, find $x$ with $x^e \\equiv y$. This one is subtly different: it asks you to undo the RSA function on one value *without* necessarily finding $d$, and nobody has proved that this requires factoring. **Discrete log** in a prime-order subgroup, together with its relatives **CDH** and **DDH**. **Quadratic residuosity** mod $N$.',
             'The relationships run one way. If you can factor, you can compute $\\varphi(N)$ and then $d$, so you can solve the RSA problem. If you can take discrete logs, you can solve CDH, and if you can solve CDH you can solve DDH. None of the converses is known in general. And **none of these problems is proven hard**: a proof would settle P vs NP and more. They are *assumptions* that have survived decades of attack. That is why the strongest statement in Chapter 7 is a reduction: "anyone who breaks this scheme can solve problem $X$."',
-            'For scale: the record for factoring an RSA-style modulus is RSA-250, an 829-bit number, factored in 2020 using about 2700 core-years of computing with the number field sieve. A 2048-bit modulus is estimated at roughly 112-bit security, and 3072 bits at 128. A large quantum computer running **Shor\'s algorithm** would factor and take discrete logs in polynomial time. That is why post-quantum schemes based on other problems are now being deployed.',
+            '::deep For scale: the record for factoring an RSA-style modulus is RSA-250, an 829-bit number, factored in 2020 using about 2700 core-years of computing with the number field sieve. A 2048-bit modulus is estimated at roughly 112-bit security, and 3072 bits at 128. A large quantum computer running **Shor\'s algorithm** would factor and take discrete logs in polynomial time. That is why post-quantum schemes based on other problems are now being deployed.',
             'Feel the asymmetry for yourself. The widget multiplies two random primes instantly, then factors the product the obvious way, by trial division. Add a digit to the primes and watch the work grow tenfold.'
           ],
           quiz: [
@@ -1402,6 +1402,27 @@
       blurb: 'RSA, ElGamal, and provable security in the public-key setting.',
       sections: [
         {
+          id: 'ch7-numbers',
+          title: 'Recap: the number theory you need',
+          body: [
+            'Chapter 6 built all the number theory this chapter uses. The short version: $\\Z_N^*$ is the set of $a \\in \\Z_N$ with $\\gcd(a, N) = 1$. It is a group under multiplication mod $N$, of order $\\varphi(N)$. For a prime $p$, $\\varphi(p) = p - 1$. For $N = pq$ with distinct primes, $\\varphi(N) = (p-1)(q-1)$.',
+            '**Euler\'s theorem**: $a^{\\varphi(N)} \\equiv 1 \\pmod N$ for $a \\in \\Z_N^*$, so exponents can be reduced mod $\\varphi(N)$. **Easy**: modular exponentiation (square-and-multiply) and inverses (extended Euclid). **Believed hard**: factoring $N = pq$, computing $\\varphi(N)$ without the factors, and discrete logarithms in a large prime-order group. If any of this feels shaky, work through the widgets in Chapter 6 first.'
+          ],
+          quiz: [
+            {
+              q: 'What is $\\varphi(N)$ for $N = 5 \\cdot 11 = 55$?',
+              opts: [
+                '$54$',
+                '$40$',
+                '$16$',
+                '$55$'
+              ],
+              answer: 1,
+              why: 'For $N = pq$, $\\varphi(N) = (p-1)(q-1) = 4 \\cdot 10 = 40$.'
+            }
+          ]
+        },
+        {
           id: 'ch7-setting',
           title: 'Encryption without a shared secret',
           body: [
@@ -1421,27 +1442,6 @@
               ],
               answer: 1,
               why: 'Anyone can encrypt in the public-key setting. With a deterministic scheme, re-encrypting the candidates and comparing identifies which one was encrypted.'
-            }
-          ]
-        },
-        {
-          id: 'ch7-numbers',
-          title: 'Recap: the number theory you need',
-          body: [
-            'Chapter 6 built all the number theory this chapter uses. The short version: $\\Z_N^*$ is the set of $a \\in \\Z_N$ with $\\gcd(a, N) = 1$. It is a group under multiplication mod $N$, of order $\\varphi(N)$. For a prime $p$, $\\varphi(p) = p - 1$. For $N = pq$ with distinct primes, $\\varphi(N) = (p-1)(q-1)$.',
-            '**Euler\'s theorem**: $a^{\\varphi(N)} \\equiv 1 \\pmod N$ for $a \\in \\Z_N^*$, so exponents can be reduced mod $\\varphi(N)$. **Easy**: modular exponentiation (square-and-multiply) and inverses (extended Euclid). **Believed hard**: factoring $N = pq$, computing $\\varphi(N)$ without the factors, and discrete logarithms in a large prime-order group. If any of this feels shaky, work through the widgets in Chapter 6 first.'
-          ],
-          quiz: [
-            {
-              q: 'What is $\\varphi(N)$ for $N = 5 \\cdot 11 = 55$?',
-              opts: [
-                '$54$',
-                '$40$',
-                '$16$',
-                '$55$'
-              ],
-              answer: 1,
-              why: 'For $N = pq$, $\\varphi(N) = (p-1)(q-1) = 4 \\cdot 10 = 40$.'
             }
           ]
         },

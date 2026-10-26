@@ -24,6 +24,16 @@
     }
     return r;
   }
+  /* Square-and-multiply trace for worked solutions: "1 → g → g^2 → …" with values. */
+  function smSteps(g, e, n) {
+    var bits = binary(e), r = mod(g, n), out = ['$' + g + '^{1} \\equiv ' + r + '$'], acc = 1;
+    for (var i = 1; i < bits.length; i++) {
+      r = (r * r) % n; acc *= 2;
+      if (bits.charAt(i) === '1') { r = (r * mod(g, n)) % n; acc += 1; }
+      out.push('$' + g + '^{' + acc + '} \\equiv ' + r + '$');
+    }
+    return out.join(' → ');
+  }
   /* Extended Euclid on (n, a): rows of r = s*n + t*a, ending with r = 0. */
   function egcdRows(n, a) {
     var rows = [{ r: n, s: 1, t: 0, q: null }, { r: a, s: 0, t: 1, q: null }];
@@ -85,9 +95,10 @@
 
   /* ------------------------------- DOM -------------------------------- */
 
-  function field(name, label, val, w) {
+  /* Signed fields omit inputmode="numeric": the iOS number pad has no minus key. */
+  function field(name, label, val, w, signed) {
     return '<label class="wg-f"><span>' + T(label) + '</span>' +
-           '<input type="text" inputmode="numeric" autocomplete="off" data-f="' + name + '" value="' + val + '"' +
+           '<input type="text"' + (signed ? '' : ' inputmode="numeric"') + ' autocomplete="off" data-f="' + name + '" value="' + val + '"' +
            (w ? ' style="width:' + w + '"' : '') + '></label>';
   }
   function box(key, title, inner) {
@@ -162,9 +173,15 @@
       var stepBtn = q(el, '[data-act=step]');
       if (stepBtn) stepBtn.disabled = st.shown >= st.rows.length;
     }
-    st.set = function (head, rows, foot, shown) { st.head = head; st.rows = rows; st.foot = foot; st.shown = shown; paint(); };
-    st.step = function () { if (st.shown < st.rows.length) { st.shown++; paint(); } };
-    st.all = function () { st.shown = st.rows.length; paint(); };
+    st.clear = function (msg) {
+      st.head = null; st.rows = []; st.shown = 0;
+      q(el, outSel).innerHTML = msg;
+      qa(el, '[data-act=step],[data-act=all]').forEach(function (b) { b.disabled = true; });
+    };
+    st.set = function (head, rows, foot, shown) {
+      qa(el, '[data-act=all]').forEach(function (b) { b.disabled = false; }); st.head = head; st.rows = rows; st.foot = foot; st.shown = shown; paint(); };
+    st.step = function () { if (st.head && st.shown < st.rows.length) { st.shown++; paint(); } };
+    st.all = function () { if (!st.head) return; st.shown = st.rows.length; paint(); };
     return st;
   }
 
@@ -175,7 +192,7 @@
   W['mod-clock'] = {
     title: 'The modular clock',
     html: function () {
-      return '<div class="wg-in">' + field('a', '$a$', 9) + field('b', '$b$', 5) + field('n', '$N$', 12) + '</div>' +
+      return '<div class="wg-in">' + field('a', '$a$', 9, null, true) + field('b', '$b$', 5, null, true) + field('n', '$N$', 12) + '</div>' +
         '<div class="wg-seg" role="group" aria-label="Operation">' +
         '<button data-op="+" class="on" aria-pressed="true">a + b</button><button data-op="-" aria-pressed="false">a − b</button><button data-op="*" aria-pressed="false">a × b</button></div>' +
         '<div class="wg-fig"></div><div class="wg-out" aria-live="polite"></div>' +
@@ -190,6 +207,7 @@
         var a = intOf(el, 'a', -999999, 999999), b = intOf(el, 'b', -999999, 999999), n = intOf(el, 'n', 2, 30);
         pl.stop();
         if (a === null || b === null || n === null) {
+          q(el, '.wg-fig').innerHTML = '';
           q(el, '.wg-out').innerHTML = warn('Use integers with $|a|, |b| < 10^6$ and $2 \\le N \\le 30$.'); return;
         }
         var raw = op === '+' ? a + b : op === '-' ? a - b : a * b;
@@ -247,7 +265,7 @@
       var st = stepper(el, '.wg-out');
       function build() {
         var a = intOf(el, 'a', 1, 1e12), b = intOf(el, 'b', 0, 1e12);
-        if (a === null || b === null) { q(el, '.wg-out').innerHTML = warn('Use whole numbers $a \\ge 1$, $b \\ge 0$, up to $10^{12}$.'); return; }
+        if (a === null || b === null) { st.clear(warn('Use whole numbers $a \\ge 1$, $b \\ge 0$, up to $10^{12}$.')); return; }
         var rows = [], chain = ['\\gcd(' + a + ', ' + b + ')'], x = a, y = b, k = 0;
         while (y !== 0) {
           var qt = Math.floor(x / y), r = x % y; k++;
@@ -282,7 +300,7 @@
       var st = stepper(el, '.wg-out');
       function build() {
         var a = intOf(el, 'a', 1, 9e7), n = intOf(el, 'n', 2, 9e7);
-        if (a === null || n === null) { q(el, '.wg-out').innerHTML = warn('Use $1 \\le a$ and $2 \\le N \\le 9 \\cdot 10^7$.'); return; }
+        if (a === null || n === null) { st.clear(warn('Use $1 \\le a$ and $2 \\le N \\le 9 \\cdot 10^7$.')); return; }
         var ar = mod(a, n), rows = egcdRows(n, ar), html = [];
         rows.forEach(function (r, i) {
           html.push('<tr' + (r.r === 0 ? ' class="dim"' : '') + '><td>' + (r.q === null ? '' : r.q) + '</td><td><b>' + r.r + '</b></td><td>' + r.s + '</td><td>' + r.t +
@@ -351,7 +369,7 @@
       }
       function build() {
         var v = intOf(el, 'n', 2, 120);
-        if (v === null) { q(el, '.wg-sum').innerHTML = warn('Pick $2 \\le N \\le 120$.'); return; }
+        if (v === null) { q(el, '.wg-sum').innerHTML = warn('Pick $2 \\le N \\le 120$.'); q(el, '.wg-grid').innerHTML = ''; q(el, '.wg-out').innerHTML = ''; return; }
         n = v; sel = null;
         var f = factorize(n), ph = phi(n);
         var formula = f.map(function (x) { return '\\left(1 - \\frac{1}{' + x.p + '}\\right)'; }).join('');
@@ -380,6 +398,7 @@
         var out = q(el, '.wg-out'), fig = q(el, '.wg-fig');
         if (a === null || n === null || x === null) { fig.innerHTML = ''; out.innerHTML = warn('Use $0 \\le a$, $2 \\le N \\le 2000$, $0 \\le x \\le 10^{15}$.'); return; }
         var am = mod(a, n), seq = [1 % n], v = 1 % n;
+        var pre = am !== a ? '<p class="wg-dim">' + T('First reduce the base: $' + a + ' \\bmod ' + n + ' = ' + am + '$.') + '</p>' : '';
         while (true) {
           v = (v * am) % n;
           if (seq.indexOf(v) >= 0) { seq.push(v); break; }
@@ -393,11 +412,11 @@
         var shown = seq.length > 41 ? seq.slice(0, 40) : seq;
         var chips = shown.map(chip).join('<span class="wg-arr">→</span>') +
           (shown.length < seq.length ? '<span class="wg-arr">→ … →</span>' + chip(seq[seq.length - 1], seq.length - 1) : '');
-        fig.innerHTML = '<div class="wg-chips">' + chips + '</div>';
+        fig.innerHTML = pre + '<div class="wg-chips">' + chips + '</div>';
         var h = '';
         if (gcd(am, n) === 1) {
           var k = cyc;
-          h += '<p>' + T('The powers return to $1$ after $' + k + '$ steps, so the **order** of $' + am + '$ mod $' + n + '$ is $' + k + '$.') + '</p>' +
+          h += '<p>' + T('The powers return to $1$ after $' + k + '$ step' + (k > 1 ? 's' : '') + ', so the **order** of $' + am + '$ mod $' + n + '$ is $' + k + '$.') + '</p>' +
             '<p>' + T('$\\varphi(' + n + ') = ' + ph + '$, and $' + k + ' \\mid ' + ph + '$ (' + ph + ' $= ' + (ph / k) + ' \\cdot ' + k + '$), as Lagrange\'s theorem promises.') + '</p>' +
             '<p class="wg-ok">' + T('Euler: $' + am + '^{' + ph + '} \\equiv ' + powmod(am, ph, n) + ' \\pmod{' + n + '}$ ✓') + '</p>' +
             '<p>' + T('So exponents only matter mod $' + k + '$: $' + am + '^{' + x + '} = ' + am + '^{' + x + ' \\bmod ' + k + '} = ' + am + '^{' + (x % k) + '} \\equiv \\mathbf{' + powmod(am, x, n) + '}$.') + '</p>';
@@ -434,7 +453,7 @@
       var st = stepper(el, '.wg-out');
       function build() {
         var g = intOf(el, 'g', 0, 1e7), x = intOf(el, 'x', 1, Math.pow(2, 52)), n = intOf(el, 'n', 2, 1e7);
-        if (g === null || x === null || n === null) { q(el, '.wg-out').innerHTML = warn('Base and modulus up to $10^7$, exponent from $1$ to $2^{52}$.'); return; }
+        if (g === null || x === null || n === null) { st.clear(warn('Base and modulus up to $10^7$, exponent from $1$ to $2^{52}$.')); return; }
         var bits = binary(x), r = 1 % n, gm = mod(g, n), rows = [], sq = 0, mu = 0, sofar = '';
         for (var i = 0; i < bits.length; i++) {
           var b = bits.charAt(i), r2 = (r * r) % n, line;
@@ -449,9 +468,9 @@
                     '</td><td>' + T('$' + gm + '^{' + parseInt(sofar, 2) + '} \\equiv \\mathbf{' + r + '}$') + '</td></tr>');
         }
         var foot = '<p class="wg-big">' + T('$' + g + '^{' + x + '} \\equiv ' + r + ' \\pmod{' + n + '}$') + '</p>' +
-          '<p>' + T('$' + sq + '$ squarings and $' + mu + '$ multiplications — $' + (sq + mu) + '$ operations. Multiplying by $' + gm + '$ over and over would take $' + (x - 1) + '$.') + '</p>' +
+          '<p>' + T('$' + sq + '$ squaring' + (sq === 1 ? '' : 's') + ' and $' + mu + '$ multiplication' + (mu === 1 ? '' : 's') + ' — $' + (sq + mu) + '$ operation' + (sq + mu === 1 ? '' : 's') + '. Multiplying by $' + gm + '$ over and over would take $' + (x - 1) + '$.') + '</p>' +
           '<p class="wg-dim">' + T('Reading bits left to right, squaring doubles the exponent so far and multiplying adds $1$ — the last column shows the exponent being built up. For a 2048-bit exponent this is about $3000$ operations instead of $2^{2048}$.') + '</p>';
-        st.set('<p>' + T('$' + x + ' = ' + bits + '_2$ (' + bits.length + ' bits)') + '</p><div class="wg-scroll"><table class="wg-t"><thead><tr><th>bit</th><th>do</th><th>work</th><th>so far</th></tr></thead><tbody>', rows, foot, 1);
+        st.set((gm !== g ? '<p class="wg-dim">' + T('First reduce the base: $' + g + ' \\bmod ' + n + ' = ' + gm + '$.') + '</p>' : '') + '<p>' + T('$' + x + ' = ' + bits + '_2$ (' + bits.length + ' bits)') + '</p><div class="wg-scroll"><table class="wg-t"><thead><tr><th>bit</th><th>do</th><th>work</th><th>so far</th></tr></thead><tbody>', rows, foot, 1);
       }
       q(el, '[data-act=step]').onclick = st.step;
       q(el, '[data-act=all]').onclick = st.all;
@@ -466,8 +485,8 @@
     title: 'The CRT grid',
     html: function () {
       return '<div class="wg-in">' + field('n1', '$N_1 =$', 3) + field('n2', '$N_2 =$', 5) + '</div>' +
-        '<div class="wg-in">' + field('r1', '$x \\equiv$', 2) + '<span class="wg-lbl">' + T('$\\pmod{N_1}$') + '</span>' +
-        field('r2', '$x \\equiv$', 3) + '<span class="wg-lbl">' + T('$\\pmod{N_2}$') + '</span></div>' +
+        '<div class="wg-in"><span class="wg-pair">' + field('r1', '$x \\equiv$', 2, null, true) + '<span class="wg-lbl">' + T('$\\pmod{N_1}$') + '</span></span>' +
+        '<span class="wg-pair">' + field('r2', '$x \\equiv$', 3, null, true) + '<span class="wg-lbl">' + T('$\\pmod{N_2}$') + '</span></span></div>' +
         '<div class="wg-btns"><button class="btn sm ghost" data-act="walk">Count x = 0, 1, 2, … into the grid</button></div>' +
         '<div class="wg-fig"></div><div class="wg-out" aria-live="polite"></div>';
     },
@@ -517,7 +536,7 @@
           for (var y = 0; y < N && sols.length < 13; y++) if (y % n1 === r1 && y % n2 === r2) sols.push(y);
           if (sols.length > 12) { sols.length = 12; sols.push('\\ldots'); }
           out.innerHTML = '<p>' + T('$\\gcd(' + n1 + ', ' + n2 + ') = ' + d + '$, so the CRT does **not** apply. Counting $0, 1, 2, \\ldots$ only reaches $\\lcm = ' + (N / d) + '$ cells before repeating — each cell it visits gets $' + d + '$ numbers, and the rest get none.') + '</p>' +
-            '<p>' + (sols.length ? T('This system happens to be solvable (because $' + r1 + ' \\equiv ' + r2 + ' \\pmod{' + d + '}$): $x \\in \\{' + sols.join(', ') + '\\}$ — more than one answer mod $' + N + '$.')
+            '<p>' + (sols.length ? T('This system is solvable because $' + r1 + ' \\equiv ' + r2 + ' \\pmod{' + d + '}$. Method: the solution is unique mod $\\lcm(N_1, N_2) = ' + (N / d) + '$. Walk through $' + r2 + ', ' + (r2 + n2) + ', ' + (r2 + 2 * n2) + ', \\ldots$ (the numbers $\\equiv ' + r2 + ' \\bmod ' + n2 + '$) until one is $\\equiv ' + r1 + ' \\bmod ' + n1 + '$: that gives $x \\equiv ' + sols[0] + ' \\pmod{' + (N / d) + '}$. Mod $' + N + '$ that is $' + d + '$ answers: $x \\in \\{' + sols.join(', ') + '\\}$.')
                                  : T('This system has **no** solution: it needs $' + r1 + ' \\equiv ' + r2 + ' \\pmod{' + d + '}$.')) + '</p>';
         }
       }
@@ -552,7 +571,7 @@
         var h = '';
         for (var a = 1; a < p; a++) {
           var c = gens.indexOf(a) >= 0 ? 'u' : '';
-          if (a === sel) c += ' sel'; else if (members[a]) c += ' pair';
+          if (a === sel) c += ' sel'; else if (members[a]) c += ' mem';
           h += '<button class="wg-cell ' + c + '" data-x="' + a + '">' + a + '<small>' + order(a, p) + '</small></button>';
         }
         q(el, '.wg-grid').innerHTML = h;
@@ -599,7 +618,7 @@
         for (var i = 0; i <= ch.x; i++) {
           (function (i, v) {
             frames.push(function () {
-              o.innerHTML = '<p class="wg-mono">' + ch.g + '^' + i + ' ≡ ' + v + (v === ch.X ? '  ← found' : '') + '</p>';
+              o.innerHTML = '<p>' + T('$' + ch.g + '^{' + i + '} \\equiv ' + v + '$') + (v === ch.X ? ' ← found' : '') + '</p>';
             });
           })(i, v);
           v = (v * ch.g) % p;
@@ -613,11 +632,11 @@
         pl.stop();
         if (v === null || !isPrime(v)) {
           q(el, '.wg-sum').innerHTML = warn('Pick a prime between $3$ and $199$.');
-          q(el, '.wg-grid').innerHTML = ''; return;
+          q(el, '.wg-grid').innerHTML = ''; q(el, '.wg-fig').innerHTML = ''; q(el, '.wg-out').innerHTML = ''; q(el, '.wg-dl').innerHTML = ''; return;
         }
         p = v; gens = generators(p); sel = null; ch = null;
         q(el, '.wg-sum').innerHTML = '<p>' + T('$\\Z_{' + p + '}^*$ has $p - 1 = ' + (p - 1) + (isPrime(p - 1) ? '' : ' = ' + factorTeX(p - 1)) + '$ elements. Small numbers show each element\'s order — always a divisor of $' + (p - 1) +
-          '$. Highlighted: the $\\varphi(' + (p - 1) + ') = ' + gens.length + '$ generators.') + '</p>';
+          '$. Blue: the $\\varphi(' + (p - 1) + ') = ' + gens.length + '$ generators. Tap any element and the members of its subgroup get a green outline.') + '</p>';
         q(el, '.wg-fig').innerHTML = '';
         q(el, '.wg-out').innerHTML = '<p class="wg-dim">Tap an element to see the subgroup it generates.</p>';
         q(el, '.wg-dl').innerHTML = '<p class="wg-dim">Press “New challenge”.</p>';
@@ -703,11 +722,13 @@
           var ms = Date.now() - t0, digits = String(N).length, perSec = tries / Math.max(ms, 1) * 1000;
           fig.innerHTML = '<p class="wg-ok">' + T('$' + N + ' = ' + f + ' \\cdot ' + (N / f) + '$') + ' — ' + tries.toLocaleString() + ' divisions, ' + ms + ' ms.</p>' +
             '<p>' + T('Trial division needs about $\\sqrt{N}/2$ divisions, and $\\sqrt{N}$ has half as many digits as $N$. Each extra digit of $p$ multiplies the work by $10$. Projected at a billion divisions per second:') + '</p>' +
-            '<table class="wg-t"><thead><tr><th>digits of N</th><th>trial division only</th></tr></thead><tbody>' +
+            '<div class="wg-scroll"><table class="wg-t"><thead><tr><th>digits of N</th><th>trial division only</th></tr></thead><tbody>' +
             [digits, 40, 100, 617].map(function (dg) {
-              var secs = Math.pow(10, dg / 2) / 2 / 1e9;
-              return '<tr><td>' + dg + (dg === 617 ? ' (2048-bit RSA)' : '') + '</td><td>' + human(secs) + '</td></tr>';
-            }).join('') + '</tbody></table>' +
+              /* log10 of seconds: sqrt(N)/2 divisions at 1e9 per second; Math.pow(10, 308) would overflow. */
+              var lg = dg / 2 - Math.log(2) / Math.LN10 - 9;
+              return '<tr><td>' + dg + (dg === 617 ? ' (2048-bit RSA)' : '') + '</td><td>' + human(lg) + '</td></tr>';
+            }).join('') + '</tbody></table></div>' +
+            '<p class="wg-dim">' + T('For comparison, the universe is about $10^{10}$ years old.') + '</p>' +
             '<p>Real attackers use the number field sieve, which is vastly faster: 100-digit numbers fall in hours on a laptop, and the record is a 250-digit (829-bit) modulus, factored in 2020 with about 2700 core-years. A 617-digit (2048-bit) modulus is still far out of reach.</p>' +
             '<p class="wg-dim">Your browser just managed about ' + Math.round(perSec).toLocaleString() + ' divisions per second.</p>';
           q(el, '[data-act=go]').disabled = false;
@@ -715,13 +736,15 @@
         if (N % 2 === 0) return done(2);
         chunk();
       };
-      function human(s) {
+      /* lg = log10(seconds) */
+      function human(lg) {
+        var s = Math.pow(10, lg), ly = lg - Math.log(86400 * 365) / Math.LN10;
         if (s < 1) return 'instant';
         if (s < 3600) return Math.round(s) + ' seconds';
+        if (s < 86400 * 2) return Math.round(s / 3600) + ' hours';
         if (s < 86400 * 365) return Math.round(s / 86400) + ' days';
-        var y = s / (86400 * 365);
-        if (y < 1e6) return Math.round(y).toLocaleString() + ' years';
-        return '10^' + Math.round(Math.log(y) / Math.LN10) + ' years (the universe is ~10^10 years old)';
+        if (ly < 6) return Math.round(Math.pow(10, ly)).toLocaleString() + ' years';
+        return T('$10^{' + Math.round(ly) + '}$ years');
       }
       fresh();
     }
@@ -732,12 +755,12 @@
   var GEN = {
     reduce: function () {
       var n = rnd(5, 31), a = rnd(-150, 999), r = mod(a, n), qt = (a - r) / n;
-      return { q: 'Compute $' + a + ' \\bmod ' + n + '$.', a: r, hint: 'answer in $0, \\ldots, ' + (n - 1) + '$',
+      return { q: 'Compute $' + a + ' \\bmod ' + n + '$.', a: r, m: n, hint: 'answer in $0, \\ldots, ' + (n - 1) + '$',
         steps: ['$' + a + ' = ' + paren(qt) + ' \\cdot ' + n + ' + ' + r + '$ with $0 \\le ' + r + ' < ' + n + '$' + (a < 0 ? ' (for a negative number, the quotient rounds down, so the remainder stays non-negative)' : '') + '.'] };
     },
     multiply: function () {
       var n = rnd(7, 41), a = rnd(12, 99), b = rnd(12, 99), am = a % n, bm = b % n, r = (a * b) % n;
-      return { q: 'Compute $' + a + ' \\cdot ' + b + ' \\bmod ' + n + '$.', a: r, hint: 'reduce first to keep numbers small',
+      return { q: 'Compute $' + a + ' \\cdot ' + b + ' \\bmod ' + n + '$.', a: r, m: n, hint: 'reduce first to keep numbers small',
         steps: ['Reduce each factor first: $' + a + ' \\equiv ' + am + '$, $' + b + ' \\equiv ' + bm + '$.', '$' + am + ' \\cdot ' + bm + ' = ' + (am * bm) + ' \\equiv ' + r + ' \\pmod{' + n + '}$.'] };
     },
     gcd: function () {
@@ -750,11 +773,15 @@
     inverse: function () {
       var n = pick([11, 13, 17, 19, 23, 26, 29, 31, 35, 37, 41, 43, 47, 50, 53, 59, 61, 97]), a;
       do { a = rnd(2, n - 1); } while (gcd(a, n) !== 1);
-      var rows = egcdRows(n, a), st = [], inv = inverse(a, n);
-      for (var i = 2; i < rows.length - 1; i++) st.push('$' + rows[i].r + ' = ' + rows[i].s + ' \\cdot ' + n + ' + ' + paren(rows[i].t) + ' \\cdot ' + a + '$');
+      var rows = egcdRows(n, a), st = [], inv = inverse(a, n), divs = [];
+      for (var i = 0; i + 2 < rows.length; i++) divs.push('$' + rows[i].r + ' = ' + rows[i + 1].q + ' \\cdot ' + rows[i + 1].r + ' + ' + rows[i + 2].r + '$');
+      st.push('Euclid: ' + divs.join(', ') + '.');
+      var bs = [];
+      for (var j = 2; j < rows.length - 1; j++) bs.push('$' + rows[j].r + ' = ' + rows[j].s + ' \\cdot ' + n + ' + ' + paren(rows[j].t) + ' \\cdot ' + a + '$');
+      st.push('Back-substitute, writing each remainder in terms of $' + n + '$ and $' + a + '$: ' + bs.join(', ') + '.');
       var tl = rows[rows.length - 2].t;
       st.push('So $' + a + '^{-1} \\equiv ' + (tl === inv ? inv : paren(tl) + ' \\equiv ' + inv) + '$. Check: $' + a + ' \\cdot ' + inv + ' = ' + (a * inv) + ' \\equiv 1$.');
-      return { q: 'Find $' + a + '^{-1} \\bmod ' + n + '$.', a: inv, hint: 'extended Euclid', steps: st };
+      return { q: 'Find $' + a + '^{-1} \\bmod ' + n + '$.', a: inv, m: n, hint: 'extended Euclid', steps: st };
     },
     lincong: function () {
       var d = pick([1, 2, 2, 3, 4]), n2 = pick([5, 7, 9, 11, 13]), N = d * n2, a, x0, c;
@@ -767,14 +794,43 @@
       st.push('All solutions in $\\Z_{' + N + '}$: $\\{' + sols.join(', ') + '\\}$. The smallest is $' + sols[0] + '$.');
       return { q: 'Find the smallest $x \\ge 0$ with $' + a + 'x \\equiv ' + c + ' \\pmod{' + N + '}$.', a: sols[0], hint: 'compare $\\gcd(a, N)$ with $c$', steps: st };
     },
+    fermatinv: function () {
+      var p = pick(primesIn(11, 47)), a = rnd(2, p - 1), inv = inverse(a, p);
+      return { q: 'Use Fermat\'s little theorem to find $' + a + '^{-1} \\bmod ' + p + '$.', a: inv, m: p, hint: '$a^{-1} \\equiv a^{p-2}$',
+        steps: ['Since $' + a + '^{' + (p - 1) + '} \\equiv 1$, we have $' + a + ' \\cdot ' + a + '^{' + (p - 2) + '} \\equiv 1$, so $' + a + '^{-1} \\equiv ' + a + '^{' + (p - 2) + '}$.',
+                'Square-and-multiply on $' + (p - 2) + ' = ' + binary(p - 2) + '_2$: ' + smSteps(a, p - 2, p) + '.',
+                'Check: $' + a + ' \\cdot ' + inv + ' = ' + (a * inv) + ' \\equiv 1$.'] };
+    },
+    gentest: function () {
+      var p = pick([11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]), qs = factorize(p - 1).map(function (f) { return f.p; }), g = generators(p)[0], st = [];
+      st.push('$p - 1 = ' + factorTeX(p - 1) + '$, so $g$ is a generator iff $g^{' + qs.map(function (q2) { return (p - 1) / q2; }).join('}$ and $g^{') + '}$ are all $\\neq 1$.');
+      for (var c = 2; c <= g; c++) {
+        st.push('$g = ' + c + '$: ' + qs.map(function (q2) { var r = powmod(c, (p - 1) / q2, p); return '$' + c + '^{' + ((p - 1) / q2) + '} \\equiv ' + r + '$' + (r === 1 ? ' ✗' : ''); }).join(', ') + (c === g ? ' — all $\\neq 1$, a generator.' : ' — fails.'));
+      }
+      return { q: 'Find the smallest generator of $\\Z_{' + p + '}^*$.', a: g, hint: 'test $g^{(p-1)/q}$ for each prime $q \\mid p - 1$', steps: st };
+    },
+    euler: function () {
+      var p = pick(primesIn(11, 47)), a = rnd(2, p - 1), h = (p - 1) / 2, r = powmod(a, h, p);
+      return { q: 'Compute $' + a + '^{' + h + '} \\bmod ' + p + '$. Is $' + a + '$ a square mod $' + p + '$?', a: r, m: p, hint: 'Euler\'s criterion: the answer is $1$ or $' + (p - 1) + '$',
+        steps: ['Square-and-multiply on $' + h + ' = ' + binary(h) + '_2$: ' + smSteps(a, h, p) + '.',
+                r === 1 ? 'The result is $1$, so $' + a + '$ **is** a square mod $' + p + '$ (Euler\'s criterion).' : 'The result is $' + r + ' \\equiv -1$, so $' + a + '$ is **not** a square mod $' + p + '$.'] };
+    },
+    crt3: function () {
+      var sets = [[3, 4, 5], [3, 5, 7], [2, 5, 7], [3, 4, 7], [4, 5, 9]], ms = pick(sets), N = ms[0] * ms[1] * ms[2], rs = ms.map(function (m) { return rnd(0, m - 1); }), x = 0, es = [];
+      ms.forEach(function (m, i) { var Mi = N / m, e = Mi * inverse(Mi, m); es.push(e); x += rs[i] * e; });
+      x = mod(x, N);
+      return { q: 'Find $x \\in \\Z_{' + N + '}$ with ' + ms.map(function (m, i) { return '$x \\equiv ' + rs[i] + ' \\pmod{' + m + '}$'; }).join(', ') + '.', a: x, m: N, hint: 'CRT with three moduli',
+        steps: [ms.map(function (m, i) { return '$e_' + (i + 1) + ' = ' + (N / m) + ' \\cdot (' + (N / m) + '^{-1} \\bmod ' + m + ') = ' + es[i] + '$'; }).join(', ') + ' — each is $1$ mod its own modulus and $0$ mod the others.',
+                '$x = ' + rs.map(function (r, i) { return r + ' \\cdot ' + es[i]; }).join(' + ') + ' \\equiv ' + x + ' \\pmod{' + N + '}$.'] };
+    },
     power: function () {
       var p = pick(primesIn(11, 61)), g = rnd(2, p - 1), x = rnd(p + 5, 400), e;
       while (x % (p - 1) === 0) x++;
       e = x % (p - 1);
       var r = powmod(g, x, p);
-      return { q: 'Compute $' + g + '^{' + x + '} \\bmod ' + p + '$. ($' + p + '$ is prime.)', a: r, hint: 'Fermat, then square-and-multiply',
+      return { q: 'Compute $' + g + '^{' + x + '} \\bmod ' + p + '$. ($' + p + '$ is prime.)', a: r, m: p, hint: 'Fermat, then square-and-multiply',
         steps: ['Fermat: $' + g + '^{' + (p - 1) + '} \\equiv 1$, so reduce the exponent mod $' + (p - 1) + '$: $' + x + ' \\bmod ' + (p - 1) + ' = ' + e + '$.',
-                'Now compute $' + g + '^{' + e + '} \\bmod ' + p + '$ by square-and-multiply ($' + e + ' = ' + binary(e || 0) + '_2$): the result is $' + r + '$.'] };
+                'Square-and-multiply on $' + e + ' = ' + binary(e) + '_2$: ' + smSteps(g, e, p) + '.', 'So $' + g + '^{' + x + '} \\equiv ' + r + ' \\pmod{' + p + '}$.'] };
     },
     phi: function () {
       var forms = [
@@ -790,15 +846,17 @@
                 '$\\varphi(' + n + ') = ' + f.map(function (x) { return x.k > 2 ? x.p + '^{' + (x.k - 1) + '}(' + x.p + '-1)' : x.k === 2 ? x.p + '(' + x.p + '-1)' : '(' + x.p + '-1)'; }).join(' \\cdot ') + ' = ' + ph + '$.'] };
     },
     order: function () {
-      var p = pick([7, 11, 13, 17, 19]), a = rnd(2, p - 1), k = order(a, p), pw = [], v = 1;
-      for (var i = 1; i <= k; i++) { v = (v * a) % p; pw.push('$' + a + '^{' + i + '} \\equiv ' + v + '$'); }
+      var p = pick([7, 11, 13, 17, 19, 23, 29]), a = rnd(2, p - 1), k = order(a, p), ds = [], tests = [];
+      for (var d = 1; d <= p - 1; d++) if ((p - 1) % d === 0) ds.push(d);
+      for (var i = 0; i < ds.length && ds[i] <= k; i++) tests.push('$' + a + '^{' + ds[i] + '} \\equiv ' + powmod(a, ds[i], p) + '$');
       return { q: 'What is the order of $' + a + '$ in $\\Z_{' + p + '}^*$?', a: k, hint: 'must divide $' + (p - 1) + '$',
-        steps: [pw.join(', ') + '.', 'First return to $1$ at exponent $' + k + '$ — a divisor of $' + (p - 1) + '$, as Lagrange requires.'] };
+        steps: ['By Lagrange the order divides $' + (p - 1) + '$, so only test the divisors $' + ds.join(', ') + '$ in increasing order.',
+                tests.join(', ') + '.', 'The first divisor giving $1$ is $' + k + '$, so the order is $' + k + '$.'] };
     },
     crt: function () {
       var pairs = [[3, 5], [3, 7], [4, 5], [5, 7], [4, 9], [5, 8], [7, 9], [3, 11], [5, 9]], pr = pick(pairs), n1 = pr[0], n2 = pr[1];
       var r1 = rnd(0, n1 - 1), r2 = rnd(0, n2 - 1), i1 = inverse(n2, n1), i2 = inverse(n1, n2), N = n1 * n2, x = mod(r1 * n2 * i1 + r2 * n1 * i2, N);
-      return { q: 'Find $x \\in \\Z_{' + N + '}$ with $x \\equiv ' + r1 + ' \\pmod{' + n1 + '}$ and $x \\equiv ' + r2 + ' \\pmod{' + n2 + '}$.', a: x, hint: 'CRT',
+      return { q: 'Find $x \\in \\Z_{' + N + '}$ with $x \\equiv ' + r1 + ' \\pmod{' + n1 + '}$ and $x \\equiv ' + r2 + ' \\pmod{' + n2 + '}$.', a: x, m: N, hint: 'CRT',
         steps: ['$e_1 = ' + n2 + ' \\cdot (' + n2 + '^{-1} \\bmod ' + n1 + ') = ' + n2 + ' \\cdot ' + i1 + ' = ' + (n2 * i1) + '$, $e_2 = ' + n1 + ' \\cdot (' + n1 + '^{-1} \\bmod ' + n2 + ') = ' + n1 + ' \\cdot ' + i2 + ' = ' + (n1 * i2) + '$.',
                 '$x = ' + r1 + ' \\cdot ' + (n2 * i1) + ' + ' + r2 + ' \\cdot ' + (n1 * i2) + ' \\equiv ' + x + ' \\pmod{' + N + '}$.',
                 'Or just list $' + r2 + ', ' + (r2 + n2) + ', ' + (r2 + 2 * n2) + ', \\ldots$ (the numbers $\\equiv ' + r2 + ' \\bmod ' + n2 + '$) until one is $\\equiv ' + r1 + ' \\bmod ' + n1 + '$.'] };
@@ -806,12 +864,12 @@
     dlog: function () {
       var p = pick([7, 11, 13, 17, 19, 23]), g = pick(generators(p)), x = rnd(2, p - 2), X = powmod(g, x, p), pw = [], v = 1;
       for (var i = 1; i <= x; i++) { v = (v * g) % p; pw.push('$' + g + '^{' + i + '} \\equiv ' + v + '$'); }
-      return { q: 'Solve $' + g + '^x \\equiv ' + X + ' \\pmod{' + p + '}$ for $0 \\le x < ' + (p - 1) + '$.', a: x, hint: 'list powers — the simplest method at this size',
+      return { q: 'Solve $' + g + '^x \\equiv ' + X + ' \\pmod{' + p + '}$ for $0 \\le x < ' + (p - 1) + '$.', a: x, m: p - 1, hint: 'list powers — the simplest method at this size',
         steps: [pw.join(', ') + '.', 'So $x = ' + x + '$. At this size listing works; at 2048 bits it is the discrete log problem.'] };
     }
   };
-  var TOPICS = [['mixed', 'Mixed'], ['reduce', 'Reduce'], ['multiply', 'Multiply'], ['gcd', 'gcd'], ['inverse', 'Inverses'], ['lincong', 'Linear congruences'],
-                ['power', 'Powers'], ['phi', 'φ(N)'], ['order', 'Order'], ['crt', 'CRT'], ['dlog', 'Discrete log']];
+  var TOPICS = [['mixed', 'Mixed'], ['reduce', 'Reduce'], ['multiply', 'Multiply'], ['gcd', 'gcd'], ['inverse', 'Inverses'], ['fermatinv', 'Inverse via Fermat'], ['lincong', 'Linear congruences'],
+                ['power', 'Powers'], ['phi', 'φ(N)'], ['order', 'Order'], ['gentest', 'Generator test'], ['euler', 'Squares (Euler)'], ['crt', 'CRT'], ['crt3', 'CRT, 3 moduli'], ['dlog', 'Discrete log']];
 
   W['nt-practice'] = {
     title: 'Endless practice',
@@ -821,16 +879,16 @@
         '<span class="wg-streak"></span></div><div class="wg-prob"></div>';
     },
     init: function (el) {
-      var cur = null, streak = 0, best = S ? S.get('nt:practice:best', 0) : 0, answered = false;
+      var cur = null, streak = 0, best = S ? S.get('nt:practice:best', 0) : 0, answered = false, tries = 0;
       function score() {
         q(el, '.wg-streak').innerHTML = 'streak <b>' + streak + '</b> · best <b>' + best + '</b>';
       }
       function next() {
         var topic = q(el, '[data-f=topic]').value;
         if (topic === 'mixed') topic = pick(TOPICS.slice(1))[0];
-        cur = GEN[topic](); answered = false;
+        cur = GEN[topic](); answered = false; tries = 0;
         q(el, '.wg-prob').innerHTML = '<p class="wg-big">' + T(cur.q) + '</p><p class="wg-dim">' + T('Hint: ' + cur.hint) + '</p>' +
-          '<div class="wg-in">' + field('ans', 'answer', '', '7em') + '<button class="btn sm" data-act="check">Check</button>' +
+          '<div class="wg-in">' + field('ans', 'answer', '', '7em', true) + '<button class="btn sm" data-act="check">Check</button>' +
           '<button class="btn sm ghost" data-act="show">Show solution</button></div><div class="wg-res" aria-live="polite"></div>';
         var inp = q(el, '[data-f=ans]');
         inp.addEventListener('keydown', function (e) { if (e.keyCode === 13) check(); });
@@ -840,11 +898,14 @@
       function reveal(right, given) {
         if (!answered) {
           answered = true;
-          if (right) { streak++; if (streak > best) { best = streak; if (S) S.set('nt:practice:best', best); } }
-          else streak = 0;
+          /* Only a first-try answer extends the streak; a second-try fix keeps it. */
+          if (right && tries === 0) { streak++; if (streak > best) { best = streak; if (S) S.set('nt:practice:best', best); } }
+          else if (!right) streak = 0;
           score();
         }
-        q(el, '.wg-res').innerHTML = (given === null ? '' : right ? '<p class="wg-ok">Correct.</p>' : '<p class="wg-bad">' + T('Not quite — you said $' + given + '$, the answer is $' + cur.a + '$.') + '</p>') +
+        var unreduced = right && given !== null && given !== cur.a;
+        var second = right && tries > 0 && given !== null ? '<p class="wg-dim">Right on the second try — your streak is kept but not extended.</p>' : '';
+        q(el, '.wg-res').innerHTML = second + (given === null ? '' : unreduced ? '<p class="wg-ok">' + T('Correct value — $' + given + ' \\equiv ' + cur.a + ' \\pmod{' + cur.m + '}$ — but on an exam, reduce it to the range $0, \\ldots, ' + (cur.m - 1) + '$.') + '</p>' : right ? '<p class="wg-ok">Correct.</p>' : '<p class="wg-bad">' + T('Not quite — you said $' + given + '$, the answer is $' + cur.a + '$.') + '</p>') +
           '<ol class="wg-steps">' + cur.steps.map(function (s) { return '<li>' + T(s) + '</li>'; }).join('') + '</ol>' +
           '<button class="btn sm" data-act="next">Next problem</button>';
         q(el, '[data-act=next]').onclick = next;
@@ -855,7 +916,14 @@
         if (answered) return next();
         var v = intOf(el, 'ans', -1e9, 1e9);
         if (v === null) { q(el, '.wg-res').innerHTML = warn('Type a whole number.'); return; }
-        reveal(v === cur.a, v);
+        var right = v === cur.a || (cur.m && mod(v, cur.m) === cur.a);
+        if (!right && tries === 0) {
+          tries++;
+          q(el, '.wg-res').innerHTML = '<p class="wg-bad">' + T('Not quite — $' + v + '$ isn\'t it. Check your arithmetic and try once more, or show the solution.') + '</p>';
+          q(el, '[data-f=ans]').select();
+          return;
+        }
+        reveal(right, v);
       }
       q(el, '[data-f=topic]').onchange = next;
       score(); next();
