@@ -51,7 +51,7 @@
     var h = '<p class="lead">Two ways in. Learn the groundwork from scratch, or jump straight to the ' +
             'technique that matches the problem in front of you.</p>';
     h += '<a class="card hero" href="#/course"><h3>&#128218; Bellare &amp; Rogaway Course</h3>' +
-         '<p>Chapters 1 &amp; 2 in a friendly format: channel models, substitution ciphers, the one-time pad, and perfect security — with inline quizzes and a scored mastery test per chapter.</p>' +
+         '<p>Six chapters in a friendly format: from substitution ciphers and the one-time pad through PRFs, MACs, hash functions, and RSA and ElGamal — with inline quizzes and a scored mastery test per chapter.</p>' +
          '<span class="chip ok">' + (doneCount ? doneCount + ' of ' + PRIMER.length + ' primer lessons read' : 'interactive &middot; offline') + '</span></a>';
     h += '<a class="card" href="#/primer"><h3>&#9650; New to the maths? Start with the Primer</h3>' +
          '<p>' + PRIMER.length + ' short lessons assuming nothing past high-school algebra: the ' +
@@ -722,6 +722,188 @@
       '<figcaption>XOR each message bit with a key bit to get the ciphertext. Applying K again recovers M: C⊕K = (M⊕K)⊕K = M. The key is never reused.</figcaption>' +
       '</figure>';
 
+    if (key === 'prf-game') return '' +
+      '<figure class="anim-fig" aria-label="PRF game: adversary queries an oracle that is either F_K or a random function">' +
+      '<svg viewBox="0 0 380 170" xmlns="http://www.w3.org/2000/svg">' +
+      '<style>' +
+        '.af{font:13px/1.4 system-ui,sans-serif;fill:currentColor}' +
+        '.af-sm{font-size:11px;opacity:.6}' +
+        '@keyframes pfa{0%,45%{opacity:1}50%,95%{opacity:.4}100%{opacity:1}}' +
+        '@keyframes pfb{0%,45%{opacity:.4}50%,95%{opacity:1}100%{opacity:.4}}' +
+        '.pf-a{animation:pfa 4s ease-in-out infinite}' +
+        '.pf-b{animation:pfb 4s ease-in-out infinite}' +
+      '</style>' +
+      '<defs><marker id="pfar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">' +
+        '<path d="M0,0 L0,6 L7,3z" fill="currentColor" opacity=".45"/></marker></defs>' +
+      /* Adversary */ '<rect x="10" y="45" width="100" height="70" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="60" y="76" text-anchor="middle" class="af" font-weight="600">Adversary A</text>' +
+      '<text x="60" y="96" text-anchor="middle" class="af af-sm">outputs 1 or 0</text>' +
+      /* Arrows */ '<line x1="110" y1="68" x2="228" y2="68" stroke="currentColor" stroke-opacity=".4" marker-end="url(#pfar)"/>' +
+      '<text x="169" y="62" text-anchor="middle" class="af af-sm">query x</text>' +
+      '<line x1="228" y1="96" x2="110" y2="96" stroke="currentColor" stroke-opacity=".4" marker-end="url(#pfar)"/>' +
+      '<text x="169" y="112" text-anchor="middle" class="af af-sm">answer y</text>' +
+      /* Oracle */ '<rect x="232" y="20" width="138" height="130" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4,3"/>' +
+      '<text x="301" y="38" text-anchor="middle" class="af af-sm">hidden world</text>' +
+      '<g class="pf-a"><rect x="246" y="50" width="110" height="36" rx="8" fill="#7aa2f7" fill-opacity=".15" stroke="#7aa2f7" stroke-opacity=".6"/>' +
+      '<text x="301" y="73" text-anchor="middle" class="af" style="fill:#7aa2f7">real: F<tspan dy="3" style="font-size:9px">K</tspan><tspan dy="-3">(x)</tspan></text></g>' +
+      '<g class="pf-b"><rect x="246" y="98" width="110" height="36" rx="8" fill="#9d7cd8" fill-opacity=".15" stroke="#9d7cd8" stroke-opacity=".6"/>' +
+      '<text x="301" y="121" text-anchor="middle" class="af" style="fill:#9d7cd8">random: g(x)</text></g>' +
+      '</svg>' +
+      '<figcaption>The PRF game: the adversary talks to one of two oracles without knowing which. F is a good PRF if no efficient adversary can tell the keyed function from a truly random one.</figcaption>' +
+      '</figure>';
+
+    if (key === 'lr-oracle') return '' +
+      '<figure class="anim-fig" aria-label="Left-or-right IND-CPA game">' +
+      '<svg viewBox="0 0 380 170" xmlns="http://www.w3.org/2000/svg">' +
+      '<style>' +
+        '.af{font:13px/1.4 system-ui,sans-serif;fill:currentColor}' +
+        '.af-sm{font-size:11px;opacity:.6}' +
+        '@keyframes lrq{0%{transform:translateX(0);opacity:0}10%{opacity:1}45%{transform:translateX(96px);opacity:1}50%,100%{transform:translateX(96px);opacity:0}}' +
+        '@keyframes lrc{0%,50%{transform:translateX(0);opacity:0}60%{opacity:1}95%{transform:translateX(-96px);opacity:1}100%{transform:translateX(-96px);opacity:0}}' +
+        '.lr-q{animation:lrq 3.4s linear infinite}' +
+        '.lr-c{animation:lrc 3.4s linear infinite}' +
+      '</style>' +
+      '<defs><marker id="lrar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">' +
+        '<path d="M0,0 L0,6 L7,3z" fill="currentColor" opacity=".45"/></marker></defs>' +
+      /* Adversary */ '<rect x="10" y="40" width="100" height="80" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="60" y="72" text-anchor="middle" class="af" font-weight="600">Adversary A</text>' +
+      '<text x="60" y="92" text-anchor="middle" class="af af-sm">guesses b′</text>' +
+      /* Oracle */ '<rect x="250" y="40" width="120" height="80" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="310" y="68" text-anchor="middle" class="af" font-weight="600">LR oracle</text>' +
+      '<text x="310" y="88" text-anchor="middle" class="af" style="fill:#7aa2f7">C = E<tspan dy="3" style="font-size:9px">K</tspan><tspan dy="-3">(M</tspan><tspan dy="3" style="font-size:9px">b</tspan><tspan dy="-3">)</tspan></text>' +
+      '<text x="310" y="106" text-anchor="middle" class="af af-sm">hidden bit b</text>' +
+      /* Arrows */ '<line x1="110" y1="62" x2="250" y2="62" stroke="currentColor" stroke-opacity=".3" marker-end="url(#lrar)"/>' +
+      '<line x1="250" y1="100" x2="110" y2="100" stroke="currentColor" stroke-opacity=".3" marker-end="url(#lrar)"/>' +
+      /* Moving query */ '<g class="lr-q"><rect x="122" y="48" width="56" height="18" rx="4" fill="currentColor" fill-opacity=".12"/>' +
+      '<text x="150" y="61" text-anchor="middle" class="af" style="font-size:11px">(M₀, M₁)</text></g>' +
+      /* Moving ciphertext */ '<g class="lr-c"><rect x="182" y="91" width="56" height="18" rx="4" fill="#7aa2f7" fill-opacity=".85"/>' +
+      '<text x="210" y="104" text-anchor="middle" style="font:11px system-ui;fill:#0b0e12">C</text></g>' +
+      '<text x="190" y="150" text-anchor="middle" class="af af-sm">|M₀| = |M₁|  ·  repeat as often as A likes</text>' +
+      '</svg>' +
+      '<figcaption>IND-CPA: the adversary submits pairs of equal-length messages and always gets back an encryption of the same side. Security means it cannot tell which side.</figcaption>' +
+      '</figure>';
+
+    if (key === 'uf-cma') return '' +
+      '<figure class="anim-fig" aria-label="UF-CMA game: tagging and verification oracles">' +
+      '<svg viewBox="0 0 380 180" xmlns="http://www.w3.org/2000/svg">' +
+      '<style>' +
+        '.af{font:13px/1.4 system-ui,sans-serif;fill:currentColor}' +
+        '.af-sm{font-size:11px;opacity:.6}' +
+        '@keyframes ufw{0%,60%{opacity:.45}75%,95%{opacity:1}100%{opacity:.45}}' +
+        '.uf-win{animation:ufw 3.6s ease-in-out infinite}' +
+      '</style>' +
+      '<defs><marker id="ufar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">' +
+        '<path d="M0,0 L0,6 L7,3z" fill="currentColor" opacity=".45"/></marker></defs>' +
+      /* Adversary */ '<rect x="10" y="55" width="100" height="70" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="60" y="86" text-anchor="middle" class="af" font-weight="600">Adversary A</text>' +
+      '<text x="60" y="106" text-anchor="middle" class="af af-sm">tries to forge</text>' +
+      /* Tag oracle */ '<rect x="250" y="12" width="120" height="56" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="310" y="36" text-anchor="middle" class="af" font-weight="600">Tag oracle</text>' +
+      '<text x="310" y="55" text-anchor="middle" class="af" style="fill:#7aa2f7;font-size:12px">Mᵢ → Tᵢ</text>' +
+      /* Verify oracle */ '<rect x="250" y="112" width="120" height="56" rx="10" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="310" y="136" text-anchor="middle" class="af" font-weight="600">Verify oracle</text>' +
+      '<text x="310" y="155" text-anchor="middle" class="af" style="fill:#9d7cd8;font-size:12px">(M, T) → 1 / 0</text>' +
+      /* Arrows */ '<line x1="110" y1="70" x2="250" y2="40" stroke="currentColor" stroke-opacity=".35" marker-end="url(#ufar)"/>' +
+      '<line x1="110" y1="110" x2="250" y2="140" stroke="currentColor" stroke-opacity=".35" marker-end="url(#ufar)"/>' +
+      '<g class="uf-win"><rect x="128" y="80" width="110" height="22" rx="5" fill="#e57a7a" fill-opacity=".2" stroke="#e57a7a" stroke-opacity=".8"/>' +
+      '<text x="183" y="95" text-anchor="middle" class="af" style="font-size:11px;fill:#e57a7a">wins: 1 on a new M</text></g>' +
+      '</svg>' +
+      '<figcaption>UF-CMA: the adversary may get tags on any messages it chooses and test any candidate pairs. It wins only if verification accepts a message it never asked to have tagged.</figcaption>' +
+      '</figure>';
+
+    if (key === 'birthday') {
+      /* Collision probability for q samples from 2^n values, x = q / 2^(n/2): about 1 - e^(-x^2/2). */
+      var bx0 = 40, by0 = 130, bw2 = 310, bh2 = 100, bpts = [];
+      for (var bi = 0; bi <= 60; bi++) {
+        var bxv = 3 * bi / 60, byv = 1 - Math.exp(-bxv * bxv / 2);
+        bpts.push((bx0 + bxv / 3 * bw2).toFixed(1) + ',' + (by0 - byv * bh2).toFixed(1));
+      }
+      var bHalf = Math.sqrt(2 * Math.log(2)), bHx = (bx0 + bHalf / 3 * bw2).toFixed(1);
+      var bTicks = '';
+      [0, 1, 2, 3].forEach(function (v) {
+        var tx = bx0 + v / 3 * bw2;
+        bTicks += '<line x1="' + tx + '" y1="' + by0 + '" x2="' + tx + '" y2="' + (by0 + 4) + '" stroke="currentColor" stroke-opacity=".4"/>' +
+                  '<text x="' + tx + '" y="' + (by0 + 16) + '" text-anchor="' + (v === 3 ? 'end' : 'middle') + '" style="font:10px system-ui;fill:currentColor;opacity:.6">' +
+                  (v === 0 ? '0' : (v === 1 ? '√(2ⁿ)' : v + '·√(2ⁿ)')) + '</text>';
+      });
+      return '<figure class="anim-fig" aria-label="Birthday bound: collision probability versus number of hash evaluations">' +
+        '<svg viewBox="0 0 380 165" xmlns="http://www.w3.org/2000/svg">' +
+        '<line x1="' + bx0 + '" y1="' + by0 + '" x2="' + (bx0 + bw2) + '" y2="' + by0 + '" stroke="currentColor" stroke-opacity=".4"/>' +
+        '<line x1="' + bx0 + '" y1="' + by0 + '" x2="' + bx0 + '" y2="' + (by0 - bh2 - 6) + '" stroke="currentColor" stroke-opacity=".4"/>' +
+        '<text x="' + (bx0 - 6) + '" y="' + (by0 - bh2 + 4) + '" text-anchor="end" style="font:10px system-ui;fill:currentColor;opacity:.6">1</text>' +
+        '<text x="' + (bx0 - 6) + '" y="' + (by0 - bh2 / 2 + 4) + '" text-anchor="end" style="font:10px system-ui;fill:currentColor;opacity:.6">½</text>' +
+        '<line x1="' + bx0 + '" y1="' + (by0 - bh2 / 2) + '" x2="' + bHx + '" y2="' + (by0 - bh2 / 2) + '" stroke="#9d7cd8" stroke-dasharray="3,3" stroke-opacity=".7"/>' +
+        '<line x1="' + bHx + '" y1="' + (by0 - bh2 / 2) + '" x2="' + bHx + '" y2="' + by0 + '" stroke="#9d7cd8" stroke-dasharray="3,3" stroke-opacity=".7"/>' +
+        '<text x="' + (+bHx + 6) + '" y="' + (by0 - bh2 / 2 + 16) + '" style="font:10px system-ui;fill:#9d7cd8">50% at q ≈ 1.18·√(2ⁿ)</text>' +
+        '<polyline points="' + bpts.join(' ') + '" fill="none" stroke="#7aa2f7" stroke-width="2.5"/>' +
+        bTicks +
+        '<text x="' + (bx0 + bw2 / 2) + '" y="' + (by0 + 31) + '" text-anchor="middle" style="font:10px system-ui;fill:currentColor;opacity:.6">q = number of hash evaluations</text>' +
+        '<text x="' + (bx0 + 8) + '" y="' + (by0 - bh2 - 2) + '" style="font:10px system-ui;fill:currentColor;opacity:.6">Pr[some collision]</text>' +
+        '</svg>' +
+        '<figcaption>Collisions appear around the square root of the output space, not the whole space. An n-bit hash gives only about n/2 bits of collision resistance.</figcaption>' +
+        '</figure>';
+    }
+
+    if (key === 'merkle-damgard') {
+      var mdBlocks = ['M[1]', 'M[2]', 'M[3]', 'M[4] | len'], mdSvg = '';
+      mdBlocks.forEach(function (lbl, i) {
+        var hx = 62 + i * 78;
+        mdSvg += '<rect x="' + (hx - 4) + '" y="12" width="' + (i === 3 ? 66 : 50) + '" height="22" rx="4" fill="currentColor" fill-opacity=".08" stroke="currentColor" stroke-opacity=".3"/>' +
+                 '<text x="' + (hx + (i === 3 ? 29 : 21)) + '" y="27" text-anchor="middle" style="font:11px ui-monospace,monospace;fill:currentColor">' + lbl + '</text>' +
+                 '<line x1="' + (hx + 21) + '" y1="34" x2="' + (hx + 21) + '" y2="62" stroke="currentColor" stroke-opacity=".35" marker-end="url(#mdar)"/>' +
+                 '<rect class="md-h md-h' + i + '" x="' + (hx + 4) + '" y="64" width="34" height="34" rx="6" fill="#7aa2f7" fill-opacity=".15" stroke="#7aa2f7" stroke-opacity=".6"/>' +
+                 '<text x="' + (hx + 21) + '" y="86" text-anchor="middle" style="font:13px system-ui;fill:#7aa2f7;font-weight:600">h</text>' +
+                 '<line x1="' + (hx + 38) + '" y1="81" x2="' + (hx + (i === 3 ? 62 : 82)) + '" y2="81" stroke="currentColor" stroke-opacity=".35" marker-end="url(#mdar)"/>' +
+                 (i === 3 ? '' : '<text x="' + (hx + 60) + '" y="76" text-anchor="middle" style="font:10px system-ui;fill:currentColor;opacity:.6">V' + (i + 1) + '</text>');
+      });
+      return '<figure class="anim-fig" aria-label="Merkle–Damgård chaining of a compression function">' +
+        '<svg viewBox="0 0 400 125" xmlns="http://www.w3.org/2000/svg">' +
+        '<style>' +
+          '@keyframes mdp{0%,20%{fill-opacity:.6}30%,100%{fill-opacity:.15}}' +
+          '.md-h{animation:mdp 3.2s linear infinite}' +
+          '.md-h1{animation-delay:.8s}.md-h2{animation-delay:1.6s}.md-h3{animation-delay:2.4s}' +
+        '</style>' +
+        '<defs><marker id="mdar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">' +
+          '<path d="M0,0 L0,6 L7,3z" fill="currentColor" opacity=".45"/></marker></defs>' +
+        '<text x="22" y="86" text-anchor="middle" style="font:12px system-ui;fill:currentColor">V₀</text>' +
+        '<line x1="34" y1="81" x2="64" y2="81" stroke="currentColor" stroke-opacity=".35" marker-end="url(#mdar)"/>' +
+        mdSvg +
+        '<text x="362" y="86" style="font:12px system-ui;fill:#7aa2f7;font-weight:600">H(M)</text>' +
+        '<text x="200" y="117" text-anchor="middle" style="font:10px system-ui;fill:currentColor;opacity:.6">last block encodes the message length</text>' +
+        '</svg>' +
+        '<figcaption>Merkle–Damgård: each block is fed into the compression function h together with the previous chaining value. The final chaining value is the hash.</figcaption>' +
+        '</figure>';
+    }
+
+    if (key === 'rsa-trapdoor') return '' +
+      '<figure class="anim-fig" aria-label="RSA trapdoor permutation with N = 55, e = 3, d = 27">' +
+      '<svg viewBox="0 0 380 170" xmlns="http://www.w3.org/2000/svg">' +
+      '<style>' +
+        '.af{font:13px/1.4 system-ui,sans-serif;fill:currentColor}' +
+        '.af-sm{font-size:11px;opacity:.6}' +
+        '@keyframes rsf{0%,40%{stroke-opacity:1}50%,100%{stroke-opacity:.45}}' +
+        '@keyframes rsb{0%,50%{stroke-opacity:.45}60%,90%{stroke-opacity:1}100%{stroke-opacity:.45}}' +
+        '.rs-f{animation:rsf 4s ease-in-out infinite}' +
+        '.rs-b{animation:rsb 4s ease-in-out infinite}' +
+      '</style>' +
+      '<defs><marker id="rsar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">' +
+        '<path d="M0,0 L0,6 L7,3z" fill="currentColor" opacity=".6"/></marker></defs>' +
+      /* x */ '<circle cx="70" cy="85" r="28" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="70" y="91" text-anchor="middle" class="af" font-weight="600" style="font-size:18px">7</text>' +
+      '<text x="70" y="132" text-anchor="middle" class="af af-sm">x</text>' +
+      /* y */ '<circle cx="310" cy="85" r="28" fill="none" stroke="currentColor" stroke-opacity=".3"/>' +
+      '<text x="310" y="91" text-anchor="middle" class="af" font-weight="600" style="font-size:18px">13</text>' +
+      '<text x="310" y="132" text-anchor="middle" class="af af-sm">y</text>' +
+      /* forward */ '<path class="rs-f" d="M95,72 Q190,44 285,72" fill="none" stroke="#7aa2f7" stroke-width="2" marker-end="url(#rsar)"/>' +
+      '<text x="190" y="20" text-anchor="middle" class="af" style="fill:#7aa2f7">x³ mod 55</text>' +
+      '<text x="190" y="36" text-anchor="middle" class="af af-sm">anyone (public e = 3)</text>' +
+      /* backward */ '<path class="rs-b" d="M285,98 Q190,126 95,98" fill="none" stroke="#e57a7a" stroke-width="2" marker-end="url(#rsar)"/>' +
+      '<text x="190" y="140" text-anchor="middle" class="af" style="fill:#e57a7a">y²⁷ mod 55</text>' +
+      '<text x="190" y="156" text-anchor="middle" class="af af-sm">only with trapdoor d = 27</text>' +
+      '</svg>' +
+      '<figcaption>RSA as a trapdoor permutation, shown with toy numbers (N = 55): cubing is public and easy, but undoing it needs d = 27, which comes from knowing the factors 5 and 11. At real sizes (2048-bit N), nobody can factor N to find d.</figcaption>' +
+      '</figure>';
+
     return '';
   }
 
@@ -733,8 +915,9 @@
       var key = quizId + ':' + i;
       h += '<div class="cq-block" data-key="' + esc(key) + '" data-answer="' + item.answer + '">' +
            '<p class="cq-q">' + t(item.q) + '</p>';
-      item.opts.forEach(function (opt, j) {
-        h += '<button class="cq-opt" data-j="' + j + '">' + t(opt) + '</button>';
+      // Shuffle the display order; data-j keeps the original index for answer checking.
+      shuffle(item.opts.map(function (_, j) { return j; })).forEach(function (j) {
+        h += '<button class="cq-opt" data-j="' + j + '">' + t(item.opts[j]) + '</button>';
       });
       h += '<div class="cq-why" hidden>' + t(item.why) + '</div></div>';
     });
@@ -781,15 +964,17 @@
       h += '</a>';
     });
 
-    h += '<div class="eyebrow">Coming soon</div><div class="grid">';
-    COURSE.forEach(function (ch) {
-      if (!ch.locked) return;
-      h += '<div class="card locked-card"><span class="ch-num sm">Ch ' + ch.num + '</span>' +
-           '<h3>' + esc(ch.title) + '</h3><p>' + esc(ch.blurb) + '</p></div>';
-    });
-    h += '</div>';
+    if (unlocked.length < COURSE.length) {
+      h += '<div class="eyebrow">Coming soon</div><div class="grid">';
+      COURSE.forEach(function (ch) {
+        if (!ch.locked) return;
+        h += '<div class="card locked-card"><span class="ch-num sm">Ch ' + ch.num + '</span>' +
+             '<h3>' + esc(ch.title) + '</h3><p>' + esc(ch.blurb) + '</p></div>';
+      });
+      h += '</div>';
+    }
 
-    h += '<div class="note"><b>&#8594;</b> Start with the Basics primer if any of the maths feels unfamiliar — ' +
+    h += '<div class="note"><b>&#8594;</b> Start with the <a href="#/basics">Basics primer</a> if any of the maths feels unfamiliar — ' +
          'it covers sets, functions, probability, and proof technique in plain English before you need them here.</div>';
     return { title: 'Course', html: h, tab: 'course' };
   }
