@@ -43,6 +43,22 @@ function walk(v, path) {
  'CP_EXAMPLES','CP_DRILLS','CP_TRIAGE','CP_CHECKLIST']
   .forEach(k => walk(window[k], k));
 
+// Every course 'prereq' / 'see' link must resolve to a page that exists.
+const ROUTE_IDS = {
+  primer: window.CP_PRIMER, basics: window.CP_CONCEPTS, learn: window.CP_TECHNIQUES,
+  proofs: window.CP_EXAMPLES, course: window.CP_COURSE
+};
+function checkLink(href, path) {
+  const m = /^#\/(\w+)\/(.+)$/.exec(href);
+  const list = m && ROUTE_IDS[m[1]];
+  if (!list || !list.some(x => x.id === m[2] && !x.locked)) issues.push(['broken link', path, href]);
+}
+window.CP_COURSE.forEach((ch, i) => {
+  (ch.prereq || []).forEach((h, j) => checkLink(h, 'CP_COURSE[' + i + '].prereq[' + j + ']'));
+  (ch.sections || []).forEach((sec, k) => (sec.see || []).forEach((h, j) =>
+    checkLink(h, 'CP_COURSE[' + i + '].sections[' + k + '].see[' + j + ']')));
+});
+
 if (!issues.length) console.log('content lint: clean');
 else { issues.forEach(i => console.log(i[0].padEnd(14), i[1], '|', i[2])); process.exit(1); }
 

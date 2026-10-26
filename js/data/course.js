@@ -12,6 +12,7 @@
       num: 1,
       title: 'Introduction',
       blurb: 'What cryptography actually solves, the players involved, and the modern way of proving a scheme is secure.',
+      prereq: ['#/primer/why-prove', '#/primer/reduction-idea'],
       sections: [
         {
           id: 'ch1-bigpicture',
@@ -61,6 +62,7 @@
         {
           id: 'ch1-paradigm',
           title: 'The provable-security paradigm',
+          see: ['#/primer/reduction-idea', '#/learn/reduction'],
           body: [
             'How do you know if a cryptographic scheme is secure? There are two historical traditions.',
             'The older approach is cryptanalysis-driven: design a scheme, publish it, and challenge the world to break it. If nobody breaks it for long enough — say, twenty years — you decide to trust it. This has genuine value: a scheme that survives decades of public scrutiny has passed a real test. The problem is that absence of a known attack is not proof of security. A single new idea can break a widely trusted scheme overnight.',
@@ -145,6 +147,7 @@
       num: 2,
       title: 'Classical Encryption',
       blurb: 'Substitution ciphers and why they fail, the one-time pad, and Shannon\'s notion of perfect security.',
+      prereq: ['#/primer/probability', '#/primer/counting'],
       sections: [
         {
           id: 'ch2-subst',
@@ -220,6 +223,7 @@
         {
           id: 'ch2-proofs',
           title: 'Proving the OTP and the key-length lower bound',
+          see: ['#/proofs/otp', '#/learn/infotheoretic'],
           body: [
             'With the definition in hand, the proof that the OTP achieves perfect security is clean. Let $m$ be the message length. Fix any $M_0, M_1 \\in \\{0,1\\}^m$ and any $C \\in \\{0,1\\}^m$; the key $K$ is chosen uniformly from $\\{0,1\\}^m$.',
             '$\\Pr[\\mathcal{E}_K(M_0) = C] = \\Pr[K \\oplus M_0 = C] = \\Pr[K = M_0 \\oplus C]$.',
@@ -321,10 +325,12 @@
       num: 3,
       title: 'Symmetric Encryption',
       blurb: 'Pseudorandom functions, the IND-CPA game, and why counter mode is secure while ECB is not.',
+      prereq: ['#/primer/adversary', '#/primer/game', '#/basics/advantage'],
       sections: [
         {
           id: 'ch3-computational',
           title: 'From perfect to computational security',
+          see: ['#/basics/negligible', '#/basics/ppt'],
           body: [
             'Chapter 2 ended with bad news: perfect security needs a key as long as everything you will ever encrypt. Real systems encrypt terabytes under a 128-bit key. So real systems cannot be perfectly secure, and we need a weaker — but still meaningful — goal.',
             'The weakening is this: we stop worrying about adversaries with unlimited computing power and only worry about adversaries who run in a realistic amount of time. An adversary who would need $2^{128}$ steps to succeed is, for every practical purpose, an adversary who fails.',
@@ -349,6 +355,7 @@
         {
           id: 'ch3-prf',
           title: 'Block ciphers and pseudorandom functions',
+          see: ['#/learn/switching'],
           anim: 'prf-game',
           body: [
             'The workhorse of symmetric cryptography is the **block cipher**: a function $E : \\{0,1\\}^k \\times \\{0,1\\}^n \\to \\{0,1\\}^n$ that takes a $k$-bit key and an $n$-bit input block and returns an $n$-bit output block. For each key $K$, the map $E_K(\\cdot)$ is a permutation, so it can be inverted by someone who knows $K$. AES is the standard example, with $n = 128$ and $k \\in \\{128, 192, 256\\}$.',
@@ -398,6 +405,7 @@
         {
           id: 'ch3-indcpa',
           title: 'The IND-CPA game',
+          see: ['#/basics/indist', '#/primer/game'],
           anim: 'lr-oracle',
           body: [
             'How do we define "the ciphertext reveals nothing" when the adversary has bounded computing power? Bellare and Rogaway use a **left-or-right** game for **IND-CPA** (*indistinguishability under chosen-plaintext attack*), and it is worth getting to know it well — most privacy definitions in the rest of the book are variations on it.',
@@ -452,6 +460,7 @@
         {
           id: 'ch3-ctr-proof',
           title: 'Proving CTR mode secure',
+          see: ['#/proofs/prf-ctr', '#/learn/gamehop', '#/learn/badevent', '#/basics/birthday'],
           body: [
             'The theorem for randomized counter mode says, roughly: for any adversary $A$ attacking randomized CTR that encrypts a total of $\\sigma$ blocks across all its queries, there is a PRF adversary $B$, running in about the same time, such that',
             '$$\\Adv^{\\mathrm{ind-cpa}}_{\\mathrm{CTR}}(A) \\le 2 \\cdot \\Adv^{\\mathrm{prf}}_F(B) + \\frac{\\sigma^2}{2^n}$$',
@@ -554,6 +563,7 @@
       num: 4,
       title: 'Message Authentication',
       blurb: 'MACs, pseudorandom functions, and integrity without secrecy.',
+      prereq: ['#/course/ch3', '#/basics/games'],
       sections: [
         {
           id: 'ch4-why',
@@ -618,6 +628,7 @@
         {
           id: 'ch4-prf-mac',
           title: 'Any PRF is a good MAC',
+          see: ['#/learn/reduction'],
           body: [
             'The simplest secure MAC is a PRF: set $\\Mac_K(M) = F_K(M)$, with tags of $\\tau$ bits.',
             'The theorem: for any UF-CMA adversary $A$ making $q_t$ tagging queries and $q_v$ verification queries, there is a PRF adversary $B$, using about the same resources, with',
@@ -670,6 +681,7 @@
         {
           id: 'ch4-hmac',
           title: 'HMAC and combining MACs with encryption',
+          see: ['#/proofs/etm'],
           body: [
             'The other widely used MAC is built from a hash function (the subject of Chapter 5). The obvious idea, $\\Mac_K(M) = H(K \\,\\|\\, M)$, is broken for common hash functions like SHA-256: from the tag of $M$, an adversary can compute the tag of $M$ followed by extra data, without the key. (A hash like SHA-256 processes its input one block at a time with a smaller *compression function*, chaining the results; Chapter 5 shows why this lets an outsider keep extending $H(K \\,\\|\\, M)$. This is called "length extension".)',
             '**HMAC** avoids the problem by hashing twice with two derived keys:',
@@ -760,6 +772,7 @@
       num: 5,
       title: 'Hash Functions',
       blurb: 'Collision resistance, the birthday attack, Merkle–Damgård, and the random oracle model.',
+      prereq: ['#/primer/counting', '#/basics/birthday'],
       sections: [
         {
           id: 'ch5-what',
@@ -811,6 +824,7 @@
         {
           id: 'ch5-birthday',
           title: 'The birthday attack',
+          see: ['#/basics/birthday'],
           anim: 'birthday',
           body: [
             'How hard is it to find a collision in a generic $n$-bit hash? Your first guess might be about $2^n$ evaluations. The real answer is about $2^{n/2}$ — and the reason is the **birthday paradox**.',
@@ -861,6 +875,7 @@
         {
           id: 'ch5-md',
           title: 'Merkle–Damgård: from short inputs to long ones',
+          see: ['#/proofs/merkle'],
           anim: 'merkle-damgard',
           body: [
             'Designing a collision-resistant function for arbitrary-length inputs from scratch is hard. The **Merkle–Damgård** transform lets you design something much smaller — a compression function $h : \\{0,1\\}^{n+b} \\to \\{0,1\\}^n$ that maps a chaining value and one $b$-bit block to a new chaining value — and extend it. (As before, $h$ may carry a public key, used for every block; the theorem below holds key by key.)',
@@ -898,6 +913,7 @@
         {
           id: 'ch5-ro',
           title: 'The random oracle model',
+          see: ['#/basics/rom', '#/learn/romprog'],
           body: [
             'Some schemes need more from a hash function than collision resistance — they want its outputs to look completely random and unrelated to its inputs. The **random oracle model** captures this by pretending that $H$ is a truly random function that every party, including the adversary, can only access by querying an oracle.',
             'In a proof in this model, the reduction gets to see every hash query the adversary makes, and it can choose the answers itself as long as they look random. That extra power makes many proofs possible, including security proofs for RSA-OAEP encryption (Chapter 6) and for full-domain-hash RSA signatures.',
@@ -986,10 +1002,12 @@
       num: 6,
       title: 'Public-Key Encryption',
       blurb: 'RSA, ElGamal, and provable security in the public-key setting.',
+      prereq: ['#/primer/modular', '#/primer/groups'],
       sections: [
         {
           id: 'ch6-setting',
           title: 'Encryption without a shared secret',
+          see: ['#/learn/hybrid', '#/proofs/prg-hybrid'],
           body: [
             'Everything so far assumed Alice and Bob already share a secret key. On the internet, they usually have never met. Public-key encryption removes the assumption: Bob publishes a **public key** $pk$ that anyone may use to encrypt, and keeps a matching **secret key** $sk$ that only he can use to decrypt.',
             'A public-key encryption scheme $\\mathcal{AE} = (\\mathcal{K}, \\mathcal{E}, \\mathcal{D})$ ($\\mathcal{AE}$ for *asymmetric* encryption, as in B&R) has key generation $\\mathcal{K}$ outputting a pair $(pk, sk)$, encryption $\\mathcal{E}_{pk}(M)$, and decryption $\\mathcal{D}_{sk}(C)$. Correctness is the same as before: $\\mathcal{D}_{sk}(\\mathcal{E}_{pk}(M)) = M$ for every key pair output by $\\mathcal{K}$, every message, and whatever coins encryption uses.',
@@ -1013,6 +1031,7 @@
         {
           id: 'ch6-numbers',
           title: 'Number theory you need',
+          see: ['#/primer/modular', '#/primer/groups'],
           body: [
             'Public-key cryptography is built on arithmetic modulo a number. For a positive integer $N$, $\\Z_N = \\{0, 1, \\ldots, N-1\\}$ with addition and multiplication mod $N$. The elements that have a multiplicative inverse are those **coprime** to $N$ — sharing no factor with $N$ except $1$, i.e. $\\gcd(a, N) = 1$. They form the group $\\Z_N^*$, whose size is written $\\varphi(N)$. For example, $\\Z_{10}^* = \\{1, 3, 7, 9\\}$, so $\\varphi(10) = 4$.',
             'For a prime $p$, every nonzero element is invertible, so $\\varphi(p) = p - 1$. For $N = pq$ with $p, q$ distinct primes, $\\varphi(N) = (p-1)(q-1)$.',
@@ -1086,6 +1105,7 @@
         {
           id: 'ch6-elgamal',
           title: 'Diffie–Hellman and ElGamal',
+          see: ['#/proofs/elgamal', '#/learn/reduction'],
           body: [
             'Let $G$ be a cyclic group of prime order $q$ with generator $g$ — for example, a prime-order subgroup of $\\Z_p^*$ or an elliptic-curve group.',
             'The **Diffie–Hellman key exchange** (1976) is where these problems come from. Alice picks a secret $x$ and sends $g^x$; Bob picks a secret $y$ and sends $g^y$. Both can now compute $g^{xy}$: Alice as $(g^y)^x$, Bob as $(g^x)^y$. An eavesdropper sees only $g^x$ and $g^y$. Is that enough to find $g^{xy}$?',
@@ -1112,6 +1132,7 @@
         {
           id: 'ch6-hybrid',
           title: 'Putting it together: hybrid encryption',
+          see: ['#/proofs/hashed-elgamal', '#/proofs/etm'],
           body: [
             'Public-key operations are slow — thousands of times slower than a block cipher — and schemes like ElGamal only encrypt a single group element. Nobody encrypts a video file with RSA.',
             'Instead, systems use **hybrid encryption**. To send $M$ to Bob: pick a fresh random symmetric key $K$; encrypt $K$ under Bob\'s public key (or, equivalently, derive $K$ together with an encapsulation of it, as below); encrypt $M$ under $K$ with an authenticated symmetric scheme (Chapter 4\'s Encrypt-then-MAC, or GCM). Bob decrypts $K$ with $sk$, then decrypts $M$ with $K$.',

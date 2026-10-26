@@ -779,7 +779,9 @@ window.CP_GLOSSARY = [
     { s: '$|S|$', n: 'size of S', p: 'how many elements S has. On a string, its length instead' },
     { s: '$f : X \\to Y$', n: 'f maps X to Y', p: 'f takes an input from X and returns an output in Y' },
     { s: '$x \\| y$', n: 'x concat y', p: 'the two strings glued end to end' },
-    { s: '$\\oplus$', n: 'XOR', p: 'bitwise exclusive or; its own inverse, which is why pads cancel' },
+    { s: '$\\oplus$', n: 'XOR, exclusive or', p: 'combine two bit strings position by position: the result bit is 1 when the two bits differ and 0 when they match. Doing it twice with the same key undoes it, which is why pads cancel' },
+    { s: '$0^{n}$, $1^{n}$', n: 'n zeros, n ones', p: 'a string of $n$ zero bits (or one bits). A string, not a power: $0^{3}$ is 000' },
+    { s: '$M[i]$', n: 'block i of M', p: 'the $i$-th $n$-bit block, when a long message $M$ is split into blocks $M[1] M[2] \\cdots M[m]$' },
     { s: '$1^{\\lambda}$', n: 'unary lambda', p: 'a string of $\\lambda$ ones, used so "polynomial in the input" means polynomial in $\\lambda$' }
   ]},
   { g: 'Numbers and groups', items: [
@@ -788,7 +790,9 @@ window.CP_GLOSSARY = [
     { s: '$a \\equiv b \\pmod n$', n: 'a is congruent to b mod n', p: 'a and b leave the same remainder when divided by n' },
     { s: '$\\G$', n: 'a group', p: 'a set with one well-behaved operation; in crypto, usually of prime order' },
     { s: '$g$', n: 'a generator', p: 'an element whose powers sweep out the whole group' },
-    { s: '$g^{x}$', n: 'g to the x', p: 'g combined with itself x times. Easy forwards, hard to reverse' }
+    { s: '$g^{x}$', n: 'g to the x', p: 'g combined with itself x times. Easy forwards, hard to reverse' },
+    { s: '$\\Z_N^*$', n: 'units mod N', p: 'the numbers from 1 to $N-1$ that share no factor with $N$ other than 1; they form a group under multiplication mod $N$' },
+    { s: '$\\varphi(N)$', n: 'phi of N', p: 'how many elements $\\Z_N^*$ has. For $N = pq$ with $p, q$ distinct primes it is $(p-1)(q-1)$' }
   ]},
   { g: 'Probability', items: [
     { s: '$\\Pr[E]$', n: 'probability of E', p: 'a number between 0 and 1' },
@@ -826,7 +830,10 @@ window.CP_GLOSSARY = [
     { s: '$\\Gen, \\Enc, \\Dec$', n: 'key generation, encryption, decryption', p: 'the three algorithms of an encryption scheme' },
     { s: '$\\Mac, \\Vrfy$', n: 'tag and verify', p: 'the two algorithms of a message authentication code' },
     { s: '$F_k$', n: 'the PRF keyed by k', p: 'a function that should look random to anyone without k' },
-    { s: '$H$', n: 'a hash function', p: 'in the ROM, treated as a perfectly random function' }
+    { s: '$H$', n: 'a hash function', p: 'in the ROM, treated as a perfectly random function' },
+    { s: '$\\tau$', n: 'tau: tag length', p: 'the number of bits in a MAC tag. For a good MAC, a guessed tag is right with probability about $2^{-\\tau}$' },
+    { s: 'IV', n: 'initialization vector', p: 'a fresh starting value for a mode of operation such as CBC or counter mode. CBC needs it unpredictable, counter mode needs it never to repeat' },
+    { s: 'LR', n: 'left-or-right oracle', p: 'in the IND-CPA game: given a pair $(M_0, M_1)$, it encrypts $M_b$ for the hidden bit $b$' }
   ]},
   { g: 'Logic', items: [
     { s: '$\\forall$', n: 'for all', p: 'the claim must hold in every case' },

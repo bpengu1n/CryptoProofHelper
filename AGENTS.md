@@ -118,7 +118,7 @@ After editing any `js/data/*.js` file:
 node tools/lint-content.js
 ```
 
-No npm install needed. Reports missing required fields, malformed quiz items, and broken references.
+No npm install needed. Reports missing required fields, malformed quiz items, and broken references, including course `prereq`/`see` links that do not resolve.
 
 ### Run tests
 
@@ -134,12 +134,12 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v9'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v10'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v9'` → `'cph-v10'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v10'` → `'cph-v11'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
 
@@ -219,8 +219,9 @@ In `app.js`, `M` aliases `window.MathRenderer` and `t(s)` is shorthand for `M.te
      ]
    }
    ```
-5. The router (`/course/:id`) is already wired; no changes to `app.js` routing needed.
-6. Bump `CACHE` in `sw.js` (content-only changes still need a cache bump so SW-cached users get fresh data).
+5. The router (`/course/:id`, and `/course/:id/:sectionId` to open at a section) is already wired; no changes to `app.js` routing needed.
+6. Optional links: a chapter's `prereq: ['#/primer/…', …]` and a section's `see: ['#/proofs/…', …]` list in-app routes (primer, basics, learn, proofs, course). Titles are looked up automatically; worked proofs in `see` also appear in the chapter's "Next steps".
+7. Bump `CACHE` in `sw.js` (content-only changes still need a cache bump so SW-cached users get fresh data).
 
 ### SVG animation
 
@@ -273,6 +274,7 @@ All keys are plain strings; no namespacing beyond what is listed.
 | `primer:read` | JSON array of lesson IDs | Lessons the user has opened |
 | `course:visited` | JSON array of chapter IDs | Chapters the user has visited |
 | `course:quiz:<chId>` | JSON number | Best mastery quiz score per chapter (0 is saved) |
+| `course:pos:<chId>` | String section ID | Section the learner last scrolled to, for "Continue where you left off" |
 | `drill:best:<setId>` | JSON `{ best, total }` | Best drill score per set |
 | `draft:<templateId>` | String | In-progress proof draft text |
 | `checklist` | JSON object `{ [itemId]: bool }` | Proof-writing checklist state |
