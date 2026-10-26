@@ -133,12 +133,12 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v6'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v7'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v6'` → `'cph-v7'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v7'` → `'cph-v8'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
 
@@ -269,7 +269,7 @@ All keys are plain strings; no namespacing beyond what is listed.
 |-----|------|-------------|
 | `primer:read` | JSON array of lesson IDs | Lessons the user has opened |
 | `course:visited` | JSON array of chapter IDs | Chapters the user has visited |
-| `course:quiz:<chId>` | JSON `{ best, total, ts }` | Mastery quiz best score per chapter |
+| `course:quiz:<chId>` | JSON number | Best mastery quiz score per chapter (0 is saved) |
 | `drill:best:<setId>` | JSON `{ best, total }` | Best drill score per set |
 | `draft:<templateId>` | String | In-progress proof draft text |
 | `checklist` | JSON object `{ [itemId]: bool }` | Proof-writing checklist state |

@@ -39,7 +39,8 @@
           title: 'Three goals: confidentiality, integrity, authentication',
           body: [
             'Security means different things in different contexts. Three goals appear most often.',
-            'Confidentiality (also called privacy or secrecy) means the adversary cannot learn anything about the content of a message. Not just the main content — even incidental information such as "this message is longer than ten characters" or "this message starts with the letter A" counts as a violation of confidentiality in the strongest formal definitions.',
+            'Confidentiality (also called privacy or secrecy) means the adversary cannot learn anything about the content of a message. Not just the main content — even incidental information such as "this message starts with the letter A" counts as a violation of confidentiality in the formal definitions.',
+            'Two things standard encryption deliberately does *not* hide. The first is **length**: a ciphertext usually reveals roughly how long the message is, and the formal definitions in Chapter 3 explicitly allow that leak. The second is **metadata** — who is talking to whom, when, and how often. Hiding those takes extra measures such as padding messages to fixed sizes or routing traffic through anonymity networks.',
             'Integrity means the adversary cannot change a message in transit without the receiver detecting it. Integrity and confidentiality are logically independent. You can build a scheme that hides the content perfectly but allows an adversary to flip arbitrary bits undetected. You can build another that lets the adversary read everything but guarantees any tampering is caught. The goals are complementary but not the same.',
             'Authentication means the receiver can verify that a message truly came from the claimed sender, not from an adversary impersonating them. A digital signature is the public-key tool for this: a piece of data attached to the message that only the true sender could have produced, verifiable by anyone who has the sender\'s public key.',
             'This course opens with confidentiality — specifically the question of when an encryption scheme provably keeps messages secret — because the definitions and proof techniques there are the clearest introduction to the style of reasoning used across the field.'
@@ -72,7 +73,7 @@
               q: 'What does it mean for a cipher to be "provably secure"?',
               opts: [
                 'No adversary has ever broken it in practice.',
-                'Breaking it is mathematically equivalent to solving a problem believed to be hard.',
+                'Any efficient algorithm that breaks it could be turned into one that solves a problem believed to be hard.',
                 'It uses keys long enough to resist brute-force search.',
                 'It has been approved by a standards body.'
               ],
@@ -212,7 +213,7 @@
             'A cipher $(\\mathcal{K}, \\mathcal{E}, \\mathcal{D})$ over message space $\\mathcal{M}$ is perfectly secure if, for every $M_0, M_1 \\in \\mathcal{M}$ and every ciphertext $C$:',
             '$$\\Pr_{K \\leftarrow \\mathcal{K}}[\\mathcal{E}_K(M_0) = C] = \\Pr_{K \\leftarrow \\mathcal{K}}[\\mathcal{E}_K(M_1) = C]$$',
             'In words: looking at any ciphertext $C$, you cannot distinguish whether it came from encrypting $M_0$ or $M_1$. The distribution of ciphertexts is identical regardless of which message was encrypted.',
-            'Perfect security is a remarkably strong guarantee: it holds even against an adversary with unlimited computational power. There is no algorithm — not now, not ever — that can learn anything about the plaintext from the ciphertext alone. Compare this to computational security, which only holds against adversaries running in polynomial time. A computationally secure scheme might, in principle, be broken by an adversary with enough compute; a perfectly secure scheme cannot, period.',
+            'Perfect security is a remarkably strong guarantee: it holds even against an adversary with unlimited computational power. There is no algorithm — not now, not ever — that can learn anything about the plaintext from the ciphertext alone. Compare this to computational security, which only holds against adversaries with a realistic amount of computing time (Chapter 3 makes this precise). A computationally secure scheme might, in principle, be broken by an adversary with enough compute; a perfectly secure scheme cannot, period.',
             'The trade-off: as the next section proves, achieving perfect security requires a key at least as long as the message. For a gigabyte file, you need a gigabyte key, used exactly once. This is impractical for most applications. Computationally secure schemes — which relax the guarantee to hold only against efficient adversaries — are what gets used in practice.'
           ]
         },
@@ -225,7 +226,7 @@
             'Since $K$ is uniform over $\\{0,1\\}^m$, the probability it equals any particular value is $1/2^m$. So $\\Pr[\\mathcal{E}_K(M_0) = C] = 1/2^m$. The same calculation for $M_1$ gives $\\Pr[\\mathcal{E}_K(M_1) = C] = 1/2^m$. Both are $1/2^m$, so the definition is satisfied.',
             'The key insight: for any fixed message $M$ and ciphertext $C$, there is exactly one key that encrypts $M$ to $C$ — namely $K = M \\oplus C$. Since the key is uniform, that one key has probability exactly $1/2^m$. Every message is equally plausible for every ciphertext.',
             'Now the bad-news theorem: if a cipher is perfectly secure, its key space must be at least as large as its message space — $|\\mathcal{K}| \\geq |\\mathcal{M}|$. The OTP meets this bound exactly: keys and messages are both $m$-bit strings, so $|\\mathcal{K}| = |\\mathcal{M}| = 2^m$.',
-            'Proof of the bound. Fix any ciphertext $C$. Let $\\mathcal{M}(C) = \\{M : \\exists K, \\mathcal{E}_K(M) = C\\}$ be the set of messages that can produce $C$. Correctness of decryption means: for each $M \\in \\mathcal{M}(C)$, the key $K_M$ satisfying $\\mathcal{E}_{K_M}(M) = C$ is unique to $M$ — two different messages require different keys (otherwise decryption of $C$ with that key would be ambiguous). So the map $M \\mapsto K_M$ is injective, giving $|\\mathcal{M}(C)| \\leq |\\mathcal{K}|$. But perfect security requires $\\Pr[\\mathcal{E}_K(M) = C] > 0$ for every $M$ — otherwise seeing $C$ would rule out some plaintext and leak information. So $\\mathcal{M} \\subseteq \\mathcal{M}(C)$, and therefore $|\\mathcal{M}| \\leq |\\mathcal{K}|$. $\\square$'
+            'Proof of the bound. Fix any ciphertext $C$ that can actually occur — some message and key produce it. Let $\\mathcal{M}(C) = \\{M : \\exists K, \\mathcal{E}_K(M) = C\\}$ be the set of messages that can produce $C$. Correctness of decryption means: for each $M \\in \\mathcal{M}(C)$, the key $K_M$ satisfying $\\mathcal{E}_{K_M}(M) = C$ is unique to $M$ — two different messages require different keys (otherwise decryption of $C$ with that key would be ambiguous). So the map $M \\mapsto K_M$ is injective, giving $|\\mathcal{M}(C)| \\leq |\\mathcal{K}|$. But since $C$ occurs for some message, perfect security forces $\\Pr[\\mathcal{E}_K(M) = C] > 0$ for every $M$ — otherwise seeing $C$ would rule out some plaintext and leak information. So $\\mathcal{M} \\subseteq \\mathcal{M}(C)$, and therefore $|\\mathcal{M}| \\leq |\\mathcal{K}|$. $\\square$'
           ],
           quiz: [
             {
@@ -307,7 +308,7 @@
             '$|\\mathcal{K}| > 2^m$; the OTP exceeds the minimum requirement.'
           ],
           answer: 1,
-          why: 'The OTP key is a uniform m-bit string, so |K| = 2^m. Messages are also m-bit strings, so |M| = 2^m. The OTP meets the lower bound with equality — the key is exactly as long as the message, no more.'
+          why: 'The OTP key is a uniform $m$-bit string, so $|\\mathcal{K}| = 2^m$. Messages are also $m$-bit strings, so $|\\mathcal{M}| = 2^m$. The OTP meets the lower bound with equality — the key is exactly as long as the message, no more.'
         }
       ]
     },
@@ -457,6 +458,7 @@
             'Read the right-hand side term by term. The first term says: if $F$ is a good PRF, this part is tiny. The second term is a **birthday bound**: it stays small only while $\\sigma$ is well below $2^{n/2}$. For AES, $n = 128$, so you should rekey long before encrypting $2^{64}$ blocks. For example, encrypting $\\sigma = 2^{32}$ blocks (64 GB) under one key gives a birthday term of $2^{64} / 2^{128} = 2^{-64}$ — negligible. At $\\sigma = 2^{60}$ it is $2^{-8}$, already uncomfortable. (B&R prove a slightly tighter bound; this simpler form is still a valid upper bound.)',
             'The proof follows the pattern you will see again and again. Step 1: replace $F_K$ by a truly random function $g$. Any change in $A$\'s behavior when we do this can be turned into a PRF distinguisher $B$. $B$ picks its own bit $b$ at random, runs $A$, and answers each query $(M_0, M_1)$ by encrypting $M_b$ in counter mode, using its own oracle in place of $F_K$. When $A$ outputs $b\'$, $B$ outputs $1$ if $b\' = b$. That accounts for the $\\Adv^{\\mathrm{prf}}$ term; the factor $2$ appears because $\\Adv^{\\mathrm{ind-cpa}}(A) = 2 \\Pr[A \\text{ guesses } b] - 1$.',
             'Step 2: analyze the idealized scheme with $g$. If no counter value $R + i$ is ever used twice, every pad block is a fresh uniform string, so every ciphertext block is a one-time-pad encryption and reveals nothing — exactly as in Chapter 2. The only way the adversary can win is if two encryptions happen to use overlapping counter ranges. Bounding the probability of that overlap gives the $\\sigma^2 / 2^n$ term.',
+            'If you compare this with the worked proof in the Proofs tab ("PRF ⟹ IND-CPA, randomized counter mode"), you will see $|\\Pr[S_0] - \\tfrac12| \\le \\Adv^{\\mathrm{prf}}_F(B) + q^2 \\ell / 2^n$ instead. Same theorem, different bookkeeping. Its advantage $|\\Pr[\\text{win}] - \\tfrac12|$ is half of ours, which is where our factor $2$ goes. It counts $q$ queries of at most $\\ell$ blocks each (so $\\sigma \\le q\\ell$), and it bounds overlaps per pair of *queries* rather than per pair of blocks, which gives $q^2 \\ell$ in place of $(q\\ell)^2$ — tighter whenever queries are longer than one block. Both are valid upper bounds. The Notation page lists these differences under "Two notations, one idea".',
             'The shape of this argument — "swap the real primitive for an ideal one, pay its advantage, then analyze the ideal world with probability" — is the template for nearly every proof in the rest of the course. $\\qed$'
           ],
           quiz: [

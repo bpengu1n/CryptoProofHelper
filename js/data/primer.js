@@ -834,6 +834,14 @@ window.CP_GLOSSARY = [
     { s: '$\\implies$', n: 'implies', p: 'if the left side holds then so does the right' },
     { s: '$\\neg$', n: 'not', p: 'negation' },
     { s: '$\\qed$', n: 'QED', p: 'end of proof' }
+  ]},
+  { g: 'Two notations, one idea', items: [
+    { s: '$\\mathcal{K}, \\mathcal{E}_K, \\mathcal{D}_K$', n: 'same as $\\Gen$, $\\Enc_k$, $\\Dec_k$', p: 'The course follows Bellare & Rogaway and names a scheme\'s algorithms with script letters; the worked proofs, drills and builder use Gen/Enc/Dec. They are the same algorithms.' },
+    { s: '$(t, q)$ bounds', n: 'vs. PPT and negligible', p: 'The course is concrete: an adversary running in time $t$ with $q$ queries has advantage at most some explicit number. The proofs are asymptotic: every probabilistic polynomial-time (PPT) adversary has negligible advantage as the security parameter $\\lambda$ grows. A concrete bound that, as a function of $\\lambda$, stays negligible whenever $t$ and $q$ are polynomial in $\\lambda$ gives you the asymptotic statement.' },
+    { s: '$\\Pr[b\'=1 \\mid b=1] - \\Pr[b\'=1 \\mid b=0]$', n: 'twice $\\Pr[\\text{win}] - \\tfrac12$', p: 'The course defines advantage as $2\\Pr[\\text{win}] - 1$; the proofs use $|\\Pr[\\text{win}] - \\tfrac12|$, which is half as big (up to sign). Bounds can differ by a factor of $2$ for that reason alone.' },
+    { s: '$\\sigma$', n: 'sigma: total blocks', p: 'The total number of blocks encrypted across all queries. The proofs often say "$q$ queries of at most $\\ell$ blocks each" instead, so $\\sigma \\le q\\ell$.' },
+    { s: '$A^{\\mathcal{O}} \\Rightarrow 1$', n: 'A, given oracle O, outputs 1', p: 'Here the double arrow means "outputs", not "implies". The proofs write the same event as $\\A^{\\mathcal{O}}$ outputting $1$.' },
+    { s: 'UF-CMA', n: 'same as EUF-CMA', p: 'Bellare & Rogaway write UF-CMA; many texts add E for "existential". The definition is the same.' }
   ]}
 ];
 

@@ -291,7 +291,7 @@ window.CP_DRILLS = [
       'The scheme is broken if and only if the assumption is false'
     ],
     answer: 0,
-    why: 'The contrapositive of $P \\implies Q$ is $\\neg Q \\implies \\neg P$, and it is always logically equivalent. Option 2 is the converse and option 3 is the inverse — different claims, neither implied. This particular contrapositive is the shape of every reduction in the app.'
+    why: 'The contrapositive of $P \\implies Q$ is $\\neg Q \\implies \\neg P$, and it is always logically equivalent. "If the assumption is false then the scheme is broken" is the converse, and "if the scheme is not broken then the assumption is true" is the inverse — different claims, neither implied. This particular contrapositive is the shape of every reduction in the app.'
   },
   {
     id: 'w7', kind: 'basics',
@@ -375,7 +375,7 @@ window.CP_DRILLS = [
       'There exists a PPT $\\A$ whose advantage is negligible'
     ],
     answer: 0,
-    why: 'Order matters: $\\mu$ is chosen **after** $\\A$, so each adversary may have its own bound. Option 2 swaps the quantifiers and demands one universal bound — strictly stronger, and not the standard definition. Negating option 1 gives "there exists a PPT $\\A$ with non-negligible advantage", the first line of nearly every proof here.'
+    why: 'Order matters: $\\mu$ is chosen **after** $\\A$, so each adversary may have its own bound. The "there exists a negligible $\\mu$ bounding every adversary" option swaps the quantifiers and demands one universal bound — strictly stronger, and not the standard definition. Negating the correct statement gives "there exists a PPT $\\A$ with non-negligible advantage", the first line of nearly every proof here.'
   },
   {
     id: 'w14', kind: 'basics',
