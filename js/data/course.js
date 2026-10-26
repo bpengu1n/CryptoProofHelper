@@ -1,5 +1,5 @@
 /* Course content: Bellare & Rogaway "Introduction to Modern Cryptography"
-   Chapters 1–6. */
+   Chapters 1–7. */
 (function () {
   'use strict';
 
@@ -11,6 +11,7 @@
       id: 'ch1',
       num: 1,
       title: 'Introduction',
+      book: 'Bellare & Rogaway, Chapter 1 (Introduction).',
       blurb: 'What cryptography actually solves, the players involved, and the modern way of proving a scheme is secure.',
       prereq: ['#/primer/why-prove', '#/primer/reduction-idea'],
       sections: [
@@ -146,6 +147,7 @@
       id: 'ch2',
       num: 2,
       title: 'Classical Encryption',
+      book: 'Bellare & Rogaway, Chapter 2 (Classical Encryption).',
       blurb: 'Substitution ciphers and why they fail, the one-time pad, and Shannon\'s notion of perfect security.',
       prereq: ['#/primer/probability', '#/primer/counting'],
       sections: [
@@ -324,6 +326,7 @@
       id: 'ch3',
       num: 3,
       title: 'Symmetric Encryption',
+      book: 'Bellare & Rogaway, Chapters 3–5 (Blockciphers, Pseudorandom Functions, Symmetric Encryption), condensed.',
       blurb: 'Pseudorandom functions, the IND-CPA game, and why counter mode is secure while ECB is not.',
       prereq: ['#/primer/adversary', '#/primer/game', '#/basics/advantage'],
       sections: [
@@ -562,6 +565,7 @@
       id: 'ch4',
       num: 4,
       title: 'Message Authentication',
+      book: 'Bellare & Rogaway, Chapter 7 (Message Authentication), with a first look at Chapter 8 (Authenticated Encryption).',
       blurb: 'MACs, pseudorandom functions, and integrity without secrecy.',
       prereq: ['#/course/ch3', '#/basics/games'],
       sections: [
@@ -771,6 +775,7 @@
       id: 'ch5',
       num: 5,
       title: 'Hash Functions',
+      book: 'Bellare & Rogaway, Chapter 6 (Hash Functions). The book covers hashing before MACs; this course swaps them.',
       blurb: 'Collision resistance, the birthday attack, Merkle–Damgård, and the random oracle model.',
       prereq: ['#/primer/counting', '#/basics/birthday'],
       sections: [
@@ -916,7 +921,7 @@
           see: ['#/basics/rom', '#/learn/romprog'],
           body: [
             'Some schemes need more from a hash function than collision resistance — they want its outputs to look completely random and unrelated to its inputs. The **random oracle model** captures this by pretending that $H$ is a truly random function that every party, including the adversary, can only access by querying an oracle.',
-            'In a proof in this model, the reduction gets to see every hash query the adversary makes, and it can choose the answers itself as long as they look random. That extra power makes many proofs possible, including security proofs for RSA-OAEP encryption (Chapter 6) and for full-domain-hash RSA signatures.',
+            'In a proof in this model, the reduction gets to see every hash query the adversary makes, and it can choose the answers itself as long as they look random. That extra power makes many proofs possible, including security proofs for RSA-OAEP encryption (Chapter 7) and for full-domain-hash RSA signatures.',
             'The catch: a real hash function is not a random oracle. It is a fixed, public piece of code. Canetti, Goldreich, and Halevi constructed (contrived) schemes that are secure in the random oracle model but insecure with *any* real hash function plugged in. So a random-oracle proof is a strong heuristic, not a guarantee.',
             'The practical attitude in Bellare and Rogaway is that a random-oracle proof rules out a huge class of generic attacks — any attack must exploit something about the concrete hash function beyond its behavior as a random function. That is far better than no proof at all, and schemes proven this way have held up well in practice.'
           ],
@@ -995,17 +1000,449 @@
     },
 
     /* ------------------------------------------------------------------ */
-    /* Chapter 6 — Public-Key Encryption                                   */
+    /* Chapter 6 — Number Theory                                           */
     /* ------------------------------------------------------------------ */
     {
       id: 'ch6',
       num: 6,
-      title: 'Public-Key Encryption',
-      blurb: 'RSA, ElGamal, and provable security in the public-key setting.',
+      title: 'Number Theory',
       prereq: ['#/primer/modular', '#/primer/groups'],
+      book: 'Bellare & Rogaway, Chapters 9–10 (Computational Number Theory, Number-Theoretic Primitives).',
+      blurb: 'Modular arithmetic, Euclid, inverses, Euler, the CRT, cyclic groups — the maths public-key cryptography runs on, with a hands-on widget in every section.',
       sections: [
         {
-          id: 'ch6-setting',
+          id: 'ch6-divide',
+          title: 'Divisibility, primes, and remainders',
+          body: [
+            'Every public-key scheme in Chapter 7 is arithmetic on very large integers. Their security, and even the fact that they decrypt correctly, rests on a small set of theorems about whole numbers. This chapter builds those theorems from the ground up. Each section has a **Try it** widget: change the numbers, step through the algorithm, and watch the theorem hold. Small examples are how number theory is learned — do the arithmetic yourself before reading on.',
+            'Two kinds of facts matter. Some are **computations we must do quickly** on 2048-bit numbers: reduce, multiply, invert, exponentiate. Others are **structural theorems** that explain why a scheme works: why RSA decryption undoes encryption, why ElGamal\'s mask looks random. By the end of the chapter we will also have the third kind — problems believed to be **hard**, which is where security comes from.',
+            '**Divisibility.** For integers $a, b$ we write $a \\mid b$ ("$a$ divides $b$") if $b = ka$ for some integer $k$. One small fact does a lot of work: if $d \\mid a$ and $d \\mid b$, then $d \\mid xa + yb$ for all integers $x, y$. (Proof: $a = kd$ and $b = ld$, so $xa + yb = (xk + yl)d$.) In words, a common divisor divides every combination.',
+            '**Division with remainder.** For any integer $a$ and any $N \\ge 1$ there are unique integers $q$ and $r$ with $$a = qN + r, \\qquad 0 \\le r < N.$$ The remainder is written $a \\bmod N$. Note that $r$ is never negative: $-7 = (-3) \\cdot 3 + 2$, so $-7 \\bmod 3 = 2$. Beware that the `%` operator in C, Java and JavaScript gives $-1$ for `-7 % 3`. That difference is a classic source of crypto implementation bugs.',
+            '**Primes.** An integer $p \\ge 2$ is **prime** if its only positive divisors are $1$ and $p$. The *fundamental theorem of arithmetic* says every integer $n \\ge 2$ factors into primes in exactly one way (up to order), for example $360 = 2^3 \\cdot 3^2 \\cdot 5$. It rests on **Euclid\'s lemma**: if a prime $p$ divides a product $ab$, then $p \\mid a$ or $p \\mid b$. (We prove it in the section on Bézout below.)',
+            'Primes are plentiful. The *prime number theorem* says that a random integer near $x$ is prime with probability about $1/\\ln x$. Near $2^{1024}$ that is about $1/710$, so picking random odd 1024-bit numbers and testing each one finds a prime after a few hundred tries. RSA key generation does exactly this.'
+          ],
+          quiz: [
+            {
+              q: 'What is $-17 \\bmod 5$?',
+              opts: ['$-2$', '$3$', '$2$', '$-3$'],
+              answer: 1,
+              why: 'The remainder must lie in $\\{0, \\ldots, 4\\}$. $-17 = (-4) \\cdot 5 + 3$, so the answer is $3$. ($-2$ is congruent to $3$, but it is not in the allowed range.)'
+            },
+            {
+              q: 'If $d \\mid a$ and $d \\mid b$, which of these must $d$ also divide?',
+              opts: ['$a/b$', '$a + 1$', '$5a - 3b$', '$ab + 1$'],
+              answer: 2,
+              why: 'A common divisor divides every integer combination $xa + yb$. Here $x = 5$ and $y = -3$.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-modular',
+          title: 'Congruences and $\\Z_N$',
+          widget: 'mod-clock',
+          body: [
+            'We write $a \\equiv b \\pmod N$, read "$a$ is congruent to $b$ modulo $N$", when $N \\mid a - b$. Equivalently, $a$ and $b$ leave the same remainder when divided by $N$. Congruence splits the integers into $N$ classes, one per remainder. We name each class by its remainder, so $\\Z_N = \\{0, 1, \\ldots, N-1\\}$, with addition and multiplication done mod $N$.',
+            '**You may reduce whenever you like.** If $a \\equiv a\'$ and $b \\equiv b\'$ (mod $N$), then $a + b \\equiv a\' + b\'$ and $ab \\equiv a\'b\'$. For the product, $ab - a\'b\' = a(b - b\') + b\'(a - a\')$, and both terms are multiples of $N$. This is what makes cryptographic arithmetic possible: reduce after every operation and no intermediate number ever exceeds $N^2$. Without it, $7^{2^{100}}$ would have about $10^{30}$ digits — far more than all the world\'s computers could store.',
+            'Subtraction is fine too: every $a$ has an additive inverse $-a \\equiv N - a$. **Division is the problem.** In $\\Z_{12}$ we have $2 \\cdot 3 \\equiv 6 \\equiv 2 \\cdot 9$, yet $3$ and $9$ are not congruent. So you cannot simply "cancel the $2$". Worse, $3 \\cdot 4 \\equiv 0$ although neither factor is $0$ — $\\Z_{12}$ has *zero divisors*. The next two sections find out exactly which numbers you are allowed to divide by.',
+            'Use the clock below. Pick $N = 12$ and add: arithmetic mod $N$ is walking around a circle. Then multiply $a = 4$ by $b = 3$, and $a = 5$ by $b = 3$. The jumps of size $4$ only ever land on $0, 4, 8$, while the jumps of size $5$ eventually land everywhere. That difference is the whole story of the next two sections.'
+          ],
+          quiz: [
+            {
+              q: 'Compute $2^{10} \\bmod 7$ without computing $1024$.',
+              opts: ['$1$', '$2$', '$4$', '$3$'],
+              answer: 1,
+              why: '$2^3 = 8 \\equiv 1 \\pmod 7$. So $2^{10} = (2^3)^3 \\cdot 2 \\equiv 1^3 \\cdot 2 = 2$. Reducing early keeps every step small.'
+            },
+            {
+              q: 'In $\\Z_{12}$, why can\'t you conclude $x \\equiv y$ from $4x \\equiv 4y$?',
+              opts: [
+                'Because $12$ is even, and cancellation mod an even modulus only works for odd factors such as $3$ or $5$.',
+                'Because $4$ shares a factor with $12$, so multiplying by $4$ is not one-to-one: $4 \\cdot 0 \\equiv 4 \\cdot 3$.',
+                'You can: multiply both sides by $4^{-1} = 3$, since $4 \\cdot 3 \\equiv 0$ means multiplying by $3$ undoes the $4$ on both sides.',
+                'Because $4$ is not prime, and only prime factors can be cancelled from both sides of a congruence.'
+              ],
+              answer: 1,
+              why: '$4 \\cdot 3 = 12 \\equiv 0 = 4 \\cdot 0$, yet $3$ and $0$ are not congruent. Cancellation works only for numbers coprime to $N$, as the next sections show.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-gcd',
+          title: 'Greatest common divisors and Euclid\'s algorithm',
+          widget: 'euclid',
+          body: [
+            'The **greatest common divisor** $\\gcd(a, b)$ is the largest integer dividing both $a$ and $b$, with $\\gcd(a, 0) = |a|$. We call $a$ and $b$ **coprime** if $\\gcd(a, b) = 1$.',
+            '**Lemma.** $\\gcd(a, b) = \\gcd(b, \\, a \\bmod b)$. *Proof.* Write $a = qb + r$. A common divisor of $a$ and $b$ divides $r = a - qb$, a combination of the two. A common divisor of $b$ and $r$ divides $a = qb + r$. So the two pairs have exactly the same common divisors, and therefore the same greatest one. $\\qed$',
+            '**Euclid\'s algorithm** applies the lemma until the second number is $0$: $\\gcd(252, 105) = \\gcd(105, 42) = \\gcd(42, 21) = \\gcd(21, 0) = 21$. Step through it in the widget.',
+            '**It is fast.** Every two steps, the larger number at least halves. Take a step from $(a, b)$ with $a > b$. If $b \\le a/2$, the new larger number $b$ is already at most half of $a$. If $b > a/2$, the remainder is $r = a - b < a/2$, and $r$ becomes the larger number one step later. So the number of steps is at most about $2\\log_2 a$ — proportional to the number of *digits*, not the size of the number. Two 2048-bit numbers need at most around $4000$ divisions, and in practice far fewer. Note that no factoring is involved: $\\gcd$ is easy even when factoring is hard.',
+            'That combination — gcd easy, factoring hard — once broke real keys. In 2012 two research teams collected millions of RSA public keys from the internet. They found that badly seeded devices had generated moduli sharing a prime: $N_1 = pq_1$, $N_2 = pq_2$. Then $\\gcd(N_1, N_2) = p$ factors both instantly. One team recovered the private keys of about $0.5\\%$ of the TLS servers they scanned.'
+          ],
+          quiz: [
+            {
+              q: 'What is $\\gcd(84, 36)$?',
+              opts: ['$6$', '$12$', '$4$', '$18$'],
+              answer: 1,
+              why: '$84 = 2 \\cdot 36 + 12$, then $36 = 3 \\cdot 12 + 0$. The last nonzero remainder is $12$.'
+            },
+            {
+              q: 'Roughly how many division steps does Euclid\'s algorithm need on two $k$-bit numbers?',
+              opts: ['About $2^k$', 'About $\\sqrt{2^k}$', 'At most about $2k$', 'Exactly $k^2$'],
+              answer: 2,
+              why: 'The larger argument at least halves every two steps, so there are at most about $2\\log_2(2^k) = 2k$ steps. The number of steps is linear in the bit length.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-inverse',
+          title: 'Bézout\'s identity and modular inverses',
+          widget: 'egcd',
+          body: [
+            '**Bézout\'s identity.** For any integers $a, b$, not both $0$, there are integers $s, t$ with $$\\gcd(a, b) = s \\cdot a + t \\cdot b.$$ The **extended Euclidean algorithm** finds $s$ and $t$. Run Euclid, but write every remainder as a combination of the two original numbers. The first two rows are $a = 1 \\cdot a + 0 \\cdot b$ and $b = 0 \\cdot a + 1 \\cdot b$. Each new remainder is "row two above minus $q$ times the row above", so it is again a combination. The last nonzero row expresses the gcd. It costs the same number of steps as plain Euclid.',
+            '**Theorem.** $a$ has a multiplicative inverse modulo $N$ if and only if $\\gcd(a, N) = 1$.',
+            '*Proof.* ($\\Leftarrow$) If $\\gcd(a, N) = 1$, Bézout gives $1 = sN + ta$. Reduce mod $N$: the $sN$ term vanishes, leaving $ta \\equiv 1$. So $t \\bmod N$ is an inverse. ($\\Rightarrow$) If $ab \\equiv 1 \\pmod N$, then $ab - 1 = kN$ for some $k$, so $1 = ab - kN$. Any common divisor of $a$ and $N$ divides the right-hand side, so it divides $1$. $\\qed$',
+            'The inverse is unique mod $N$: if $ab \\equiv ab\' \\equiv 1$, then $b \\equiv b(ab\') = (ba)b\' \\equiv b\'$. We write it $a^{-1} \\bmod N$. With it, **cancellation comes back**. If $\\gcd(a, N) = 1$ and $ax \\equiv ay$, multiply both sides by $a^{-1}$ to get $x \\equiv y$. Likewise $ax \\equiv c$ has the unique solution $x \\equiv a^{-1}c$.',
+            '**When $\\gcd(a, N) = d > 1$.** The congruence $ax \\equiv c \\pmod N$ has a solution exactly when $d \\mid c$, and then it has $d$ solutions mod $N$. If $d$ does not divide $c$ there is none, because every $ax - kN$ is a multiple of $d$. If $d \\mid c$, divide everything by $d$: $(a/d)x \\equiv c/d \\pmod{N/d}$, where now $\\gcd(a/d, N/d) = 1$. That gives one solution $x_0$ mod $N/d$, and the solutions mod $N$ are $x_0, \\; x_0 + N/d, \\; \\ldots, \\; x_0 + (d-1)N/d$. Example: $6x \\equiv 4 \\pmod{10}$ has $d = 2$, which divides $4$. Then $3x \\equiv 2 \\pmod 5$ gives $x \\equiv 4$, so the solutions mod $10$ are $4$ and $9$.',
+            '*Euclid\'s lemma, as promised.* Suppose a prime $p$ divides $ab$ but not $a$. Then $\\gcd(a, p) = 1$, so $1 = sa + tp$. Multiply by $b$: $b = s(ab) + (tb)p$. Both terms are multiples of $p$, so $p \\mid b$. $\\qed$',
+            'In Chapter 7, RSA key generation computes the decryption exponent as $d = e^{-1} \\bmod \\varphi(N)$ — exactly the computation in the widget, on 2048-bit numbers.'
+          ],
+          quiz: [
+            {
+              q: 'What is $7^{-1} \\bmod 26$?',
+              opts: ['$15$', '$19$', '$11$', 'It does not exist'],
+              answer: 0,
+              why: '$7 \\cdot 15 = 105 = 4 \\cdot 26 + 1$. Extended Euclid: $26 = 3 \\cdot 7 + 5$, $7 = 1 \\cdot 5 + 2$, $5 = 2 \\cdot 2 + 1$. Back-substituting gives $1 = 3 \\cdot 26 - 11 \\cdot 7$, so $7^{-1} \\equiv -11 \\equiv 15$.'
+            },
+            {
+              q: 'Does $6$ have an inverse modulo $15$?',
+              opts: [
+                'Yes, $6^{-1} = 11$.',
+                'Yes, $6^{-1} = 6$.',
+                'No, because $\\gcd(6, 15) = 3 \\neq 1$.',
+                'No, because $15$ is not prime — nothing has an inverse mod $15$.'
+              ],
+              answer: 2,
+              why: 'Every $6x - 15k$ is a multiple of $3$, so it can never equal $1$. (Other elements, such as $2$, do have inverses mod $15$. Only those sharing a factor with $15$ do not.)'
+            }
+          ]
+        },
+        {
+          id: 'ch6-groups',
+          title: 'Groups and the unit group $\\Z_N^*$',
+          widget: 'units',
+          body: [
+            'A **group** $(G, \\cdot)$ is a set with an operation satisfying four rules. *Closure*: $a \\cdot b \\in G$. *Associativity*: $(ab)c = a(bc)$. *Identity*: some $1 \\in G$ has $1 \\cdot a = a \\cdot 1 = a$. *Inverses*: each $a$ has an $a^{-1}$ with $a a^{-1} = 1$. All groups in this course are also *abelian* ($ab = ba$). The **order** $|G|$ is the number of elements.',
+            'Two families matter. $(\\Z_N, +)$ is a group of order $N$ with identity $0$. And the **unit group** $$\\Z_N^* = \\{ a \\in \\Z_N : \\gcd(a, N) = 1 \\}$$ is a group under multiplication mod $N$. Inverses exist by the last section. It is closed because if $a$ and $b$ are invertible, so is $ab$, with inverse $b^{-1}a^{-1}$. By contrast, $\\Z_{12} \\setminus \\{0\\}$ under multiplication is *not* a group: $3 \\cdot 4 = 0$ falls out of the set.',
+            'The order of $\\Z_N^*$ is **Euler\'s totient** $\\varphi(N)$. Three rules compute it:',
+            '(1) $\\varphi(p) = p - 1$ for prime $p$, since every nonzero element is coprime to $p$. (2) $\\varphi(p^k) = p^k - p^{k-1}$, because the non-units are exactly the $p^{k-1}$ multiples of $p$. (3) $\\varphi(mn) = \\varphi(m)\\varphi(n)$ when $\\gcd(m, n) = 1$ (proved with the CRT below). Together: $$\\varphi(N) = N \\prod_{p \\mid N} \\left(1 - \\frac{1}{p}\\right).$$ For an RSA modulus $N = pq$ this gives $\\varphi(N) = (p - 1)(q - 1)$.',
+            '**Knowing $\\varphi(N)$ is as good as knowing the factors.** If $N = pq$, then $\\varphi(N) = N - (p + q) + 1$, so $p + q = N - \\varphi(N) + 1$. With both the sum and the product of $p$ and $q$, they are the roots of $x^2 - (p+q)x + N = 0$, which the quadratic formula solves. This is why RSA keeps $\\varphi(N)$ secret.',
+            '::deep *A note on standards.* B&R and this course use $\\varphi(N)$. RSA standards such as PKCS #1 often use the Carmichael function $\\lambda(N) = \\lcm(p-1, q-1)$ instead, which divides $\\varphi(N)$. Everything in Chapter 7 works with either one; $\\lambda$ just gives a slightly smaller $d$.',
+            'In the widget, tap a highlighted unit to see its inverse. Tap a non-unit to see why it has none. Then tap a unit and look at the "shuffle" line — it is the key step in the next section\'s proof.'
+          ],
+          quiz: [
+            {
+              q: 'What is $\\varphi(36)$?',
+              opts: ['$35$', '$24$', '$12$', '$18$'],
+              answer: 2,
+              why: '$36 = 2^2 \\cdot 3^2$, so $\\varphi(36) = 36 \\cdot \\tfrac12 \\cdot \\tfrac23 = 12$. Equivalently $\\varphi(4)\\varphi(9) = 2 \\cdot 6$.'
+            },
+            {
+              q: 'For an RSA modulus $N = pq$, someone learns $\\varphi(N)$. What can they compute?',
+              opts: [
+                'Nothing useful: $\\varphi(N)$ is just a count of units and says nothing about which primes divide $N$.',
+                '$p + q = N - \\varphi(N) + 1$, and then $p$ and $q$ themselves from a quadratic equation.',
+                'Only $p \\cdot q$ again, since $\\varphi(N) = (p-1)(q-1)$ expands to an expression in $N$ alone.',
+                'Whether $N$ is prime, but finding the actual factors would still require running a factoring algorithm.'
+              ],
+              answer: 1,
+              why: 'With the sum and the product of $p$ and $q$ known, they are the two roots of $x^2 - (p+q)x + N$. So computing $\\varphi(N)$ is as hard as factoring $N$.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-euler',
+          title: 'Order, Lagrange, and the theorems of Fermat and Euler',
+          widget: 'powers',
+          body: [
+            'In a group, $g^x$ means $g$ multiplied by itself $x$ times, with $g^0 = 1$. The usual laws hold: $g^{x+y} = g^x g^y$ and $(g^x)^y = g^{xy}$.',
+            '**Order of an element.** In a finite group the powers $g^0, g^1, g^2, \\ldots$ must eventually repeat. If $g^i = g^j$ with $i < j$, multiplying by $g^{-i}$ gives $g^{j-i} = 1$. The smallest $m \\ge 1$ with $g^m = 1$ is the **order** of $g$, written $\\ord(g)$. After that the powers cycle with period $m$, so $$g^x = 1 \\iff \\ord(g) \\mid x, \\qquad g^x = g^{x \\bmod \\ord(g)}.$$',
+            'A **subgroup** $H$ of $G$ is a subset that is itself a group under the same operation: closed under the operation and under inverses. **Lagrange\'s theorem.** If $H$ is a subgroup of a finite group $G$, then $|H|$ divides $|G|$. *Proof sketch.* For $a \\in G$ the *coset* $aH = \\{ah : h \\in H\\}$ has exactly $|H|$ elements, because multiplying by $a$ is one-to-one. Two cosets are equal or disjoint: if $ah = bh\'$ then $a = bh\'h^{-1} \\in bH$, so $aH = bH$. So the cosets cut $G$ into pieces of equal size $|H|$, and $|H|$ divides $|G|$. $\\qed$ The powers of $g$ form a subgroup $\\langle g \\rangle$ of size $\\ord(g)$. So every element\'s order divides $|G|$, and therefore $g^{|G|} = 1$ for every $g \\in G$. Apply this to the groups of the last section:',
+            '**Fermat\'s little theorem.** If $p$ is prime and $p$ does not divide $a$, then $a^{p-1} \\equiv 1 \\pmod p$. **Euler\'s theorem.** If $\\gcd(a, N) = 1$, then $a^{\\varphi(N)} \\equiv 1 \\pmod N$.',
+            'Here is a self-contained proof of Euler\'s theorem — one worth being able to reproduce. List the units $u_1, \\ldots, u_m$, where $m = \\varphi(N)$. Multiply each by $a$. Since $a$ is invertible, $au_i = au_j$ forces $u_i = u_j$, so $au_1, \\ldots, au_m$ are the same $m$ units in a different order (the "shuffle" in the previous widget). The two lists have the same product: $$\\prod_i (a u_i) = a^m \\prod_i u_i \\equiv \\prod_i u_i.$$ The product of units is a unit, so cancel it: $a^m \\equiv 1$. $\\qed$',
+            'Three consequences you will use constantly. **Reduce exponents mod $\\varphi(N)$**: $a^x \\equiv a^{x \\bmod \\varphi(N)}$ for $a \\in \\Z_N^*$. **Inverses by exponentiation**: $a^{-1} \\equiv a^{\\varphi(N) - 1}$, which is $a^{p-2}$ mod a prime. **A primality test**: if $a^{N-1} \\bmod N \\neq 1$, then $N$ is certainly composite, and we learned that without finding a factor. Some composites fool this test; $561 = 3 \\cdot 11 \\cdot 17$ fools it for every coprime $a$. Real systems use the strengthened **Miller–Rabin** test, which no composite fools for more than a quarter of the bases.',
+            '::deep *Miller–Rabin in one paragraph.* Write $N - 1 = 2^s u$ with $u$ odd. Pick a random base $a$ and compute $a^u, a^{2u}, a^{4u}, \\ldots, a^{2^s u} \\bmod N$ by repeated squaring. If $N$ is prime, the sequence either starts at $1$ or hits $-1$ before it reaches $1$, because the only square roots of $1$ mod a prime are $\\pm 1$. If the sequence reaches $1$ without passing through $-1$, or never reaches $1$ at all, $N$ is certainly composite. For composite $N$ at least $3/4$ of the bases expose it, so $k$ independent rounds leave an error probability of at most $4^{-k}$.',
+            'In the widget, watch the powers of $a$ cycle, and check that the cycle length always divides $\\varphi(N)$. Then type an enormous exponent and see it collapse.'
+          ],
+          quiz: [
+            {
+              q: 'Compute $3^{100} \\bmod 7$.',
+              opts: ['$3$', '$4$', '$1$', '$6$'],
+              answer: 1,
+              why: 'By Fermat, $3^6 \\equiv 1 \\pmod 7$, so reduce the exponent: $100 \\bmod 6 = 4$. Then $3^4 = 81 = 11 \\cdot 7 + 4$.'
+            },
+            {
+              q: 'Which of these **cannot** be the order of an element of $\\Z_{11}^*$?',
+              opts: ['$1$', '$2$', '$4$', '$10$'],
+              answer: 2,
+              why: '$|\\Z_{11}^*| = 10$, and by Lagrange every order divides $10$. The possible orders are $1, 2, 5, 10$, so $4$ is impossible.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-modexp',
+          title: 'Fast exponentiation: square-and-multiply',
+          widget: 'modexp',
+          body: [
+            'RSA decryption in Chapter 7 computes $y^d \\bmod N$ with $d$ around $2^{2048}$. Multiplying by $y$ one step at a time would take $2^{2048}$ steps, which is out of the question. Yet the computation takes milliseconds.',
+            '**Square-and-multiply** reads the bits of $x$ from left to right. Start with $y = 1$. For each bit, square $y$; if the bit is $1$, also multiply by $g$. Reduce mod $N$ after every operation.',
+            '*Why it works.* If the bits read so far spell the number $x\'$, then appending a bit $b$ gives $2x\' + b$. Squaring turns $g^{x\'}$ into $g^{2x\'}$, and the optional multiply adds the $b$. So the invariant "$y = g^{\\text{bits read so far}}$" holds at every step — the last column of the widget shows it.',
+            '*Cost.* A $k$-bit exponent needs $k - 1$ squarings and at most $k - 1$ multiplications, and every number stays below $N^2$. That is polynomial in the bit length: about $3000$ multiplications of 2048-bit numbers, instead of $2^{2048}$.',
+            '*A warning from practice.* Plain square-and-multiply does extra work exactly on the $1$ bits of the exponent. If the exponent is a secret key, the running time and power draw leak those bits. Kocher\'s 1996 timing attack recovered keys this way. Production code uses *constant-time* variants (such as the Montgomery ladder) that perform the same operations whatever the bits are.'
+          ],
+          quiz: [
+            {
+              q: 'In left-to-right square-and-multiply, after processing the bits $1011$ of the exponent, what is $y$?',
+              opts: ['$g^{4}$', '$g^{1011}$', '$g^{11}$', '$g^{13}$'],
+              answer: 2,
+              why: 'The invariant is $y = g^{\\text{bits so far}}$, and $1011_2 = 11$. Step by step: $g^1 \\to g^2 \\to g^5 \\to g^{11}$.'
+            },
+            {
+              q: 'About how many modular multiplications (squarings included) does square-and-multiply need for a 2048-bit exponent?',
+              opts: ['About $2048$ to $4096$', 'About $2^{1024}$', 'About $2048^2$', 'About $2^{2048}$'],
+              answer: 0,
+              why: 'One squaring per bit plus one multiplication per $1$ bit: between $2047$ and $4094$. On average, about $3000$.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-crt',
+          title: 'The Chinese Remainder Theorem',
+          widget: 'crt',
+          body: [
+            '**Theorem (CRT).** Let $N_1, N_2$ be coprime and $N = N_1 N_2$. For any $r_1, r_2$ there is exactly one $x \\in \\Z_N$ with $$x \\equiv r_1 \\pmod{N_1}, \\qquad x \\equiv r_2 \\pmod{N_2}.$$ Equivalently, the map $x \\mapsto (x \\bmod N_1, \\; x \\bmod N_2)$ is a bijection from $\\Z_N$ to $\\Z_{N_1} \\times \\Z_{N_2}$. It also respects addition and multiplication, so arithmetic mod $N$ is the same as doing arithmetic mod $N_1$ and mod $N_2$ side by side.',
+            '*Proof of existence.* Let $e_1 = N_2 \\cdot (N_2^{-1} \\bmod N_1)$ and $e_2 = N_1 \\cdot (N_1^{-1} \\bmod N_2)$. These inverses exist because the moduli are coprime. Then $e_1 \\equiv 1 \\pmod{N_1}$ and $e_1 \\equiv 0 \\pmod{N_2}$, and the other way round for $e_2$. So $x = r_1 e_1 + r_2 e_2$ works.',
+            '*Proof of uniqueness.* If $x$ and $x\'$ both work, then $N_1$ and $N_2$ both divide $x - x\'$. Since they are coprime, $N_1 N_2$ divides $x - x\'$. (Write $x - x\' = kN_1$; then $N_2 \\mid kN_1$ with $\\gcd(N_1, N_2) = 1$, so $N_2 \\mid k$.) So $x \\equiv x\' \\pmod N$. $\\qed$',
+            '::deep The same works for any number of pairwise coprime moduli $N_1, \\ldots, N_k$ with $N = N_1 \\cdots N_k$: set $e_i = (N/N_i) \\cdot ((N/N_i)^{-1} \\bmod N_i)$ and $x = \\sum_i r_i e_i$. This version appears in multi-prime RSA and in Håstad\'s attack on textbook RSA with a small exponent sent to several recipients.',
+            'In the widget, press **Count** and watch $x = 0, 1, 2, \\ldots$ travel diagonally through the grid, wrapping at the edges. With coprime moduli it fills every cell exactly once — that is the bijection. Then try $N_1 = 4$, $N_2 = 6$: the walk repeats after $\\lcm(4, 6) = 12$ steps (the *least common multiple*: the smallest number both moduli divide), leaving cells empty and filling others twice.',
+            '**Consequences.** $x$ is a unit mod $N$ exactly when it is a unit mod both $N_1$ and $N_2$, which gives $\\varphi(N_1 N_2) = \\varphi(N_1)\\varphi(N_2)$. In Chapter 7 the CRT does three more jobs. It **speeds up RSA**: the key holder computes $y^d$ separately mod $p$ and mod $q$, with half-size numbers and exponents reduced mod $p-1$ and $q-1$, then combines — about $4\\times$ faster. It **endangers RSA**: if a hardware fault corrupts just one of the two halves, the faulty result is still correct mod the other prime, and a single $\\gcd$ reveals that prime: $\\gcd(s - \\hat s, N)$ for a correct result $s$ and a faulty one $\\hat s$ (Boneh, DeMillo and Lipton, 1997), or even $\\gcd(\\hat s^e - m, N)$ from the faulty result alone (Lenstra). And it **completes the RSA correctness proof** for messages that are not units.'
+          ],
+          quiz: [
+            {
+              q: 'Find $x \\in \\Z_{15}$ with $x \\equiv 2 \\pmod 3$ and $x \\equiv 3 \\pmod 5$.',
+              opts: ['$13$', '$8$', '$11$', '$2$'],
+              answer: 1,
+              why: 'The numbers $\\equiv 3 \\pmod 5$ are $3, 8, 13$. Of these, $8 \\equiv 2 \\pmod 3$. By the formula: $e_1 = 5 \\cdot 2 = 10$, $e_2 = 3 \\cdot 2 = 6$, $x = 2 \\cdot 10 + 3 \\cdot 6 = 38 \\equiv 8$.'
+            },
+            {
+              q: 'Why does the system $x \\equiv 0 \\pmod 2$, $x \\equiv 1 \\pmod 4$ have no solution?',
+              opts: [
+                'It does have one: $x = 5$ satisfies both, because $5 \\equiv 1 \\pmod 4$ and $5 = 2 \\cdot 2 + 1$.',
+                'The moduli share the factor $2$, and the conditions clash mod $2$: one makes $x$ odd, the other even.',
+                'Because $4$ is not prime, and the CRT construction needs a prime modulus to compute the inverses $e_1, e_2$.',
+                'Because $0$ is not a valid remainder, so the condition $x \\equiv 0 \\pmod 2$ must be rewritten first.'
+              ],
+              answer: 1,
+              why: '$x \\equiv 1 \\pmod 4$ implies $x$ is odd, contradicting $x \\equiv 0 \\pmod 2$. With non-coprime moduli the CRT does not apply. A solution exists only if the remainders agree mod the gcd.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-cyclic',
+          title: 'Cyclic groups, generators, and discrete logarithms',
+          widget: 'generators',
+          body: [
+            'A group $G$ is **cyclic** if some $g \\in G$ has $\\langle g \\rangle = G$. Such a $g$ is a **generator**. Then every $h \\in G$ equals $g^x$ for exactly one $x \\in \\Z_{|G|}$, called the **discrete logarithm** $\\log_g h$. The map $x \\mapsto g^x$ turns addition of exponents into multiplication of elements, since $g^{x+y} = g^x g^y$. Diffie–Hellman and ElGamal are built on exactly this.',
+            '**Fact.** For a prime $p$, the group $\\Z_p^*$ is cyclic, of order $p - 1$. (We state this without proof.) It has $\\varphi(p - 1)$ generators.',
+            '**Testing a generator.** Given the prime factors of $p - 1$, $g$ is a generator if and only if $g^{(p-1)/q} \\neq 1$ for every prime $q \\mid p - 1$. *Proof.* If $\\ord(g) = m < p - 1$, then $m$ is a proper divisor of $p - 1$. Then $(p-1)/m > 1$, so it has some prime factor $q$. Since $q \\mid (p-1)/m$, we get $m \\mid (p-1)/q$, and so $g^{(p-1)/q} = 1$. Conversely, a generator has order $p - 1$, which divides none of these exponents. $\\qed$',
+            '**Prime-order groups are the gold standard.** If $|G| = q$ is prime, Lagrange says every element has order $1$ or $q$. So *every* element except $1$ is a generator. Cryptography therefore works in a subgroup of large prime order $q$, not in all of $\\Z_p^*$. One common choice is a *safe prime* $p = 2q + 1$ (a prime whose $q$ is also prime) with the subgroup of squares, which has order $q$. Elliptic-curve groups of prime order are the other.',
+            '::deep Why insist on prime order? The **Pohlig–Hellman** algorithm computes a discrete log in a group of order $m$ by solving one small log in a subgroup for each prime factor of $m$, then combining the answers with the CRT. If $p - 1$ has only small factors, discrete logs mod $p$ are easy, whatever the size of $p$. The difficulty is set by the *largest prime factor* of the group order.',
+            '::deep The **discrete log problem**: given $g$ and $h = g^x$, find $x$. Generic algorithms (baby-step giant-step, Pollard\'s rho) take about $\\sqrt{q}$ steps, so a 256-bit $q$ gives roughly 128-bit security. In $\\Z_p^*$ the special-purpose *index calculus* method is faster, which is why $p$ itself must be 2048 bits or more. On well-chosen elliptic curves no such shortcut is known, so 256-bit curves suffice. (Weak curve families, such as those with small embedding degree, do have shortcuts.)',
+            'In the widget, tap elements to see the subgroup each one generates. Every subgroup size divides $p - 1$. Then take the discrete-log challenge, and press **Brute-force it** to watch the simplest method that works at this size.'
+          ],
+          quiz: [
+            {
+              q: 'How many generators does $\\Z_{13}^*$ have?',
+              opts: ['$12$', '$6$', '$4$', '$1$'],
+              answer: 2,
+              why: '$\\Z_{13}^*$ is cyclic of order $12$, so it has $\\varphi(12) = 4$ generators. They are $2, 6, 7, 11$.'
+            },
+            {
+              q: 'Why are discrete-log schemes run in a subgroup of large **prime** order $q$?',
+              opts: [
+                'Exponentiation is several times faster in a prime-order group, because square-and-multiply can skip the extra reductions modulo the many small prime factors of the group order, which saves real time.',
+                'Pohlig–Hellman splits a discrete log into logs in subgroups of each prime-factor order, so the order needs a large prime factor; prime order also makes every element but $1$ a generator.',
+                'Because $\\Z_p^*$ is not a group unless you remove the even elements, and what remains is exactly the subgroup of prime order.',
+                'Because in a group of composite order some elements have no discrete logarithm at all, so the scheme could fail to decrypt.'
+              ],
+              answer: 1,
+              why: 'The difficulty of a discrete log is governed by the largest prime factor of the group order. Prime order $q$ puts all of the difficulty in one place. As the next section shows, it also avoids a bit leak that breaks DDH.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-qr',
+          title: 'Squares mod $p$, and a bit that leaks',
+          widget: 'qr',
+          body: [
+            'An element $a \\in \\Z_p^*$ is a **quadratic residue** (a "square") if $a \\equiv x^2$ for some $x$. For an odd prime $p$, **exactly half** of $\\Z_p^*$ consists of squares. *Proof.* $x$ and $-x$ have the same square. Conversely, if $x^2 \\equiv y^2$ then $p \\mid (x - y)(x + y)$, so by Euclid\'s lemma $x \\equiv \\pm y$. And $x \\neq -x$ because $p$ is odd. So squaring is exactly two-to-one, and its image has $(p-1)/2$ elements. $\\qed$',
+            'With a generator $g$: $g^x$ is a square **if and only if $x$ is even**. Even powers $g^{2k} = (g^k)^2$ are obviously squares. There are $(p-1)/2$ even exponents, which already accounts for all the squares.',
+            '**Euler\'s criterion.** $a^{(p-1)/2} \\equiv 1$ if $a$ is a square, and $\\equiv -1$ otherwise. *Proof.* Write $a = g^x$. Then $a^{(p-1)/2} = g^{x(p-1)/2}$, which is $1$ exactly when $p - 1 \\mid x(p-1)/2$, that is, when $x$ is even. Its square is $a^{p-1} = 1$, and the only square roots of $1$ mod a prime are $\\pm 1$. $\\qed$',
+            'Look at what that means. One fast exponentiation tells anyone whether $\\log_g h$ is even or odd. **The lowest bit of every discrete log in $\\Z_p^*$ leaks.**',
+            'This is the flaw that makes **DDH easy in the full group $\\Z_p^*$**. DDH, the *Decisional Diffie–Hellman* problem, asks: given $g^x$, $g^y$ and some $Z$, decide whether $Z = g^{xy}$ or $Z$ is a random element. Chapter 7 bases ElGamal\'s security on DDH being hard. From $g^x$ and $g^y$, an attacker learns the parities of $x$ and $y$, hence the parity of $xy$, hence whether $g^{xy}$ is a square. A random $Z$ passes that check only half the time, so the attacker tells "real" from "random" with advantage $\\tfrac12$. The fix is to work in the subgroup of squares of a safe prime $p = 2q + 1$. That subgroup has prime order $q$, every element in it is a square, and the test reveals nothing.',
+            '::deep **Notation.** The *Legendre symbol* $\\left(\\frac{a}{p}\\right)$ is $+1$ if $a$ is a square mod $p$ and $-1$ if not (and $0$ if $p \\mid a$). Euler\'s criterion says $\\left(\\frac{a}{p}\\right) \\equiv a^{(p-1)/2} \\pmod p$. For $N = pq$ the *Jacobi symbol* is the product $\\left(\\frac{a}{N}\\right) = \\left(\\frac{a}{p}\\right)\\left(\\frac{a}{q}\\right)$. Surprisingly, it can be computed quickly *without* knowing $p$ and $q$, by a Euclid-like algorithm based on quadratic reciprocity.',
+            '::deep **Taking square roots.** Modulo a prime $p \\equiv 3 \\pmod 4$ it is one exponentiation: if $a$ is a square, $x = a^{(p+1)/4}$ works, since $x^2 = a^{(p+1)/2} = a \\cdot a^{(p-1)/2} \\equiv a$ by Euler\'s criterion. (Other primes need the Tonelli–Shanks algorithm.) Modulo $N = pq$ a square has **four** square roots: combine $\\pm x_p$ (the roots mod $p$) with $\\pm x_q$ (the roots mod $q$) using the CRT. Two roots $x, y$ with $x \\neq \\pm y$ factor $N$: $N$ divides $x^2 - y^2 = (x - y)(x + y)$ but neither factor, so $\\gcd(x - y, N)$ is $p$ or $q$. That is why computing square roots mod $N$ is exactly as hard as factoring (Rabin, 1979).',
+            '::deep Modulo a composite $N = pq$ the situation flips. Deciding whether a number is a square mod $N$ (when its Jacobi symbol is $+1$) is believed to be hard unless you know $p$ and $q$. That is the *quadratic residuosity assumption*. It underlies Goldwasser–Micali (1982), the first encryption scheme with a proof of semantic security.'
+          ],
+          quiz: [
+            {
+              q: 'How many quadratic residues are there in $\\Z_{13}^*$?',
+              opts: ['$12$', '$6$', '$4$', '$3$'],
+              answer: 1,
+              why: 'Exactly half of the $12$ units: $\\{1, 3, 4, 9, 10, 12\\}$.'
+            },
+            {
+              q: 'Given only $g$ and $h = g^x$ in $\\Z_p^*$ ($g$ a generator), what can anyone compute efficiently about $x$?',
+              opts: [
+                'Nothing at all, since that would contradict the discrete log assumption.',
+                'Whether $x$ is even, by checking whether $h^{(p-1)/2} \\equiv 1$.',
+                'All of $x$, by applying Euler\'s criterion bit by bit.',
+                'Whether $x$ is prime, by checking whether $h^{x} \\equiv h$.'
+              ],
+              answer: 1,
+              why: 'Euler\'s criterion detects squares, and $g^x$ is a square exactly when $x$ is even. This leaked bit is why DDH fails in $\\Z_p^*$ and why schemes use a prime-order subgroup.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-hard',
+          title: 'Easy and hard: the gap public-key cryptography lives in',
+          widget: 'factor',
+          body: [
+            '**Easy** — polynomial time in the bit length $k$, meaning the work grows like a fixed power of the number of digits, not like the size of the number. Addition (about $k$ bit operations), multiplication and reduction (about $k^2$). $\\gcd$, Bézout and inverses (Euclid, about $k^2$). Modular exponentiation (square-and-multiply, about $k^3$). The CRT. **Primality testing**: Miller–Rabin is fast and its error probability falls below $4^{-t}$ after $t$ rounds; AKS (2002) is even deterministic. **Generating random primes**: test random candidates; by the prime number theorem you need only a few hundred tries. **Square roots modulo a prime**: the Tonelli–Shanks algorithm.',
+            '**Believed hard** — no polynomial-time algorithm known, for well-chosen parameters. **Factoring** $N = pq$. **Computing $\\varphi(N)$**, or the RSA secret exponent $d$ — each equivalent to factoring (the section on groups shows it for $\\varphi(N)$). **Square roots mod $N = pq$** — also equivalent to factoring (Rabin). The **RSA problem**: given $N, e, y$, find $x$ with $x^e \\equiv y$. This one is subtly different: it asks you to undo the RSA function on one value *without* necessarily finding $d$, and nobody has proved that this requires factoring. **Discrete log** in a prime-order subgroup, together with its relatives **CDH** and **DDH**. **Quadratic residuosity** mod $N$.',
+            'The relationships run one way. If you can factor, you can compute $\\varphi(N)$ and then $d$, so you can solve the RSA problem. If you can take discrete logs, you can solve CDH, and if you can solve CDH you can solve DDH. None of the converses is known in general. And **none of these problems is proven hard**: a proof would settle P vs NP and more. They are *assumptions* that have survived decades of attack. That is why the strongest statement in Chapter 7 is a reduction: "anyone who breaks this scheme can solve problem $X$."',
+            '::deep For scale: the record for factoring an RSA-style modulus is RSA-250, an 829-bit number, factored in 2020 using about 2700 core-years of computing with the number field sieve. A 2048-bit modulus is estimated at roughly 112-bit security, and 3072 bits at 128. A large quantum computer running **Shor\'s algorithm** would factor and take discrete logs in polynomial time. That is why post-quantum schemes based on other problems are now being deployed.',
+            'Feel the asymmetry for yourself. The widget multiplies two random primes instantly, then factors the product the obvious way, by trial division. Add a digit to the primes and watch the work grow tenfold.'
+          ],
+          quiz: [
+            {
+              q: 'Which of these is computationally **easy** for 2048-bit inputs?',
+              opts: [
+                'Factoring $N = pq$.',
+                'Computing $\\varphi(N)$ from $N = pq$ alone.',
+                'Computing $\\gcd(a, b)$ and $a^{-1} \\bmod b$.',
+                'Computing a discrete log in a 2048-bit prime-order group.'
+              ],
+              answer: 2,
+              why: 'Euclid and extended Euclid take a number of steps linear in the bit length. The other three are believed hard; computing $\\varphi(N)$ is equivalent to factoring.'
+            },
+            {
+              q: 'If someone had a fast factoring algorithm, what would happen to RSA?',
+              opts: [
+                'Nothing directly, because RSA security rests on the RSA problem ($e$-th roots), not on factoring itself.',
+                'It would be broken: factor $N$, compute $\\varphi(N) = (p-1)(q-1)$, then $d = e^{-1} \\bmod \\varphi(N)$.',
+                'Only RSA signatures would be affected, since encryption also depends on the padding scheme being secure.',
+                'Keys would need to double in length, since factoring speed-ups only shave a constant off the exponent.'
+              ],
+              answer: 1,
+              why: 'Factoring gives $\\varphi(N)$, and extended Euclid then gives the secret exponent. So RSA is at most as hard as factoring. Whether it is exactly as hard is open.'
+            }
+          ]
+        },
+        {
+          id: 'ch6-practice',
+          title: 'Practice until it is automatic',
+          widget: 'nt-practice',
+          body: [
+            'Fluency with these computations is what lets you follow — and write — the proofs in Chapter 7 without getting lost in the arithmetic. The practice widget below generates endless problems on every topic in this chapter, each with a worked solution. Pick a topic you are unsure of, or leave it on *Mixed*. Your best streak is saved on this device.',
+            'Habits that save marks on exams. **Reduce early**, before multiplying. **Check every inverse** by multiplying it back. **Reduce exponents first** with Fermat or Euler, and only then square-and-multiply. **Sanity-check orders**: by Lagrange, every order divides the group order. **Show the table** for extended Euclid: graders give credit for the method even when the arithmetic slips.'
+          ]
+        }
+      ],
+      mastery: [
+        {
+          q: 'What is $5^{-1} \\bmod 17$?',
+          opts: ['$7$', '$12$', '$3$', '$10$'],
+          answer: 0,
+          why: '$5 \\cdot 7 = 35 = 2 \\cdot 17 + 1$. Extended Euclid: $17 = 3 \\cdot 5 + 2$, $5 = 2 \\cdot 2 + 1$, so $1 = 5 - 2 \\cdot 2 = 5 - 2(17 - 3 \\cdot 5) = 7 \\cdot 5 - 2 \\cdot 17$.'
+        },
+        {
+          q: 'What is $\\varphi(77)$?',
+          opts: ['$76$', '$60$', '$18$', '$70$'],
+          answer: 1,
+          why: '$77 = 7 \\cdot 11$, so $\\varphi(77) = 6 \\cdot 10 = 60$.'
+        },
+        {
+          q: 'Compute $2^{1000} \\bmod 11$.',
+          opts: ['$2$', '$10$', '$1$', '$0$'],
+          answer: 2,
+          why: 'By Fermat, $2^{10} \\equiv 1 \\pmod{11}$, and $1000 = 100 \\cdot 10$. So $2^{1000} = (2^{10})^{100} \\equiv 1$.'
+        },
+        {
+          q: 'Which $x \\in \\Z_{20}$ satisfies $x \\equiv 1 \\pmod 4$ and $x \\equiv 2 \\pmod 5$?',
+          opts: ['$13$', '$17$', '$7$', '$12$'],
+          answer: 1,
+          why: 'Numbers $\\equiv 2 \\pmod 5$: $2, 7, 12, 17$. Only $17 \\equiv 1 \\pmod 4$. The CRT guarantees it is the only one in $\\Z_{20}$.'
+        },
+        {
+          q: 'Which statement about $\\Z_{23}^*$ is **false**?',
+          opts: [
+            'Every element\'s order divides $22$.',
+            'It has exactly $\\varphi(22) = 10$ generators.',
+            'Exactly $11$ of its elements are squares.',
+            'It contains an element of order $4$.'
+          ],
+          answer: 3,
+          why: 'The group has order $22 = 2 \\cdot 11$. By Lagrange, every order is one of $1, 2, 11, 22$, so no element has order $4$. The other three statements are true.'
+        },
+        {
+          q: 'RSA key generation computes $d = e^{-1} \\bmod \\varphi(N)$ easily, yet recovering $d$ from the public $(N, e)$ is believed hard. Why the difference?',
+          opts: [
+            'Key generation runs extended Euclid on $e$ and $N$, which is fast; an attacker would instead have to search through all possible $d$.',
+            'Key generation knows $p, q$ and hence $\\varphi(N) = (p-1)(q-1)$; computing $\\varphi(N)$ without them is as hard as factoring.',
+            'Inverses mod $\\varphi(N)$ are only unique when $e$ is prime, so an attacker cannot tell which of the many candidate values of $d$ is correct.',
+            'Key generation picks $d$ first and derives $e$ from it, so $d$ never has to be computed from $e$ at all.'
+          ],
+          answer: 1,
+          why: 'The inverse is easy once you know the modulus $\\varphi(N)$. But $\\varphi(N)$ together with $N$ reveals $p + q$ and hence $p$ and $q$. So computing it is exactly as hard as factoring.'
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    /* Chapter 7 — Public-Key Encryption                                   */
+    /* ------------------------------------------------------------------ */
+    {
+      id: 'ch7',
+      num: 7,
+      title: 'Public-Key Encryption',
+      book: 'Bellare & Rogaway, Chapter 11 (Asymmetric Encryption), using the Diffie–Hellman assumptions from Chapter 10.',
+      blurb: 'RSA, ElGamal, and provable security in the public-key setting.',
+      prereq: ['#/course/ch6'],
+      sections: [
+        {
+          id: 'ch7-numbers',
+          title: 'Recap: the number theory you need',
+          see: ['#/course/ch6', '#/primer/modular', '#/primer/groups'],
+          body: [
+            'Chapter 6 built all the number theory this chapter uses. The short version: $\\Z_N^*$ is the set of $a \\in \\Z_N$ with $\\gcd(a, N) = 1$. It is a group under multiplication mod $N$, of order $\\varphi(N)$. For a prime $p$, $\\varphi(p) = p - 1$. For $N = pq$ with distinct primes, $\\varphi(N) = (p-1)(q-1)$.',
+            '**Euler\'s theorem**: $a^{\\varphi(N)} \\equiv 1 \\pmod N$ for $a \\in \\Z_N^*$, so exponents can be reduced mod $\\varphi(N)$. **Easy**: modular exponentiation (square-and-multiply) and inverses (extended Euclid). **Believed hard**: factoring $N = pq$, computing $\\varphi(N)$ without the factors, and discrete logarithms in a large prime-order group. If any of this feels shaky, work through the widgets in Chapter 6 first.'
+          ],
+          quiz: [
+            {
+              q: 'What is $\\varphi(N)$ for $N = 5 \\cdot 11 = 55$?',
+              opts: [
+                '$54$',
+                '$40$',
+                '$16$',
+                '$55$'
+              ],
+              answer: 1,
+              why: 'For $N = pq$, $\\varphi(N) = (p-1)(q-1) = 4 \\cdot 10 = 40$.'
+            }
+          ]
+        },
+        {
+          id: 'ch7-setting',
           title: 'Encryption without a shared secret',
           see: ['#/learn/hybrid', '#/proofs/prg-hybrid'],
           body: [
@@ -1029,38 +1466,13 @@
           ]
         },
         {
-          id: 'ch6-numbers',
-          title: 'Number theory you need',
-          see: ['#/primer/modular', '#/primer/groups'],
-          body: [
-            'Public-key cryptography is built on arithmetic modulo a number. For a positive integer $N$, $\\Z_N = \\{0, 1, \\ldots, N-1\\}$ with addition and multiplication mod $N$. The elements that have a multiplicative inverse are those **coprime** to $N$ — sharing no factor with $N$ except $1$, i.e. $\\gcd(a, N) = 1$. They form the group $\\Z_N^*$, whose size is written $\\varphi(N)$. For example, $\\Z_{10}^* = \\{1, 3, 7, 9\\}$, so $\\varphi(10) = 4$.',
-            'For a prime $p$, every nonzero element is invertible, so $\\varphi(p) = p - 1$. For $N = pq$ with $p, q$ distinct primes, $\\varphi(N) = (p-1)(q-1)$.',
-            '**Euler\'s theorem**: for any $a \\in \\Z_N^*$, $a^{\\varphi(N)} \\equiv 1 \\pmod N$. Consequently, exponents can be reduced modulo $\\varphi(N)$: $a^x \\equiv a^{x \\bmod \\varphi(N)} \\pmod N$.',
-            'Two computations are easy even for numbers thousands of bits long. **Modular exponentiation** $a^x \\bmod N$ takes about $\\log_2 x$ squarings and multiplications (square-and-multiply). **Modular inverses** are found with the extended Euclidean algorithm.',
-            'Two computations are believed hard. **Factoring**: given $N = pq$ for large random primes, find $p$ and $q$. **Discrete logarithm**: given a generator $g$ of a suitable large group and $X = g^x$, find $x$. Every scheme in this chapter rests on one of these.'
-          ],
-          quiz: [
-            {
-              q: 'What is $\\varphi(N)$ for $N = 5 \\cdot 11 = 55$?',
-              opts: [
-                '$54$',
-                '$40$',
-                '$16$',
-                '$55$'
-              ],
-              answer: 1,
-              why: 'For $N = pq$, $\\varphi(N) = (p-1)(q-1) = 4 \\cdot 10 = 40$.'
-            }
-          ]
-        },
-        {
-          id: 'ch6-rsa',
+          id: 'ch7-rsa',
           title: 'RSA: a trapdoor permutation',
           anim: 'rsa-trapdoor',
           body: [
-            'RSA key generation picks two large random primes $p, q$, sets $N = pq$, and chooses an exponent $e$ coprime to $\\varphi(N)$. It then computes $d$ with $ed \\equiv 1 \\pmod{\\varphi(N)}$, using the extended Euclidean algorithm. The public key is $(N, e)$; the secret key is $(N, d)$.',
-            'The RSA function on $\\Z_N^*$ is $f(x) = x^e \\bmod N$ and its inverse is $f^{-1}(y) = y^d \\bmod N$. They really are inverses: $(x^e)^d = x^{ed} = x^{1 + k\\varphi(N)} = x \\cdot (x^{\\varphi(N)})^k \\equiv x \\pmod N$ by Euler\'s theorem. (Euler\'s theorem covers $x \\in \\Z_N^*$. Using the Chinese Remainder Theorem one can show $x^{ed} \\equiv x$ for every $x \\in \\Z_N$, but we will not need that.)',
-            'A tiny example: $p = 5$, $q = 11$, so $N = 55$ and $\\varphi(N) = 40$. Take $e = 3$; then $d = 27$, since $3 \\cdot 27 = 81 = 2 \\cdot 40 + 1$ (at this size you can just try multiples of $3$). Applying $f$ to $x = 7$ gives $7^3 = 343 \\equiv 13 \\pmod{55}$. Applying $f^{-1}$ gives $13^{27} \\bmod 55 = 7$.',
+            'RSA key generation picks two large random primes $p, q$, sets $N = pq$, and chooses an exponent $e$ coprime to $\\varphi(N)$. It then computes $d$ with $ed \\equiv 1 \\pmod{\\varphi(N)}$, using the extended Euclidean algorithm (Chapter 6). The public key is $(N, e)$; the secret key is $(N, d)$.',
+            'The RSA function on $\\Z_N^*$ is $f(x) = x^e \\bmod N$ and its inverse is $f^{-1}(y) = y^d \\bmod N$. They really are inverses: $(x^e)^d = x^{ed} = x^{1 + k\\varphi(N)} = x \\cdot (x^{\\varphi(N)})^k \\equiv x \\pmod N$ by Euler\'s theorem. (Euler\'s theorem covers $x \\in \\Z_N^*$. For *every* $x \\in \\Z_N$, use the CRT from Chapter 6: it is enough to check $x^{ed} \\equiv x$ mod $p$ and mod $q$ separately. Mod $p$: if $p \\mid x$ both sides are $0$; otherwise $ed = 1 + k(p-1)(q-1)$ and Fermat gives $x^{ed} = x \\cdot (x^{p-1})^{k(q-1)} \\equiv x$. The same argument works mod $q$.)',
+            'A tiny example: $p = 5$, $q = 11$, so $N = 55$ and $\\varphi(N) = 40$. Take $e = 3$; then $d = 27$, since $3 \\cdot 27 = 81 = 2 \\cdot 40 + 1$ (found with extended Euclid, Chapter 6). Applying $f$ to $x = 7$ gives $7^3 = 343 \\equiv 13 \\pmod{55}$. Applying $f^{-1}$ gives $13^{27} \\bmod 55 = 7$.',
             'Anyone can compute $f$. Knowing $d$ (or the factors $p, q$) lets you invert $f$, and recovering $d$ from $(N, e)$ is provably as hard as factoring $N$. But nobody has proved that inverting $f$ *without* finding $d$ requires factoring — that is why we state the RSA assumption separately below. So $f$ is a **trapdoor permutation**: a permutation that is easy in one direction for everyone, and easy in the other direction only for whoever holds the trapdoor $d$.',
             'The **RSA assumption** is that, for a random $y \\in \\Z_N^*$, no efficient adversary given $(N, e, y)$ can find $x$ with $x^e \\equiv y \\pmod N$. Real moduli are 2048 bits or more; $2^{2048}$ is a 617-digit number.'
           ],
@@ -1079,7 +1491,7 @@
           ]
         },
         {
-          id: 'ch6-textbook',
+          id: 'ch7-textbook',
           title: 'Why "textbook RSA" is not secure encryption',
           body: [
             'The tempting scheme is to encrypt by $C = M^e \\bmod N$ and decrypt by $M = C^d \\bmod N$. This is called **textbook RSA**, and it is not a secure encryption scheme.',
@@ -1103,14 +1515,14 @@
           ]
         },
         {
-          id: 'ch6-elgamal',
+          id: 'ch7-elgamal',
           title: 'Diffie–Hellman and ElGamal',
           see: ['#/proofs/elgamal', '#/learn/reduction'],
           body: [
             'Let $G$ be a cyclic group of prime order $q$ with generator $g$ — for example, a prime-order subgroup of $\\Z_p^*$ or an elliptic-curve group.',
             'The **Diffie–Hellman key exchange** (1976) is where these problems come from. Alice picks a secret $x$ and sends $g^x$; Bob picks a secret $y$ and sends $g^y$. Both can now compute $g^{xy}$: Alice as $(g^y)^x$, Bob as $(g^x)^y$. An eavesdropper sees only $g^x$ and $g^y$. Is that enough to find $g^{xy}$?',
             'Three problems in $G$ form a hierarchy. **DL**: given $g^x$, find $x$. **CDH**: given $g^x$ and $g^y$, compute $g^{xy}$. **DDH**: given $g^x$, $g^y$, and $Z$, decide whether $Z = g^{xy}$ or $Z$ is a random group element.',
-            'Solving DL lets you solve CDH, and solving CDH lets you solve DDH, so DDH is the strongest assumption of the three. In some groups DDH is easy even though DL is hard. In the full group $\\Z_p^*$ one can efficiently test whether an element is a square, and $g^{xy}$ is a square exactly when $xy$ is even — which is computable from $g^x$ and $g^y$. A random $Z$ passes this test only half the time, so DDH is easy there. That is why schemes use prime-order subgroups.',
+            'Solving DL lets you solve CDH, and solving CDH lets you solve DDH, so DDH is the strongest assumption of the three. In some groups DDH is easy even though DL is hard. In the full group $\\Z_p^*$ one can efficiently test whether an element is a square (Euler\'s criterion, Chapter 6), and $g^{xy}$ is a square exactly when $xy$ is even — which is computable from $g^x$ and $g^y$. A random $Z$ passes this test only half the time, so DDH is easy there. That is why schemes use prime-order subgroups.',
             '**ElGamal encryption.** The secret key is a random $x \\in \\Z_q$, and the public key is $X = g^x$. To encrypt a group element $M$, pick a random $y \\in \\Z_q$ and output $(Y, W) = (g^y, \\; X^y \\cdot M)$. To decrypt, compute $W \\cdot (Y^x)^{-1}$. Since $Y^x = g^{xy} = X^y$, the mask cancels. (Encoding a message as a group element is awkward; in practice $X^y$ is instead hashed into a symmetric key — "hashed ElGamal" — which leads to the hybrid encryption section below.)',
             '**Theorem.** For any IND-CPA adversary $A$ against ElGamal there is a DDH adversary $B$, about as efficient, with $\\Adv^{\\mathrm{ind-cpa}}(A) \\le 2 \\, \\Adv^{\\mathrm{ddh}}(B)$.',
             'Proof idea: we only handle one left-or-right query, which is enough by the remark at the start of the chapter. $B$ gets a DDH challenge $(g^x, g^y, Z)$. It sets $pk = g^x$, picks a random bit $b$ of its own, answers the left-or-right query with $(g^y, Z \\cdot M_b)$, and outputs $1$ if $A$ guesses $b$. If $Z = g^{xy}$, this is a real encryption and $A$ is correct with probability $\\tfrac12 + \\tfrac12 \\Adv(A)$. If $Z$ is a random group element, then $Z \\cdot M_b$ is uniform no matter what $M_b$ is — a one-time pad in the group — and $A$ is correct with probability exactly $\\tfrac12$. The gap between these cases, $\\tfrac12 \\Adv(A)$, is $B$\'s DDH advantage. $\\qed$'
@@ -1130,14 +1542,14 @@
           ]
         },
         {
-          id: 'ch6-hybrid',
+          id: 'ch7-hybrid',
           title: 'Putting it together: hybrid encryption',
           see: ['#/proofs/hashed-elgamal', '#/proofs/etm'],
           body: [
             'Public-key operations are slow — thousands of times slower than a block cipher — and schemes like ElGamal only encrypt a single group element. Nobody encrypts a video file with RSA.',
             'Instead, systems use **hybrid encryption**. To send $M$ to Bob: pick a fresh random symmetric key $K$; encrypt $K$ under Bob\'s public key (or, equivalently, derive $K$ together with an encapsulation of it, as below); encrypt $M$ under $K$ with an authenticated symmetric scheme (Chapter 4\'s Encrypt-then-MAC, or GCM). Bob decrypts $K$ with $sk$, then decrypts $M$ with $K$.',
             'Formally, a **key encapsulation mechanism** (KEM) outputs a fresh key $K$ and an encapsulation $C_1$ that only $sk$ can open — for example $C_1 = g^y$ and $K = H(X^y)$, which is hashed ElGamal. A **data encapsulation mechanism** (DEM) encrypts $M$ under $K$. Since each $K$ is used only once, the DEM only needs one-time security. The KEM/DEM theorem bounds the combined scheme\'s advantage by a small multiple of the KEM\'s advantage plus the DEM\'s — another reduction in the now-familiar pattern.',
-            'PGP, HPKE (RFC 9180) and age use hybrid encryption directly. TLS 1.3 and Signal use the closely related Diffie–Hellman key exchange to agree on $K$, then the same symmetric machinery. Either way, it uses every chapter of this course: a hash function to derive keys (Chapter 5), a MAC for integrity (Chapter 4), a PRF-based symmetric scheme for bulk data (Chapter 3), and a public-key primitive to establish the key in the first place.',
+            'PGP, HPKE (RFC 9180) and age use hybrid encryption directly. TLS 1.3 and Signal use the closely related Diffie–Hellman key exchange to agree on $K$, then the same symmetric machinery. Either way, it uses every chapter of this course: number theory for the public-key step (Chapter 6), a hash function to derive keys (Chapter 5), a MAC for integrity (Chapter 4), a PRF-based symmetric scheme for bulk data (Chapter 3), and a public-key primitive to establish the key in the first place.',
             'Finally, a word on stronger attacks. Real adversaries can often send modified ciphertexts and observe how the receiver reacts — an error message, a timing difference. Bleichenbacher\'s 1998 "million-message" attack decrypted SSL key-exchange ciphertexts by sending about a million modified ciphertexts and watching whether the server reported a padding error. The padding scheme (PKCS #1 v1.5) had no security proof, and certainly none against such attacks. The modern target is **IND-CCA** security, where the adversary may also ask for decryptions of any ciphertext other than its challenge. RSA-OAEP achieves it (in the random oracle model), and so does hybrid encryption when *both* the KEM is CCA-secure and the DEM is authenticated.'
           ],
           quiz: [

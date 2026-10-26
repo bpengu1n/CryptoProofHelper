@@ -69,7 +69,7 @@
     var h = '<p class="lead">Two ways in. Learn the groundwork from scratch, or jump straight to the ' +
             'technique that matches the problem in front of you.</p>';
     h += '<a class="card hero" href="#/course"><h3>&#128218; Bellare &amp; Rogaway Course</h3>' +
-         '<p>Six chapters in a friendly format: from substitution ciphers and the one-time pad through PRFs, MACs, hash functions, and RSA and ElGamal — with inline quizzes and a scored mastery test per chapter.</p>' +
+         '<p>' + COURSE.length + ' chapters in a friendly format: from substitution ciphers and the one-time pad through PRFs, MACs, hash functions, an interactive number-theory chapter, and RSA and ElGamal — with inline quizzes and a scored mastery test per chapter.</p>' +
          '<span class="chip ok">' + (doneCount ? doneCount + ' of ' + PRIMER.length + ' primer lessons read' : 'interactive &middot; offline') + '</span></a>';
     h += '<a class="card" href="#/primer"><h3>&#9650; New to the maths? Start with the Primer</h3>' +
          '<p>' + PRIMER.length + ' short lessons assuming nothing past high-school algebra: the ' +
@@ -513,7 +513,9 @@
       title: 'Which technique?', sub: 'Read the problem, name the move it calls for' },
     { id: 'flaw',      kinds: ['flaw'],
       title: 'Spot the flaw', sub: 'The errors that actually cost marks' },
-    { id: 'all',       kinds: ['basics', 'technique', 'flaw'],
+    { id: 'numtheory', kinds: ['numtheory'],
+      title: 'Number theory', sub: 'Inverses, Euler, CRT, generators — the Ch 6 toolkit' },
+    { id: 'all',       kinds: ['basics', 'technique', 'flaw', 'numtheory'],
       title: 'Everything', sub: 'All of it, shuffled together' }
   ];
 
@@ -547,7 +549,7 @@
   }
 
   function vDrill(setId) {
-    var set = byId(DRILL_SETS, setId || 'all') || DRILL_SETS[3];
+    var set = byId(DRILL_SETS, setId || 'all') || byId(DRILL_SETS, 'all');
     var items = drillItems(set);
     if (!items.length) return notFound();
 
@@ -578,7 +580,8 @@
         state.cur = { d: d, perm: perm, answer: perm.indexOf(d.answer) };
 
         var kind = d.kind === 'flaw' ? 'Spot the flaw'
-                 : d.kind === 'basics' ? 'Warm-up' : 'Which technique?';
+                 : d.kind === 'basics' ? 'Warm-up'
+                 : d.kind === 'numtheory' ? 'Number theory' : 'Which technique?';
         var html = '<div class="eyebrow">' + kind + '</div>' +
                    '<div class="card"><div class="prose"><p>' + t(d.q) + '</p></div></div>';
         perm.forEach(function (orig, i) {
@@ -640,6 +643,20 @@
     var v = courseVisited(); if (v[id]) return; v[id] = 1; S.set('course:visited', v);
   }
   function courseQuizKey(id) { return 'course:quiz:' + id; }
+
+  /* Number Theory was inserted as Ch 6, pushing Public-Key Encryption from
+     'ch6' to 'ch7'. Carry saved progress across once so it isn't credited
+     to the wrong chapter. */
+  (function migrateCourseIds() {
+    if (S.get('course:ids', 1) >= 2) return;
+    var v = courseVisited();
+    if (v.ch6) { delete v.ch6; v.ch7 = 1; S.set('course:visited', v); }
+    var old = S.get(courseQuizKey('ch6'), null);
+    if (old !== null) { S.set(courseQuizKey('ch7'), old); S.set(courseQuizKey('ch6'), null); }
+    var pos = S.get('course:pos:ch6', null);
+    if (pos) { S.set('course:pos:ch7', String(pos).replace(/^ch6-/, 'ch7-')); S.set('course:pos:ch6', null); }
+    S.set('course:ids', 2);
+  })();
 
   /* SVG diagrams – keyed by the section.anim field. */
   function animHTML(key) {
@@ -1083,6 +1100,7 @@
     var n = ch.sections.length;
 
     var h = '<p class="lead">' + esc(ch.blurb) + '</p>';
+    if (ch.book) h += '<p class="book-ref"><b>In the book:</b> ' + esc(ch.book) + '</p>';
 
     if (ch.prereq && ch.prereq.length) {
       h += '<div class="eyebrow">Before this chapter</div>' + linkList(ch.prereq);
@@ -1098,7 +1116,7 @@
     /* Section index */
     h += '<details class="toc"' + (secId ? '' : ' open') + '><summary>In this chapter (' + n + ' sections)</summary><ol>';
     ch.sections.forEach(function (sec) {
-      h += '<li><a href="#/course/' + id + '/' + sec.id + '">' + esc(sec.title) + '</a></li>';
+      h += '<li><a href="#/course/' + id + '/' + sec.id + '">' + t(sec.title) + '</a></li>';
     });
     h += '</ol></details>';
 
@@ -1106,11 +1124,25 @@
     ch.sections.forEach(function (sec, i) {
       h += '<section class="ch-sec" id="sec-' + sec.id + '" data-sec="' + sec.id + '">' +
            '<div class="sec-of">Section ' + (i + 1) + ' of ' + n + '</div>' +
-           '<h2 class="sec-heading">' + esc(sec.title) + '</h2>';
+           '<h2 class="sec-heading">' + t(sec.title) + '</h2>';
       h += '<div class="prose">';
-      sec.body.forEach(function (para) { h += '<p>' + t(para) + '</p>'; });
+      /* Paragraphs starting '::deep ' are optional depth: consecutive ones
+         collapse into one "Going deeper" block so the core path stays short. */
+      var deep = [];
+      function flushDeep() {
+        if (!deep.length) return;
+        h += '<details class="deeper"><summary>Going deeper (optional)</summary>' + deep.join('') + '</details>';
+        deep = [];
+      }
+      sec.body.forEach(function (para) {
+        if (para.indexOf('::deep ') === 0) { deep.push('<p>' + t(para.slice(7)) + '</p>'); return; }
+        flushDeep();
+        h += '<p>' + t(para) + '</p>';
+      });
+      flushDeep();
       h += '</div>';
       if (sec.anim) h += figureHTML(sec.anim);
+      if (sec.widget && window.CPWidgets) h += window.CPWidgets.html(sec.widget);
       if (sec.see && sec.see.length) h += '<div class="eyebrow">Go deeper</div>' + linkList(sec.see);
       if (sec.quiz && sec.quiz.length) h += sectionQuizHTML(sec.quiz, sec.id);
       h += '</section>';
@@ -1145,6 +1177,7 @@
     return { title: 'Ch ' + ch.num + ': ' + ch.title, html: h, tab: 'course', back: '#/course',
       anchor: secId ? 'sec-' + secId : null,
       after: function () {
+        if (window.CPWidgets) window.CPWidgets.wire(main);
         /* Index links scroll in place: re-rendering would wipe quiz answers in progress. */
         Array.prototype.forEach.call(main.querySelectorAll('.toc a'), function (a) {
           a.onclick = function (e) {
@@ -1247,7 +1280,7 @@
             if (prev === null || state.right > prev) S.set(courseQuizKey(id), state.right);
             quizBox.innerHTML = '<div class="card"><h3>' + state.right + ' / ' + total + '</h3>' +
               '<p>' + (state.right === total
-                ? 'Perfect. On to the next chapter.'
+                ? (at < chList.length - 1 ? 'Perfect. On to the next chapter.' : 'Perfect — and that was the last chapter.')
                 : 'The questions you missed are below, with explanations. Then try again.') + '</p></div>' +
               missedReviewHTML(state.missed) +
               '<button class="btn wide" id="mq-again">Try again (reshuffled)</button>' +
@@ -1409,7 +1442,7 @@
       // One result per section, so a hit opens at the section instead of the chapter top.
       ch.sections.forEach(function (sec) {
         INDEX.push({ href: '#/course/' + ch.id + '/' + sec.id, title: sec.title,
-          kind: 'Course &middot; Ch ' + ch.num, text: sec.body.join(' ') + ' ' +
+          kind: 'Course &middot; Ch ' + ch.num, text: sec.body.join(' ').replace(/::deep /g, '') + ' ' +
             (sec.quiz || []).map(function (q) { return q.q + ' ' + q.why; }).join(' ') });
       });
     });

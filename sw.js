@@ -2,7 +2,7 @@
  * Bump CACHE on every content change to roll users onto the new bundle.
  * A new version installs and then waits; js/update.js shows an Update
  * button and sends 'skipWaiting' when the learner taps it. */
-var CACHE = 'cph-v10';
+var CACHE = 'cph-v11';
 // cph-v8 is the first version whose page code has the Update button. Older
 // pages can't ask a waiting worker to take over, so replacing one of those
 // still activates immediately, as before.
@@ -13,7 +13,7 @@ var ASSETS = [
   './vendor/puzzlepieces/js/math-renderer/math-renderer.js',
   './vendor/puzzlepieces/js/local-store/local-store.js',
   './vendor/puzzlepieces/js/pwa-install-detect/pwa-install-detect.js',
-  './js/store.js', './js/install.js', './js/update.js', './js/app.js',
+  './js/store.js', './js/install.js', './js/update.js', './js/widgets.js', './js/app.js',
   './js/data/course.js', './js/data/primer.js', './js/data/concepts.js',
   './js/data/techniques.js', './js/data/examples.js',
   './js/data/drills.js', './js/data/templates.js',

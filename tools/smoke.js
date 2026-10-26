@@ -102,6 +102,14 @@ const server = http.createServer((req,res)=>{
   const visible = await page.$$eval('.sbody:not([hidden])', n => n.length);
   console.log('STEPS EXPANDED:', visible);
 
+  // Number-theory widgets render and compute.
+  await page.goto('http://localhost:8099/#/course/ch6'); await page.waitForTimeout(350);
+  const wgCount = await page.$$eval('.wg', n => n.length);
+  await page.click('.wg[data-wg="egcd"] [data-act=all]');
+  const inv = await page.textContent('.wg[data-wg="egcd"] .wg-big');
+  console.log('NT WIDGETS OK:', wgCount === 11 && inv.indexOf('38') >= 0);
+  await page.screenshot({ path: SHOTS + '/14-numtheory.png' });
+
   // light mode render
   const lp = await (await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,colorScheme:'light'})).newPage();
   await lp.goto('http://localhost:8099/#/proofs/prf-ctr'); await lp.waitForTimeout(300);
