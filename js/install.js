@@ -21,11 +21,12 @@
   function hideBanner() {
     var b = document.getElementById('installbar');
     if (b) b.parentNode.removeChild(b);
-    document.body.classList.remove('has-installbar');
+    // The update bar (js/update.js) shares the slot and the padding class.
+    if (!document.getElementById('updatebar')) document.body.classList.remove('has-installbar');
   }
 
   function showBanner() {
-    if (document.getElementById('installbar')) return;
+    if (document.getElementById('installbar') || document.getElementById('updatebar')) return;
     var bar = document.createElement('div');
     bar.className = 'installbar';
     bar.id = 'installbar';

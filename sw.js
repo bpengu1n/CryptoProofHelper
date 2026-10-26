@@ -46,8 +46,9 @@ self.addEventListener('message', function (e) {
 self.addEventListener('activate', function (e) {
   e.waitUntil(
     caches.keys().then(function (keys) {
+      // Only this app's caches: other apps on the same github.io origin share Cache Storage.
       return Promise.all(keys.map(function (k) {
-        return k === CACHE ? null : caches.delete(k);
+        return k === CACHE || k.indexOf('cph-') !== 0 ? null : caches.delete(k);
       }));
     }).then(function () { return self.clients.claim(); })
   );
