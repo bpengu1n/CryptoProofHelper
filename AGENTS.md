@@ -135,12 +135,12 @@ Tests use a headless Chromium launched by Playwright; they verify routing, math 
 
 ## Service worker
 
-`sw.js` exports a `CACHE` constant (currently `'cph-v11'`) and an `ASSETS` array.
+`sw.js` exports a `CACHE` constant (currently `'cph-v12'`) and an `ASSETS` array.
 
 **Every time you add, rename, or remove a file that the app loads:**
 
 1. Add or update the path in the `ASSETS` array in `sw.js`.
-2. Bump `CACHE` to the next version (e.g. `'cph-v11'` → `'cph-v12'`).
+2. Bump `CACHE` to the next version (e.g. `'cph-v12'` → `'cph-v13'`).
 
 Failing to bump the cache means users who already have the app installed will keep loading the old version indefinitely.
 
@@ -224,7 +224,7 @@ In `app.js`, `M` aliases `window.MathRenderer` and `t(s)` is shorthand for `M.te
    }
    ```
 5. The router (`/course/:id`, and `/course/:id/:sectionId` to open at a section) is already wired; no changes to `app.js` routing needed.
-6. Optional links: a chapter's `prereq: ['#/primer/…', …]` and a section's `see: ['#/proofs/…', …]` list in-app routes (primer, basics, learn, proofs, course). Titles are looked up automatically; worked proofs in `see` also appear in the chapter's "Next steps".
+6. Optional links: a chapter's `prereq: ['#/primer/…', …]` and a section's `see: ['#/proofs/…', …]` list in-app routes (primer, basics, learn, proofs, course). Titles are looked up automatically; worked proofs in `see` also appear in the chapter's "Next steps". A chapter's optional `book` string names the Bellare & Rogaway chapters it covers; it is shown under the blurb.
 7. Bump `CACHE` in `sw.js` (content-only changes still need a cache bump so SW-cached users get fresh data).
 
 ### SVG animation
